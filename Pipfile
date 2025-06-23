@@ -26,9 +26,10 @@ shell = "*"
 openai = "*"
 flask = "*"
 flask-jwt-extended = "*"
-werkzeug = "*"
 python-dotenv = "*"
 flask-mail = "*"
+werkzeug = "*"
+axios = "*"
 
 [requires]
 python_version = "3.13"
