@@ -126,6 +126,18 @@ const Profile = () => {
     "profile-pic-8.png": "photo8",
     "profile-pic-9.png": "photo9",
   };
+
+  const photoArray = [
+    { key: "photo1", file: photo1 },
+    { key: "photo2", file: photo2 },
+    { key: "photo3", file: photo3 },
+    { key: "photo4", file: photo4 },
+    { key: "photo5", file: photo5 },
+    { key: "photo6", file: photo6 },
+    { key: "photo7", file: photo7 },
+    { key: "photo8", file: photo8 },
+    { key: "photo9", file: photo9 },
+  ];
   const photoAssets = { photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9 };
 
   // Carga inicial de perfil y reviews recibidos
@@ -843,19 +855,21 @@ const Profile = () => {
             <div className="avatar-modal">
               <h3>Choose Your Avatar</h3>
               <div className="avatar-grid">
-                {Object.entries(photoAssets).map(([key, file], idx) => {
+                {photoArray.map(({ key, file }, idx) => {
                   const isSelected = key === profile.photo;
+
                   return (
                     <img
                       key={idx}
                       src={file}
-                      alt="Avatar"
+                      alt={`Avatar ${idx + 1}`}
                       className={isSelected ? 'selected' : ''}
-                      onClick={() => handlePicChange(key)} // <-- ahora pasa directamente 'photo1', 'photo2', etc.
+                      onClick={() => handlePicChange(key)}
                     />
                   );
                 })}
               </div>
+
 
 
 
