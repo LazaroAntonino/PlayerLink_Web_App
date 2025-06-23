@@ -236,7 +236,7 @@ const Profile = () => {
 
             <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i> Profile incomplete. Remember to complete it to unlock the full potential of PlayerLink.
           </h4>
-            );
+        );
 
         clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 10000);
       }
@@ -247,17 +247,17 @@ const Profile = () => {
   };
 
   // Cambiar avatar en backend y estado local
-  const handlePicChange = async (fileName) => {
-    const newKey = picMap[fileName] || 'photo1';
+  const handlePicChange = async (photoKey) => {
     try {
-      await userServices.changeUserPhoto(store.user.id, { photo: newKey });
-      setProfile(prev => ({ ...prev, photo: newKey }));
+      await userServices.changeUserPhoto(store.user.id, { photo: photoKey });
+      setProfile(prev => ({ ...prev, photo: photoKey }));
     } catch (err) {
       console.error('Error al cambiar foto:', err);
     } finally {
       setShowModal(false);
     }
   };
+
 
   // Seleccionar asset de avatar
   const selectPhoto = () => photoAssets[profile.photo] || photo1;
@@ -450,93 +450,93 @@ const Profile = () => {
 
             <h3>Bio</h3>
 
-          {isEditing ? (
-            <textarea
-              className="form-control textareastyle"
-              rows={3}
-              value={profile.bio}
-              onChange={e => handleInputChange('bio', e.target.value)}
-            />
-          ) : (
-            <p>{profile.bio}</p>
-          )}
-        </div>
-        <div className="tabs">
-          {['info', 'Games', 'comments'].map(tab => (
-            <button
-              key={tab}
-              className={activeTab === tab ? 'active' : ''}
-              onClick={() => setActiveTab(tab)}
-            >{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>
-          ))}
-        </div>
-        {activeTab === 'info' && (
-          <div className="info-section container">
-            {/* Nombre y Nickname */}
-            <div className="row">
-              {['name', 'nick_name'].map((f, i) => (
-                <div key={i} className="col-md-6">
-                  <label>{f === 'nick_name' ? 'Nickname' : 'Name'}</label>
+            {isEditing ? (
+              <textarea
+                className="form-control textareastyle"
+                rows={3}
+                value={profile.bio}
+                onChange={e => handleInputChange('bio', e.target.value)}
+              />
+            ) : (
+              <p>{profile.bio}</p>
+            )}
+          </div>
+          <div className="tabs">
+            {['info', 'Games', 'comments'].map(tab => (
+              <button
+                key={tab}
+                className={activeTab === tab ? 'active' : ''}
+                onClick={() => setActiveTab(tab)}
+              >{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>
+            ))}
+          </div>
+          {activeTab === 'info' && (
+            <div className="info-section container">
+              {/* Nombre y Nickname */}
+              <div className="row">
+                {['name', 'nick_name'].map((f, i) => (
+                  <div key={i} className="col-md-6">
+                    <label>{f === 'nick_name' ? 'Nickname' : 'Name'}</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={profile[f]}
+                        onChange={e => handleInputChange(f, e.target.value)}
+                        maxLength={11}
+                      />
+                    ) : (
+                      <p>{profile[f]}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Age, Gender, Zodiac */}
+              <div className="row">
+                <div className="col-md-4">
+                  <label>Age</label>
                   {isEditing ? (
                     <input
-                      type="text"
-                      value={profile[f]}
-                      onChange={e => handleInputChange(f, e.target.value)}
-                      maxLength={11}
+                      type="number"
+                      value={profile.age}
+                      onChange={e => handleInputChange('age', +e.target.value)}
+                      max={120}
+                      min={1}
                     />
                   ) : (
-                    <p>{profile[f]}</p>
+                    <p>{profile.age}</p>
                   )}
                 </div>
-              ))}
-            </div>
-            {/* Age, Gender, Zodiac */}
-            <div className="row">
-              <div className="col-md-4">
-                <label>Age</label>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    value={profile.age}
-                    onChange={e => handleInputChange('age', +e.target.value)}
-                    max={120}
-                    min={1}
-                  />
-                ) : (
-                  <p>{profile.age}</p>
-                )}
+                <div className="col-md-4">
+                  <label>Gender</label>
+                  {isEditing ? (
+                    <select
+                      value={profile.gender}
+                      onChange={e => handleInputChange('gender', e.target.value)}
+                    >
+                      {genders.map((g, idx) => <option key={idx}>{g}</option>)}
+                    </select>
+                  ) : (
+                    <p>{profile.gender}</p>
+                  )}
+                </div>
+                <div className="col-md-4">
+                  <label>Zodiac</label>
+                  {isEditing ? (
+                    <select
+                      value={profile.zodiac}
+                      onChange={e => handleInputChange('zodiac', e.target.value)}
+                    >
+                      {zodiacSigns.map((z, idx) => <option key={idx}>{z}</option>)}
+                    </select>
+                  ) : (
+                    <p>{profile.zodiac}</p>
+                  )}
+                </div>
               </div>
-              <div className="col-md-4">
-                <label>Gender</label>
-                {isEditing ? (
-                  <select
-                    value={profile.gender}
-                    onChange={e => handleInputChange('gender', e.target.value)}
-                  >
-                    {genders.map((g, idx) => <option key={idx}>{g}</option>)}
-                  </select>
-                ) : (
-                  <p>{profile.gender}</p>
-                )}
-              </div>
-              <div className="col-md-4">
-                <label>Zodiac</label>
-                {isEditing ? (
-                  <select
-                    value={profile.zodiac}
-                    onChange={e => handleInputChange('zodiac', e.target.value)}
-                  >
-                    {zodiacSigns.map((z, idx) => <option key={idx}>{z}</option>)}
-                  </select>
-                ) : (
-                  <p>{profile.zodiac}</p>
-                )}
-              </div>
-            </div>
-            {/* Contacto y preferencias */}
-            <div className="row">
-              {['discord', 'steam_id'].map((f, i) => (
-                <div key={i} className="col-md-6">
+              {/* Contacto y preferencias */}
+              <div className="row">
+                {['discord', 'steam_id'].map((f, i) => (
+                  <div key={i} className="col-md-6">
 
 
                     <label className="d-flex align-items-center gap-2 mt-1 mb-1">{f === 'steam_id' ? 'Steam Friend ID' : 'Discord'}
@@ -843,18 +843,22 @@ const Profile = () => {
             <div className="avatar-modal">
               <h3>Choose Your Avatar</h3>
               <div className="avatar-grid">
-                {Object.keys(picMap).map((file, idx) => (
-                  <img
-                    key={idx}
-                    src={`/src/front/assets/img/profile-pics/${file}`}
-                    alt={file}
-                    className={file === Object.entries(picMap)
-                      .find(([, key]) => key === profile.photo)[0]
-                      ? 'selected' : ''}
-                    onClick={() => handlePicChange(file)}
-                  />
-                ))}
+                {Object.entries(photoAssets).map(([key, file], idx) => {
+                  const isSelected = key === profile.photo;
+                  return (
+                    <img
+                      key={idx}
+                      src={file}
+                      alt="Avatar"
+                      className={isSelected ? 'selected' : ''}
+                      onClick={() => handlePicChange(key)} // <-- ahora pasa directamente 'photo1', 'photo2', etc.
+                    />
+                  );
+                })}
               </div>
+
+
+
               <button onClick={() => setShowModal(false)} className="cancel-btn">Cancel</button>
             </div>
           </div>
