@@ -11,6 +11,11 @@ from flask_cors import CORS
 from sqlalchemy import select, or_
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
+
+# Python 3.9 on macOS ships without scrypt in hashlib.
+# Force pbkdf2:sha256 so hashing works on all platforms.
+def hash_password(password: str) -> str:
+    return generate_password_hash(password, method="pbkdf2:sha256")
 from dotenv import load_dotenv
 from flask_mail import Message
 from api.mail.mailer import send_email
@@ -102,7 +107,7 @@ def register():
         if db.session.execute(select(User).where(User.email == email)).scalar_one_or_none():
             return jsonify({'error': 'Email already in use'}), 409
 
-        hashed_password = generate_password_hash(password)
+        hashed_password = hash_password(password)
         new_user = User(email=email, password=hashed_password)
 
         new_user.profile = Profile(
@@ -207,7 +212,7 @@ def password_update():
             return jsonify({'success': False, 'msg': 'Falta el user'}), 422
 
         # actualizamos password del usuario
-        hashed_password = generate_password_hash(data['password'])
+        hashed_password = hash_password(data['password'])
         user.password = hashed_password
         # alacenamos los cambios
         db.session.commit()
@@ -271,7 +276,7 @@ def post_user():
         return jsonify({'error': 'Missing data'}), 400
     new_user = User(
         email=data['email'],
-        password=generate_password_hash(data['password'])
+        password=hash_password(data['password'])
     )
     db.session.add(new_user)
     db.session.commit()
@@ -293,7 +298,7 @@ def put_user(user_id):
         return jsonify({'error': f'User with id {user_id} not found'}), 404
     user.email = data.get('email', user.email)
     if 'password' in data and data['password']:
-        user.password = generate_password_hash(data['password'])
+        user.password = hash_password(data['password'])
     db.session.commit()
     return jsonify(user.serialize()), 200
 
@@ -337,7 +342,7 @@ def users_password(user_id):
     if not check_password_hash(user.password, data['actualPassword']):
         return jsonify({'error': 'Contraseña actual incorrecta'}), 401
 
-    user.password = generate_password_hash(data['password'])
+    user.password = hash_password(data['password'])
     db.session.commit()
 
     return jsonify({'msg': 'Contraseña actualizada correctamente'}), 200
