@@ -43,7 +43,10 @@ export const Sidebar = ({ activePath }) => {
 
   return (
     <>
-      <button className="sidebar-toggle" onClick={() => setOpen(!open)}>☰</button>
+      <button className="sidebar-toggle" onClick={() => setOpen(!open)}>
+        <i className="fa-solid fa-bars"></i>
+      </button>
+      {open && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}
       <div className={`sidebar ${open ? "open" : ""}`}>
         {links.map(link => (
           <NavLink
@@ -60,7 +63,7 @@ export const Sidebar = ({ activePath }) => {
         ))}
         <button onClick={handleLogout} className="sidebar-button logout">
           <span className="sidebar-icon">
-            <i><i className="fa-solid fa-right-from-bracket"></i></i>
+            <i className="fa-solid fa-right-from-bracket"></i>
           </span>
           <span className="sidebar-text">Log out</span>
         </button>

@@ -123,9 +123,16 @@ export default function storeReducer(store, action = {}) {
           ? safeJSONParse("user", action.payload)
           : action.payload;
       localStorage.setItem("user", JSON.stringify(userPayload));
+      // Clear stale session data so each login starts fresh
+      localStorage.removeItem("likesSent");
+      localStorage.removeItem("dislikesSent");
+      localStorage.removeItem("searchMatchProfiles");
       return {
         ...store,
         user: userPayload,
+        likesSent: [],
+        dislikesSent: [],
+        searchMatchProfiles: [],
       };
     }
     default:

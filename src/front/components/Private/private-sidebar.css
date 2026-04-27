@@ -58,33 +58,53 @@
 
 /* Estilo para el botón de "Log out" */
 .sidebar-button.logout {
-  background-color: red; 
-  margin-top: auto; 
-  justify-content: flex-start; 
+  background: linear-gradient(90deg, rgba(255, 50, 50, 0.15), rgba(180, 0, 0, 0.15));
+  border: 2px solid rgba(255, 80, 80, 0.7);
+  margin-top: auto;
+  justify-content: flex-start;
 }
 
 .sidebar-button.logout:hover {
-  background-color: darkred; 
+  background: linear-gradient(90deg, rgba(255, 50, 50, 0.3), rgba(180, 0, 0, 0.3));
+  border-color: #ff4444;
+  transform: translateX(8px);
+  box-shadow: 0 0 12px rgba(255, 60, 60, 0.5);
 }
 
 .sidebar-button.logout .sidebar-text {
-  color: white; 
-  margin-left: 10px; /* Espacio entre el ícono y el texto */
+  color: #ff8080;
+  margin-left: 10px;
 }
 
 .sidebar-button.logout .sidebar-icon {
-  font-size: 18px; /* Tamaño del ícono */
-  margin-right: 5px; /* Espacio entre el ícono y el texto */
+  font-size: 20px;
+  margin-right: 5px;
   margin-left: 20px;
+  color: #ff8080;
 }
 
 .sidebar-button.logout i {
-  font-size: 50px; 
-  color: white;
+  font-size: 22px;
+  color: #ff8080;
 }
 
 
-/* Ajuste a resoluciones pequeñas */
+/* Mobile backdrop when sidebar is open */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -105,18 +125,30 @@
 .sidebar-toggle {
   display: none;
   position: fixed;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   z-index: 1100;
-  background: none;
-  color: white;
-  font-size: 28px;
-  border: none;
+  background: rgba(0, 255, 255, 0.1);
+  color: #00f0ff;
+  font-size: 22px;
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  border-radius: 8px;
   cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(0, 255, 255, 0.2);
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
 }
 
 @media (max-width: 768px) {
   .sidebar-toggle {
-    display: block;
+    display: flex;
   }
 }

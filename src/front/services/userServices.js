@@ -71,10 +71,12 @@ userServices.getUserInfoById = async (user_id) => {
 
 userServices.changeUserPhoto = async (user_id, photo) => {
   try {
+    const token = localStorage.getItem("token");
     const resp = await fetch(url + `/api/profiles/photo/${user_id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(photo),
     });

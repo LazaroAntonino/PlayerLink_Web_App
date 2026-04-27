@@ -1,28 +1,46 @@
 .matchCardd {
-  /* Quitamos width: 20rem; para que ocupe el 100% de la columna */
-  /* width: 20rem; */
-
-  /* Altura automática para respetar el contenido */
   height: auto;
-  border: 2px solid rgb(255, 255, 255); /* borde sutil en vez de blanco puro */
+  background: linear-gradient(135deg, rgba(0, 20, 30, 0.95), rgba(10, 0, 20, 0.95));
+  border: 1px solid rgba(0, 240, 255, 0.3) !important;
+  border-radius: 16px !important;
   color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
 
-  /* Gradiente diagonal en tonos neón */
-  background: linear-gradient(
-    135deg,
-    #72e1ff,
-    #ef9af1
-  );
+.matchCardd:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 240, 255, 0.7) !important;
+  box-shadow: 0 8px 30px rgba(0, 240, 255, 0.15), 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+.matchCardd .card-title {
+  color: #00f0ff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.matchCardd p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+}
+
+.medalsBox {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px;
+  margin-top: 8px;
+  min-height: 90px;
 }
 
 .imagenminicard {
-  border: 2px solid transparent;
-  border-radius: 12px;
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  border-radius: 10px;
+  transition: box-shadow 0.2s ease;
+  box-shadow: 0 0 8px rgba(138, 0, 255, 0.3), 0 0 10px rgba(0, 192, 255, 0.3);
+}
 
-  /* Borde multicolor: efecto neón con borde doble */
-  box-shadow: 
-    0 0 8px #8a00ff,     /* morado suave */
-    0 0 10px #00c0ff;     /* azul más brillante */
-
-  display: inline-block;
+.imagenminicard:hover {
+  box-shadow: 0 0 14px rgba(138, 0, 255, 0.6), 0 0 18px rgba(0, 192, 255, 0.5);
 }

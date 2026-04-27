@@ -44,7 +44,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location }) =>
   return (
     <>
       <div
-        className="match-card card h-100 w-100 matchCardd text-dark"
+        className="match-card card h-100 w-100 matchCardd"
         onClick={() => navigate(`matchDetails/${id}`)}
       >
         <div className="card-body d-flex flex-column p-3 pb-0">

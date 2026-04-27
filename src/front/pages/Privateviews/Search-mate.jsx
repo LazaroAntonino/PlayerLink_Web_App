@@ -24,7 +24,7 @@ export const SearchMate = () => {
     if (!store.user || store.user === "undefined") {
       navigate('/')
     }
-  },[])
+  }, [])
 
 
   //Carga los perfiles 

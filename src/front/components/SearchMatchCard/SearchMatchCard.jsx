@@ -78,13 +78,13 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   // Mouse events
   const handleMouseDown = (e) => onDragStart(e.clientX);
   const handleMouseMove = (e) => { if (dragRef.current.active) onDragMove(e.clientX); };
-  const handleMouseUp   = () => onDragEnd();
+  const handleMouseUp = () => onDragEnd();
   const handleMouseLeave = () => { if (dragRef.current.active) onDragEnd(); };
 
   // Touch events
   const handleTouchStart = (e) => onDragStart(e.touches[0].clientX);
-  const handleTouchMove  = (e) => onDragMove(e.touches[0].clientX);
-  const handleTouchEnd   = () => onDragEnd();
+  const handleTouchMove = (e) => onDragMove(e.touches[0].clientX);
+  const handleTouchEnd = () => onDragEnd();
   // ──────────────────────────────────────────────────────────────────────────
 
   const handleLike = () => {

@@ -6,14 +6,8 @@ import carrusel2 from '../assets/img/carrusel/carrusel-2.png';
 import carrusel3 from '../assets/img/carrusel/carrusel-3.png';
 import carrusel4 from '../assets/img/carrusel/carrusel-4.png';
 import logotarjeta from '../assets/img/logos/logo-tarjetas-about-us.png';
-import {  useState } from "react"
-import { useNavigate } from "react-router-dom";
-import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import { emailServices } from "../services/emailServices.js"
 
 export const Home = () => {
-	const [email, setEmail] = useState('')
-
 	return (
 		<>
 			<NavbarHome />

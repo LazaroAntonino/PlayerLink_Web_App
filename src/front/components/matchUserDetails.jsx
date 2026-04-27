@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import userServices from "../services/userServices";
-import useGlobalReducer, { StoreProvider } from "../hooks/useGlobalReducer";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../pages/Privateviews/Profile.css";
 import reviewServices from "../services/reviewServices";
 import goldMedal from "../assets/img/medals/gold-medal.png";

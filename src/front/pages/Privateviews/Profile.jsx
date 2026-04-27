@@ -289,7 +289,10 @@ const Profile = () => {
         try {
           const resp = await fetch(url + `/api/profiles/${store.user.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
@@ -302,7 +305,10 @@ const Profile = () => {
         try {
           const resp = await fetch(url + `/api/profiles/${store.user?.id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
             body: JSON.stringify(profile),
           });
           if (!resp.ok) throw new Error('Error al guardar perfil');
