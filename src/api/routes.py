@@ -992,6 +992,7 @@ def post_like(liker_id, liked_id):
     db.session.add(new_like)
 
     # Si existe el like inverso y no existe aún el match, crear match
+    match_created = None
     if reverse_like:
         existing_match = (db.session.query(Match)
                           .filter(
@@ -1003,10 +1004,34 @@ def post_like(liker_id, liked_id):
         if not existing_match:
             new_match = Match(user1_id=liker_id, user2_id=liked_id)
             db.session.add(new_match)
+            match_created = new_match
 
     # Confirmar cambios en la base
     db.session.commit()
-    return jsonify(new_like.serialize()), 201
+
+    # Construir respuesta con datos del match si fue creado
+    if match_created:
+        other = liked  # el usuario que recibió el like (el que ya nos había dado like)
+        match_profile = None
+        if other.profile:
+            match_profile = {
+                "user_id": other.id,
+                "nick_name": other.profile.nick_name or other.profile.name or "undefined",
+                "photo": other.profile.photo or "photo1",
+                "name": other.profile.name or "undefined",
+                "age": other.profile.age,
+                "location": other.profile.location or "undefined",
+                "discord": other.profile.discord or "undefined",
+                "games": [g.serialize() for g in other.profile.games] if other.profile.games else [],
+            }
+        return jsonify({
+            "is_match": True,
+            "match_id": match_created.id,
+            "match_profile": match_profile,
+            "like": new_like.serialize()
+        }), 201
+
+    return jsonify({"is_match": False, "like": new_like.serialize()}), 201
 
 
 # DELETE LIKE (ESTÁ LA LÓGICA PARA QUE SE BORRE EL MATCH SI ES NECESARIO)

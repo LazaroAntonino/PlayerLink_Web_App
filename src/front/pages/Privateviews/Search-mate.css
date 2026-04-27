@@ -5,3 +5,59 @@
 .search-mate-btn-close-modal {
   background-color: #00f0ff !important;
 }
+
+/* ── Match overlay ── */
+.match-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.match-overlay-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: overlay-fade-in 0.4s ease forwards;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.match-modal-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 560px;
+  animation: modal-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.75) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.match-modal-close-btn {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  z-index: 2;
+  background-color: #00f0ff !important;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  opacity: 1;
+}

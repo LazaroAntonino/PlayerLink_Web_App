@@ -1,6 +1,5 @@
 import './SearchMatchCard.css';
-// import profilePic4 from "../../assets/img/profile-pics/profile-pic-4.png";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import searchMatchServices from '../../services/searchMatchServices';
 import photo1 from "../../assets/img/profile-pics/profile-pic-1.png";
 import photo2 from "../../assets/img/profile-pics/profile-pic-2.png";
@@ -12,34 +11,25 @@ import photo7 from "../../assets/img/profile-pics/profile-pic-7.png";
 import photo8 from "../../assets/img/profile-pics/profile-pic-8.png";
 import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
 
+const PHOTO_MAP = { photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9 };
+
 export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
   const [animationClass, setAnimationClass] = useState('');
+  const [swipeHint, setSwipeHint] = useState(null); // 'like' | 'dislike' | null
   const [avgStars, setAvgStars] = useState(0);
 
-  const selectPhoto = () => {
-    switch (profile.photo) {
+  // Drag / swipe state
+  const dragRef = useRef({ active: false, startX: 0, currentX: 0 });
+  const cardRef = useRef(null);
 
-      case "photo1": return photo1;
-      case "photo2": return photo2;
-      case "photo3": return photo3;
-      case "photo4": return photo4;
-      case "photo5": return photo5;
-      case "photo6": return photo6;
-      case "photo7": return photo7;
-      case "photo8": return photo8;
-      case "photo9": return photo9;
-      default: return "defaultPhoto";
-    }
-
-  };
+  const selectPhoto = () => PHOTO_MAP[profile.photo] || photo1;
 
   useEffect(() => {
     if (!profile?.id) return;
     const getAvgStars = async () => {
       try {
         const average = await searchMatchServices.getStarsByUser(profile.id);
-        // console.log('Average stars --->', average)//para ver si funciona
         setAvgStars(Number(average));
       } catch (err) {
         console.error(err);
@@ -48,54 +38,109 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
     getAvgStars();
   }, [profile]);
 
+  // ── Swipe helpers ──────────────────────────────────────────────────────────
+  const SWIPE_THRESHOLD = 80;
+
+  const onDragStart = (clientX) => {
+    dragRef.current = { active: true, startX: clientX, currentX: clientX };
+  };
+
+  const onDragMove = (clientX) => {
+    if (!dragRef.current.active) return;
+    const delta = clientX - dragRef.current.startX;
+    dragRef.current.currentX = clientX;
+    if (cardRef.current) {
+      const rotate = delta * 0.06;
+      cardRef.current.style.transform = `translateX(${delta}px) rotate(${rotate}deg)`;
+      cardRef.current.style.transition = 'none';
+    }
+    if (delta > 40) setSwipeHint('like');
+    else if (delta < -40) setSwipeHint('dislike');
+    else setSwipeHint(null);
+  };
+
+  const onDragEnd = () => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    const delta = dragRef.current.currentX - dragRef.current.startX;
+    if (cardRef.current) {
+      cardRef.current.style.transform = '';
+      cardRef.current.style.transition = '';
+    }
+    setSwipeHint(null);
+    if (delta > SWIPE_THRESHOLD) {
+      handleLike();
+    } else if (delta < -SWIPE_THRESHOLD) {
+      handleDislike();
+    }
+  };
+
+  // Mouse events
+  const handleMouseDown = (e) => onDragStart(e.clientX);
+  const handleMouseMove = (e) => { if (dragRef.current.active) onDragMove(e.clientX); };
+  const handleMouseUp   = () => onDragEnd();
+  const handleMouseLeave = () => { if (dragRef.current.active) onDragEnd(); };
+
+  // Touch events
+  const handleTouchStart = (e) => onDragStart(e.touches[0].clientX);
+  const handleTouchMove  = (e) => onDragMove(e.touches[0].clientX);
+  const handleTouchEnd   = () => onDragEnd();
+  // ──────────────────────────────────────────────────────────────────────────
 
   const handleLike = () => {
     setAnimationClass('slide-out-right');
-    setTimeout(() => {
-      setAnimationClass('');
-      onLike();
-    }, 500);
+    setTimeout(() => { setAnimationClass(''); onLike(); }, 500);
   };
 
   const handleDislike = () => {
     setAnimationClass('slide-out-left');
-    setTimeout(() => {
-      setAnimationClass('');
-      onDislike();
-    }, 500);
+    setTimeout(() => { setAnimationClass(''); onDislike(); }, 500);
   };
 
   const formattedPreferences = profile?.preferences
     ? profile.preferences
-      .replace(/\band\b/g, ',')   // reemplaza "and" por coma
-      .replace(/\.+$/, '')        // elimina punto final al final
-      .split(',')                 // separa en array por comas
-      .map(pref => pref.trim())   // quita espacios
-      .filter(Boolean)            // elimina vacíos
-      .join(', ')                 // une con comas sin coma final
+      .replace(/\band\b/g, ',').replace(/\.+$/, '').split(',')
+      .map(p => p.trim()).filter(Boolean).join(', ')
     : '-';
 
-  const formattedLanguages = profile?.language ? profile.language
-    .replace(/\band\b/g, ',')   // reemplaza "and" por coma
-    .replace(/\.+$/, '')        // elimina punto final al final
-    .split(',')                 // separa en array por comas
-    .map(pref => pref.trim())   // quita espacios
-    .filter(Boolean)            // elimina vacíos
-    .join(', ')                 // une con comas sin coma final
-
+  const formattedLanguages = profile?.language
+    ? profile.language
+      .replace(/\band\b/g, ',').replace(/\.+$/, '').split(',')
+      .map(p => p.trim()).filter(Boolean).join(', ')
     : '-';
+
   return (
     <>
       <div className='d-flex justify-content-center'>
         <div className="col">
 
-          <div className={`card search-match-card ${animationClass}`}>
+          <div
+            ref={cardRef}
+            className={`card search-match-card ${animationClass}`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ userSelect: 'none', cursor: 'grab' }}
+          >
+            {/* Swipe hint badges */}
+            {swipeHint === 'like' && (
+              <div className="swipe-hint swipe-hint-like">
+                <i className="fa-solid fa-heart me-2" /> LIKE
+              </div>
+            )}
+            {swipeHint === 'dislike' && (
+              <div className="swipe-hint swipe-hint-dislike">
+                NOPE <i className="fa-solid fa-xmark ms-2" />
+              </div>
+            )}
+
             <div className="card-body">
               <div className='d-flex justify-content-center'>
-
                 <div className='d-flex justify-content-center rounded-circle'>
-
-
                   <img src={selectPhoto()} alt="App Logo" className='search-match-profile-pic border border-3'></img>
                 </div>
               </div>
@@ -107,12 +152,10 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
               {/* stars-rating de los users */}
               <div className='d-flex justify-content-center mt-4 mb-5'>
-
                 {[...Array(5)].map((_, i) => (
                   <i
                     key={i}
-                    className={`fa-star fa-xl ms-1 search-match-stars ${i < Math.round(avgStars) ? "fa-solid" : "fa-regular"
-                      }`}
+                    className={`fa-star fa-xl ms-1 search-match-stars ${i < Math.round(avgStars) ? "fa-solid" : "fa-regular"}`}
                   ></i>
                 ))}
               </div>
@@ -165,9 +208,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
                 <div className='d-flex justify-content-center'>
                   <div className='d-flex ms-4'>
                     <i className="fa-solid fa-language me-2 ms-4"></i>
-                    <h5 className='search-match-text-sm me-4'>{formattedLanguages && formattedLanguages !== '-'
-                      ? formattedLanguages
-                      : 'No languages'}</h5>
+                    <h5 className='search-match-text-sm me-4'>{formattedLanguages && formattedLanguages !== '-' ? formattedLanguages : 'No languages'}</h5>
                   </div>
                 </div>
               </div>
@@ -189,7 +230,6 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
               {/* botones */}
               <div className='row mt-3 d-flex justify-content-center'>
                 <div className="col-6">
-
                   {/* dislike button */}
                   <button type="button"
                     onClick={handleDislike}
@@ -210,8 +250,5 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
         </div>
       </div>
     </>
-
-  )
-
-
-}
+  );
+};

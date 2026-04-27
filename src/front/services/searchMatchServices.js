@@ -81,7 +81,7 @@ searchMatchServices.getStarsByUser = async (userId) => {
   }
 };
 
-// Manda los likes dados por el usuario
+// Manda los likes dados por el usuario — devuelve { is_match, match_profile?, like }
 searchMatchServices.addLikeSent = async (liker_id, liked_id) => {
   try {
     const resp = await fetch(url + `/api/likes/${liker_id}/${liked_id}`, {
@@ -90,13 +90,12 @@ searchMatchServices.addLikeSent = async (liker_id, liked_id) => {
         "Content-Type": "application/json",
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
-      // body: JSON.stringify({ liker_id, liked_id }),
     });
     if (!resp.ok) throw new Error("Failed to send a like");
-    return await resp.json();
+    return await resp.json(); // { is_match: bool, match_profile?: {...}, like: {...} }
   } catch (error) {
     console.error(error);
-    return error;
+    return { is_match: false, error: error.message };
   }
 };
 

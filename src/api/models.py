@@ -1,6 +1,7 @@
 from __future__ import annotations
+from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, ForeignKey, Integer, JSON, DateTime, func
+from sqlalchemy import String, Boolean, ForeignKey, Integer, JSON, DateTime, func, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -173,7 +174,7 @@ class Like(db.Model):
     liked_id: Mapped[int] = mapped_column(ForeignKey(
         'users.id', ondelete='CASCADE'), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relaciones
@@ -198,7 +199,7 @@ class Match(db.Model):
     user2_id: Mapped[int] = mapped_column(ForeignKey(
         'users.id', ondelete='CASCADE'), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relaciones
@@ -239,7 +240,7 @@ class Reject(db.Model):
     rejected_id: Mapped[int] = mapped_column(ForeignKey(
         'users.id', ondelete='CASCADE'), nullable=False)
     created_at: Mapped[DateTime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False
     )
 
     # Relaciones

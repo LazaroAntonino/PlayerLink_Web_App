@@ -94,23 +94,18 @@ export const SearchMate = () => {
 
     setTimeout(async () => {
       const likedProfile = store.searchMatchProfiles[currentUser];
-      // Use user.id (not profile.id) — like/match endpoints expect user IDs
-      if (!store.user?.id || !likedProfile?.user_id) return;
+      if (!store.user?.id || !likedProfile?.user_id) {
+        setIsAnimating(false);
+        return;
+      }
 
       try {
-        await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
+        const result = await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
 
-        const matchesData = await searchMatchServices.getUserMatchesInfo(store.user.id);
-        const matchesArray = matchesData.matches || [];
-        const matchedProfile = matchesArray.find(m => m.user_id === likedProfile.user_id);
-
-        if (matchedProfile) {
-          const fullProfile = store.searchMatchProfiles.find(p => p.user_id === matchedProfile.user_id);
-          const finalProfile = fullProfile || matchedProfile;
-
-          dispatch({ type: "addMatch", payload: finalProfile }); // Aquí agregamos el match al store
-
-          setMatchProfile(finalProfile);
+        if (result?.is_match && result?.match_profile) {
+          // Match detectado directamente desde la respuesta del like — sin llamada extra
+          dispatch({ type: "addMatch", payload: result.match_profile });
+          setMatchProfile(result.match_profile);
           setShowMatchModal(true);
         } else {
           dispatch({ type: "saveLike", payload: likedProfile });
@@ -118,6 +113,7 @@ export const SearchMate = () => {
         }
       } catch (error) {
         console.error("Error en handleLike:", error);
+        advanceToNextProfile();
       } finally {
         setIsAnimating(false);
       }
@@ -199,30 +195,23 @@ export const SearchMate = () => {
 
   return (
     <>
-
-
       {showMatchModal && matchProfile ? (
-        <>
-          <div className="d-flex justify-content-center align-items-center search-mate-font ">
-            <div>
-              <h1 className="title-its-match-card-font-shadow mt-2 mb-3">It's a match</h1>
-            </div>
-            <div>
-              <button
-                type="button"
-                className="btn-close ms-3 search-mate-btn-close-modal"
-                onClick={closeMatchModal}
-              />
-            </div>
+        <div className="match-overlay">
+          <div className="match-overlay-bg" />
+          <div className="match-modal-content">
+            <button
+              type="button"
+              className="btn-close match-modal-close-btn"
+              onClick={closeMatchModal}
+              aria-label="Close"
+            />
+            <ItsMatch
+              profile={matchProfile}
+              myProfile={store.user?.profile}
+              onClose={closeMatchModal}
+            />
           </div>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-body">
-                <ItsMatch profile={matchProfile} />
-              </div>
-            </div>
-          </div>
-        </>
+        </div>
       ) : (
         <>
           <div className="d-flex justify-content-center">
