@@ -284,43 +284,37 @@ const Profile = () => {
 
   // Crear o actualizar perfil
   const updateProfile = async () => {
-    if (isEditing) {
-      if (store.user.profile) {
-        try {
-          const resp = await fetch(url + `/api/profiles/${store.user.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify(profile),
-          });
-          if (!resp.ok) throw new Error('Error al guardar perfil');
-          const result = await resp.json();
-        } catch (err) {
-          console.error('Error en updateProfile:', err);
-        }
-
-      } else {
-        try {
-          const resp = await fetch(url + `/api/profiles/${store.user?.id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify(profile),
-          });
-          if (!resp.ok) throw new Error('Error al guardar perfil');
-          const result = await resp.json();
-        } catch (err) {
-          console.error('Error en updateProfile:', err);
-        }
-
+    if (store.user.profile) {
+      try {
+        const resp = await fetch(url + `/api/profiles/${store.user.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify(profile),
+        });
+        if (!resp.ok) throw new Error('Error al guardar perfil');
+      } catch (err) {
+        console.error('Error en updateProfile:', err);
+      }
+    } else {
+      try {
+        const resp = await fetch(url + `/api/profiles/${store.user?.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify(profile),
+        });
+        if (!resp.ok) throw new Error('Error al guardar perfil');
+      } catch (err) {
+        console.error('Error en updateProfile:', err);
       }
     }
-
-    setIsEditing(!isEditing);
+    await loadProfile();
+    setIsEditing(false);
   };
 
   const handleChange = (e) => {
@@ -462,23 +456,23 @@ const Profile = () => {
         {/* PANEL DERECHO: Bio, Tabs e Info */}
         <div className="right-panel">
 
-          {/* Mensaje perfil vacío */}
-          <div className="bio-box">
+          {/* Edit mode action bar */}
+          {isEditing && (
+            <div className="edit-mode-bar">
+              <span className="edit-mode-label">
+                <i className="fa-solid fa-pencil me-2"></i>Editing profile
+              </span>
+              <div className="edit-mode-actions">
+                <button className="edit-cancel-btn" onClick={() => { setIsEditing(false); loadProfile(); }}>
+                  <i className="fa-solid fa-xmark me-1"></i>Cancel
+                </button>
+                <button className="edit-save-btn" onClick={updateProfile}>
+                  <i className="fa-solid fa-floppy-disk me-1"></i>Save
+                </button>
+              </div>
+            </div>
+          )}
 
-
-            <h3>Bio</h3>
-
-            {isEditing ? (
-              <textarea
-                className="form-control textareastyle"
-                rows={3}
-                value={profile.bio}
-                onChange={e => handleInputChange('bio', e.target.value)}
-              />
-            ) : (
-              <p>{profile.bio}</p>
-            )}
-          </div>
           <div className="tabs">
             {['info', 'Games', 'comments'].map(tab => (
               <button
@@ -490,6 +484,22 @@ const Profile = () => {
           </div>
           {activeTab === 'info' && (
             <div className="info-section container">
+              {/* Bio — first field so it's near the rest when editing */}
+              <div className="row">
+                <div className="col-12">
+                  <label>Bio</label>
+                  {isEditing ? (
+                    <textarea
+                      className="form-control textareastyle"
+                      rows={3}
+                      value={profile.bio}
+                      onChange={e => handleInputChange('bio', e.target.value)}
+                    />
+                  ) : (
+                    <p className="bio-static-text">{profile.bio || "No bio yet."}</p>
+                  )}
+                </div>
+              </div>
               {/* Nombre y Nickname */}
               <div className="row">
                 {['name', 'nick_name'].map((f, i) => (
@@ -688,9 +698,11 @@ const Profile = () => {
               </div>
               <div className="row mt-3">
                 <div className="col text-left">
-                  <button className="edit-btn" onClick={updateProfile}>
-                    {isEditing ? 'Save' : 'Edit'}
-                  </button>
+                  {!isEditing && (
+                    <button className="edit-btn" onClick={() => setIsEditing(true)}>
+                      <i className="fa-solid fa-pencil me-2"></i>Edit profile
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
