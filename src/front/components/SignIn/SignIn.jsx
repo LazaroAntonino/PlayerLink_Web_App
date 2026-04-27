@@ -84,7 +84,7 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
                                     setPasswordErrors([]);
                                     setFormData({ password: "" });
                                     setShowPassword(false);
-                                
+
                                 }}
                             ></button>
                         </div>

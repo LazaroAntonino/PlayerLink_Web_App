@@ -156,7 +156,7 @@ export const Register = ({ onSwitch, onSuccess }) => {
                             {/* Mensaje con las condiciones contraseña que faltan */}
                             {passwordErrors.length > 0 && (
                                 <h5 className="text-warning mt-2 register-message-errors">
-                                    Password must contain {passwordErrors.join(", ")}. 
+                                    Password must contain {passwordErrors.join(", ")}.
                                 </h5>
                             )}
 

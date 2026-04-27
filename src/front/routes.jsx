@@ -11,13 +11,13 @@ import { Home } from "./pages/Home";
 import { Private_page } from "./pages/Private_page";
 
 import { PrivateLayout } from "./components/Private/Private-layout";
-import  Profile  from "./pages/Privateviews/Profile";
+import Profile from "./pages/Privateviews/Profile";
 import { SearchMate } from "./pages/Privateviews/Search-mate";
 import { YourMatches } from "./pages/Privateviews/Your-matches";
 import { FindGames } from "./pages/Privateviews/Find-games";
-import  Settings  from "./pages/Privateviews/Settings";
+import Settings from "./pages/Privateviews/Settings";
 import { MatchUserDetails } from "./components/matchUserDetails";
-import {Reset} from "./pages/Reset.jsx"
+import { Reset } from "./pages/Reset.jsx"
 
 
 export const router = createBrowserRouter(
@@ -46,9 +46,9 @@ export const router = createBrowserRouter(
         <Route path="your-matches" element={<YourMatches />} />
         <Route path="find-games" element={<FindGames />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="your-matches/matchDetails/:id" element={<MatchUserDetails/>} />
+        <Route path="your-matches/matchDetails/:id" element={<MatchUserDetails />} />
       </Route>
-      <Route path="/reset" element={<Reset/>} />
+      <Route path="/reset" element={<Reset />} />
     </Route >
   )
 );

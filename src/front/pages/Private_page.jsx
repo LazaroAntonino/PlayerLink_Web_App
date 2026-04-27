@@ -5,17 +5,17 @@ import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const Private_page = () => {
     const navigate = useNavigate()
-    const {store, dispatch} = useGlobalReducer();
+    const { store, dispatch } = useGlobalReducer();
 
-    useEffect (()=>{
-        if (!store.user){
+    useEffect(() => {
+        if (!store.user) {
             navigate('/')
-        }else{
+        } else {
             navigate('/private/profile')
         }
-    },[])
-    
+    }, [])
+
     return <div>
-        
+
     </div>
 }
