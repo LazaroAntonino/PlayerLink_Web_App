@@ -29,7 +29,13 @@ export const router = createBrowserRouter(
     // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
 
     // Root Route: All navigation will start from here.
-    <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+    <Route path="/" element={<Layout />} errorElement={
+      <div style={{ textAlign: "center", paddingTop: "5rem", color: "#00f0ff" }}>
+        <h1 style={{ fontSize: "5rem" }}>404</h1>
+        <p style={{ fontSize: "1.5rem" }}>Page not found</p>
+        <a href="/" style={{ color: "#00f0ff" }}>← Back to home</a>
+      </div>
+    }>
       {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
       <Route path="/" element={<Home />} />
       {/* dejo comentario para separar vistas públicas de las privadas */}

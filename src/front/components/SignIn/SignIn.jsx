@@ -5,7 +5,7 @@ import userServices from '../../services/userServices';
 import useGlobalReducer from '../../hooks/useGlobalReducer';
 
 
-export const SignIn = ({ onSwitch }) => {
+export const SignIn = ({ onSwitch, onSuccess }) => {
 
     const { store, dispatch } = useGlobalReducer()
     const navigate = useNavigate()
@@ -25,16 +25,20 @@ export const SignIn = ({ onSwitch }) => {
 
         try {
             const data = await userServices.login(formData)
-            localStorage.setItem('token', data.token)
-            if (data.success) {
-                await userServices.getUserInfo()
-                await dispatch({ type: 'getUserInfo', payload: localStorage.getItem('user') })
-                navigate('/private/profile')
-            } else {
-                setErrorLogin("Incorrect email or password")
+            if (!data || !data.success) {
+                setErrorLogin(data?.error || "Incorrect email or password")
+                return
             }
+            localStorage.setItem('token', data.token)
+            const userInfo = await userServices.getUserInfo()
+            // getUserInfo already saves to localStorage; dispatch the parsed object
+            const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'))
+            dispatch({ type: 'getUserInfo', payload: parsedUser })
+            if (onSuccess) onSuccess()
+            navigate('/private/profile')
         } catch (error) {
             console.error('Login failed', error)
+            setErrorLogin("Something went wrong. Please try again.")
         }
     }
 

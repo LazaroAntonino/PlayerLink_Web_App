@@ -10,13 +10,13 @@ userServices.register = async (formData) => {
       },
       body: JSON.stringify(formData),
     });
-    if (!resp.ok) throw Error("Something went wrong");
     const data = await resp.json();
-    console.log(data);
+    if (!resp.ok) {
+      return { success: false, error: data?.error || "Registration failed" };
+    }
     return data;
   } catch (error) {
-    console.log(error);
-    return error;
+    return { success: false, error: "Network error. Please try again." };
   }
 };
 
@@ -29,13 +29,14 @@ userServices.login = async (formData) => {
       },
       body: JSON.stringify(formData),
     });
-    if (!resp.ok) throw Error("Something went wrong");
     const data = await resp.json();
-    console.log(data);
+    if (!resp.ok) {
+      // Return a structured error so the caller can display the backend message
+      return { success: false, error: data?.error || "Login failed" };
+    }
     return data;
   } catch (error) {
-    console.log(error);
-    return error;
+    return { success: false, error: "Network error. Please try again." };
   }
 };
 
@@ -47,14 +48,13 @@ userServices.getUserInfo = async () => {
         Authorization: "Bearer " + localStorage.getItem("token"),
       },
     });
-    if (!resp.ok) throw Error("Something went wrong");
+    if (!resp.ok) throw new Error("Failed to fetch user info");
     const data = await resp.json();
-    console.log(data);
     localStorage.setItem("user", JSON.stringify(data.user));
     return data;
   } catch (error) {
-    console.log(error);
-    return error;
+    console.error("getUserInfo error:", error);
+    throw error;
   }
 };
 
@@ -63,10 +63,8 @@ userServices.getUserInfoById = async (user_id) => {
     const resp = await fetch(url + `/api/users/${user_id}`);
     if (!resp.ok) throw Error("Something went wrong");
     const data = await resp.json();
-    console.log(data);
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -84,7 +82,6 @@ userServices.changeUserPhoto = async (user_id, photo) => {
     const data = await resp.json();
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };

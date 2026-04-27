@@ -1,81 +1,155 @@
-# WebApp boilerplate with React JS and Flask API
+<p align="center">
+  <img src="src/front/assets/img/logos/logo-app.png" alt="PlayerLink Logo" width="120"/>
+</p>
 
-Build web applications using React.js for the front end and python/flask for your backend API.
+<h1 align="center">PlayerLink</h1>
+<p align="center">Find your perfect gaming companion — swipe, match, and play together.</p>
 
-- Documentation can be found here: https://4geeks.com/docs/start/react-flask-template
-- Here is a video on [how to use this template](https://www.loom.com/share/f37c6838b3f1496c95111e515e83dd9b)
-- Integrated with Pipenv for package managing.
-- Fast deployment to Render [in just a few steps here](https://4geeks.com/docs/start/deploy-to-render-com).
-- Use of .env file.
-- SQLAlchemy integration for database abstraction.
+---
 
-### 1) Installation:
+## 🧰 Tech Stack
 
-> If you use Github Codespaces (recommended) or Gitpod this template will already come with Python, Node and the Posgres Database installed. If you are working locally make sure to install Python 3.10, Node 
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + Vite + Bootstrap 5 |
+| Backend | Python 3.13 + Flask + Flask-JWT-Extended |
+| Database | PostgreSQL (production) / SQLite (local dev) |
+| ORM | SQLAlchemy 2 + Flask-Migrate (Alembic) |
+| Auth | JWT (Bearer token) + bcrypt password hashing |
+| AI Chat | OpenAI GPT-3.5-turbo |
+| Email | Flask-Mail (SMTP) |
+| Deployment | Render.com |
 
-It is recomended to install the backend first, make sure you have Python 3.10, Pipenv and a database engine (Posgress recomended)
+---
 
-1. Install the python packages: `$ pipenv install`
-2. Create a .env file based on the .env.example: `$ cp .env.example .env`
-3. Install your database engine and create your database, depending on your database you have to create a DATABASE_URL variable with one of the possible values, make sure you replace the valudes with your database information:
+## 🚀 Quick Start
 
-| Engine    | DATABASE_URL                                        |
-| --------- | --------------------------------------------------- |
-| SQLite    | sqlite:////test.db                                  |
-| MySQL     | mysql://username:password@localhost:port/example    |
-| Postgress | postgres://username:password@localhost:5432/example |
+### Prerequisites
 
-4. Migrate the migrations: `$ pipenv run migrate` (skip if you have not made changes to the models on the `./src/api/models.py`)
-5. Run the migrations: `$ pipenv run upgrade`
-6. Run the application: `$ pipenv run start`
+- Python 3.13+
+- Node.js 20+
+- `pipenv` → `pip install pipenv`
+- PostgreSQL (optional — SQLite works for local dev)
 
-> Note: Codespaces users can connect to psql by typing: `psql -h localhost -U gitpod example`
+---
 
-### Undo a migration
+### 1. Clone & configure environment
 
-You are also able to undo a migration by running
-
-```sh
-$ pipenv run downgrade
+```bash
+git clone https://github.com/LazaroAntonino/PlayerLink_Web_App.git
+cd PlayerLink_Web_App
+cp .env.example .env
 ```
 
-### Backend Populate Table Users
+Open `.env` and fill in your values (see comments inside the file).
 
-To insert test users in the database execute the following command:
+---
 
-```sh
-$ flask insert-test-users 5
+### 2. Backend setup
+
+```bash
+# Install Python dependencies
+pipenv install
+
+# Create and initialise the database
+pipenv run upgrade        # runs: flask db upgrade
+
+# (Optional) Seed test users
+pipenv run flask insert-test-users 5
+
+# Start the API server on http://localhost:3001
+pipenv run start
 ```
 
-And you will see the following message:
+> In development mode (`FLASK_DEBUG=1`) the root `/` shows an interactive sitemap of all endpoints.
+
+---
+
+### 3. Frontend setup
+
+```bash
+# Install Node dependencies
+npm install
+
+# Start the Vite dev server on http://localhost:3000
+npm run start
+```
+
+---
+
+### 4. Building for production
+
+```bash
+# Build the React app into /public (served by Flask in production)
+npm run build
+```
+
+---
+
+## 🗂️ Project Structure
 
 ```
-  Creating test users
-  test_user1@test.com created.
-  test_user2@test.com created.
-  test_user3@test.com created.
-  test_user4@test.com created.
-  test_user5@test.com created.
-  Users created successfully!
+├── src/
+│   ├── app.py                  # Flask application factory
+│   ├── wsgi.py                 # WSGI entry point (Gunicorn)
+│   └── api/
+│       ├── models.py           # SQLAlchemy ORM models
+│       ├── routes.py           # All API endpoints
+│       ├── admin.py            # Flask-Admin setup
+│       ├── commands.py         # Flask CLI commands
+│       ├── utils.py            # Helpers & custom exceptions
+│       └── mail/               # Email sending logic
+└── src/front/
+    ├── main.jsx                # React entry point
+    ├── routes.jsx              # React Router configuration
+    ├── store.js                # Global state (useReducer)
+    ├── hooks/                  # Custom React hooks
+    ├── pages/                  # Page components
+    │   ├── Home.jsx            # Landing page
+    │   └── Privateviews/       # Authenticated views
+    │       ├── Profile.jsx
+    │       ├── Search-mate.jsx
+    │       ├── Your-matches.jsx
+    │       ├── Find-games.jsx  # AI chat
+    │       └── Settings.jsx
+    ├── components/             # Reusable UI components
+    └── services/               # API client functions
 ```
 
-### **Important note for the database and the data inside it**
+---
 
-Every Github codespace environment will have **its own database**, so if you're working with more people eveyone will have a different database and different records inside it. This data **will be lost**, so don't spend too much time manually creating records for testing, instead, you can automate adding records to your database by editing ```commands.py``` file inside ```/src/api``` folder. Edit line 32 function ```insert_test_data``` to insert the data according to your model (use the function ```insert_test_users``` above as an example). Then, all you need to do is run ```pipenv run insert-test-data```.
+## 🔑 Key Features
 
-### Front-End Manual Installation:
+- **Register / Login** — JWT-based auth with bcrypt password hashing
+- **Profile** — avatar selection, gaming preferences, Discord/Steam IDs, bio
+- **Search a Mate** — swipe-style card deck; like → match when mutual
+- **Your Matches** — grid of all matched players with detailed view & star reviews
+- **Find Games** — AI-powered gaming recommendations via OpenAI GPT-3.5
+- **Settings** — change email, change password, delete account
+- **Password Reset** — email flow with secure JWT link
 
--   Make sure you are using node version 20 and that you have already successfully installed and runned the backend.
+---
 
-1. Install the packages: `$ npm install`
-2. Start coding! start the webpack dev server `$ npm run start`
+## 🌐 API Endpoints (summary)
 
-## Publish your website!
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/register` | ❌ | Create account |
+| POST | `/api/login` | ❌ | Get JWT token |
+| GET | `/api/private` | ✅ | Get current user info |
+| GET | `/api/token` | ✅ | Validate token |
+| PUT | `/api/profiles/<user_id>` | ✅ | Update profile |
+| GET | `/api/profiles/profiles_to_explore/<id>` | ✅ | Profiles to swipe |
+| POST | `/api/likes/<liker>/<liked>` | ✅ | Like a user (auto-match) |
+| POST | `/api/rejects/<rejector>/<rejected>` | ✅ | Reject a user |
+| GET | `/api/matches/user/<user_id>` | ✅ | Get your matches |
+| POST | `/api/reviews/<author>/<receiver>` | ❌ | Leave a star review |
+| POST | `/api/chat` | ❌ | AI game recommendations |
+| POST | `/api/check_mail` | ❌ | Request password reset email |
+| PUT | `/api/password_update` | ✅ | Set new password after reset |
 
-This boilerplate it's 100% read to deploy with Render.com and Heroku in a matter of minutes. Please read the [official documentation about it](https://4geeks.com/docs/start/deploy-to-render-com).
+---
 
-### Contributors
+## 🤝 Contributors
 
-This template was built as part of the 4Geeks Academy [Coding Bootcamp](https://4geeksacademy.com/us/coding-bootcamp) by [Alejandro Sanchez](https://twitter.com/alesanchezr) and many other contributors. Find out more about our [Full Stack Developer Course](https://4geeksacademy.com/us/coding-bootcamps/part-time-full-stack-developer), and [Data Science Bootcamp](https://4geeksacademy.com/us/coding-bootcamps/datascience-machine-learning).
-
-You can find other templates and resources like this at the [school github page](https://github.com/4geeksacademy/).
+Built with ❤️ as part of the [4Geeks Academy](https://4geeksacademy.com) Full Stack Bootcamp.

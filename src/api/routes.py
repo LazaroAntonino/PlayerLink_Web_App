@@ -20,10 +20,11 @@ load_dotenv()
 
 # Obtén la clave de OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY is None:
-    raise RuntimeError("La variable OPENAI_API_KEY no está definida en .env")
-
-openai.api_key = OPENAI_API_KEY
+if OPENAI_API_KEY:
+    openai.api_key = OPENAI_API_KEY
+else:
+    import warnings
+    warnings.warn("OPENAI_API_KEY is not set — the /chat endpoint will be disabled.", RuntimeWarning)
 
 api = Blueprint('api', __name__)
 
@@ -34,17 +35,18 @@ CORS(api)
 @api.route("/chat", methods=["POST"])
 def chat():
     """
-    Recibe JSON:
-    - { "text": "...", "userInfo": "..." } → mensaje suelto
-    - { "messages": [...], "userInfo": "..." } → historial completo
-
-    Llama a OpenAI y devuelve el texto generado.
+    Accepts JSON:
+    - { "text": "...", "userInfo": "..." }        → single message
+    - { "messages": [...], "userInfo": "..." }    → full conversation history
+    Calls OpenAI and returns the generated reply.
     """
+    if not OPENAI_API_KEY:
+        return jsonify({"error": "AI service is not configured on this server."}), 503
+
     data = request.get_json()
 
     if not data or "userInfo" not in data or ("messages" not in data and "text" not in data):
-        return jsonify({"error": "Faltan campos obligatorios"}), 400
-
+        return jsonify({"error": "Missing required fields"}), 400
     user_info = data["userInfo"]
 
     # ✅ Si viene un único mensaje como texto:
@@ -125,7 +127,6 @@ def register():
         return jsonify({'success': True, 'token': token}), 200
 
     except Exception as e:
-        print("Registration error:", e)
         return jsonify({'error': 'Internal error during registration'}), 500
 
 
@@ -140,15 +141,14 @@ def login():
         user = db.session.execute(stmt).scalar_one_or_none()
 
         if not user:
-            return jsonify({'error': 'el email no esta registrado, registrate'}), 418
+            return jsonify({'error': 'Email not registered'}), 401
 
         if not check_password_hash(user.password, data['password']):
-            return jsonify({'error': 'email/contraseña no válido'}), 418
+            return jsonify({'error': 'Invalid email or password'}), 401
 
         token = create_access_token(identity=str(user.id))
-        return jsonify({'success': 'true', 'token': token}), 200
+        return jsonify({'success': True, 'token': token}), 200
     except Exception as e:
-        print(e)
         return jsonify({'Error': 'algo paso'}), 400
 
 
@@ -160,8 +160,8 @@ def handle_mail(address):
 @api.route('/token', methods=['GET'])
 @jwt_required()
 def check_jwt():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
     if user:
         return jsonify({'success': True, 'user': user.serialize()}), 200
     return jsonify({'success': False, 'msg': 'Bad token'}), 401
@@ -184,10 +184,8 @@ def check_mail():
             return jsonify({'success': False, 'msg': 'token not found'}), 404
 
         result = send_email(data['email'], token)
-        print(result)
-        return jsonify({'success': True, 'token': token, 'email': result}), 200
+        return jsonify({'success': True}), 200
     except Exception as e:
-        print('error: ' + str(e))
         return jsonify({'success': False, 'msg': 'something went wrong'})
 
 
@@ -197,11 +195,10 @@ def check_mail():
 def password_update():
     try:
         data = request.get_json(force=True)
-        print('Datos recibidos: ', data)
         if not data or 'password' not in data or not data['password']:
             return jsonify({'success': False, 'msg': 'Falta el campo password'}), 422
         # extraemos el id del token que creamos en la linea 133
-        id = get_jwt_identity()
+        id = int(get_jwt_identity())
         if not id:
             return jsonify({'success': False, 'msg': 'Falta el id'}), 422
         # buscamos usuario por id
@@ -217,7 +214,6 @@ def password_update():
         return jsonify({'success': True, 'msg': 'Contraseña actualizada exitosamente, intente iniciar sesion'}), 200
     except Exception as e:
         db.session.rollback()
-        print(f"Error al enviar el correo: {str(e)}")
         return jsonify({'success': False, 'msg': f"Error al enviar el correo: {str(e)}"})
 
 
@@ -225,12 +221,12 @@ def password_update():
 @api.route('/private', methods=['GET'])
 @jwt_required()
 def get_user_info():
-    id = get_jwt_identity()
+    id = int(get_jwt_identity())
     stmt = select(User).where(User.id == id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': 'user not finded'})
-    return jsonify({'success': 'true', 'user': user.serialize()})
+        return jsonify({'error': 'User not found'}), 404
+    return jsonify({'success': True, 'user': user.serialize()}), 200
 
 # GET ALL USERS
 
@@ -253,21 +249,21 @@ def get_single_user(user_id):
     return jsonify(user.serialize()), 200
 
 # DELETE USER
-
-
 @api.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
 def delete_user(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'user whit id: {user_id} not found'}), 414
+        return jsonify({'error': f'User with id {user_id} not found'}), 404
     db.session.delete(user)
     db.session.commit()
-    return jsonify({'message': f'user {user_id} deleted'}), 200
+    return jsonify({'message': f'User {user_id} deleted'}), 200
 
 # POST USER
-
-
 @api.route('/users', methods=['POST'])
 def post_user():
     data = request.get_json()
@@ -275,26 +271,29 @@ def post_user():
         return jsonify({'error': 'Missing data'}), 400
     new_user = User(
         email=data['email'],
-        password=data['password']
+        password=generate_password_hash(data['password'])
     )
     db.session.add(new_user)
     db.session.commit()
     return jsonify(new_user.serialize()), 200
 
 # PUT USER
-
-
 @api.route('/users/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_user(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
-    if not data or 'email' not in data or 'password' not in data:
+    if not data or 'email' not in data:
         return jsonify({'error': 'Missing data'}), 400
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'})
+        return jsonify({'error': f'User with id {user_id} not found'}), 404
     user.email = data.get('email', user.email)
-    user.password = data.get('password', user.password)
+    if 'password' in data and data['password']:
+        user.password = generate_password_hash(data['password'])
     db.session.commit()
     return jsonify(user.serialize()), 200
 
@@ -433,7 +432,11 @@ def post_profile(user_id):
 
 # PUT PROFILE
 @api.route('/profiles/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_profile(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Missing data'}), 400
@@ -454,7 +457,7 @@ def put_profile(user_id):
     user.profile.location = data.get('location', user.profile.location)
     user.profile.nick_name = data.get('nick_name', user.profile.nick_name)
     user.profile.bio = data.get('bio', user.profile.bio)
-    user.profile.language = data.get('languages', user.profile.language)
+    user.profile.language = data.get('language', user.profile.language)
     user.profile.steam_id = data.get('steam_id', user.profile.steam_id)
     user.profile.photo = data.get('photo', user.profile.photo)
 
@@ -465,22 +468,20 @@ def put_profile(user_id):
 
 
 @api.route('/profiles/profiles_to_explore/<int:user_id>', methods=['GET'])
+@jwt_required()
 def profiles_to_explore(user_id):
-    # Verificar que el usuario existe
-    user = User.query.get(user_id)
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'User with id {user_id} not found'}), 404
 
-    # Obtener los IDs de usuarios a los que ya le dio like
     liked_user_ids = [like.liked_id for like in user.likes_given]
-
-    # Obtener los IDs de usuarios a los que ya le dio reject
     rejected_user_ids = [reject.rejected_id for reject in user.rejects_given]
-
-    # IDs a excluir
     exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id])
 
-    # Buscar usuarios que no estén en exclude_ids y que tengan perfil
     profiles = (
         db.session.query(Profile)
         .join(User)
@@ -488,17 +489,17 @@ def profiles_to_explore(user_id):
         .all()
     )
 
-    # Serializar perfiles
-    result = [profile.serialize() for profile in profiles]
-
-    return jsonify(result), 200
-# ////////////////////////////////////////////////////////////////////////////////////////
+    return jsonify([profile.serialize() for profile in profiles]), 200
 
 # PUT PHOTO PROFILE
 
 
 @api.route('/profiles/photo/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_profilephoto(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
     if not data or 'photo' not in data:
         return jsonify({'error': 'Missing data'}), 400
@@ -685,8 +686,8 @@ def get_matches_for_user(user_id):
                 "nickname":  u.profile.name if u.profile.name else "undefined",
                 "games":     [g.serialize() for g in u.profile.games] if u.profile.games else [],
                 "gender":    u.profile.gender if u.profile.gender else "undefined",
-                "age": u.profile.age if u.profile.age else "undefinied",
-                "location": u.profile.location if u.profile.location else "undefinied"
+                "age": u.profile.age if u.profile.age else "undefined",
+                "location": u.profile.location if u.profile.location else "undefined"
             })
         else:
             other_users.append(f" user with id {u.id} has no data")

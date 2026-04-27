@@ -11,7 +11,7 @@ export const Private_page = () => {
         if (!store.user){
             navigate('/')
         }else{
-            nagivate('/private/profile')
+            navigate('/private/profile')
         }
     },[])
     

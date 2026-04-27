@@ -30,12 +30,12 @@ export const SearchMate = () => {
   //Carga los perfiles 
 
   useEffect(() => {
-    if (!store.user || !store.user.profile?.id) return;
+    if (!store.user || !store.user.id) return;
 
     const getProfiles = async () => {
       setLoading(true);
       try {
-        const data = await searchMatchServices.getFilteredProfiles(store.user.profile.id);
+        const data = await searchMatchServices.getFilteredProfiles(store.user.id);
 
         // IDs de perfiles ya match o liked
         const matchedIds = store.userMatchesInfo?.map(m => m.user_id || m.id) || [];
@@ -90,18 +90,19 @@ export const SearchMate = () => {
   //Maneja likes
   const handleLike = async () => {
     if (isAnimating) return;
-    setIsAnimating(true); // Oculta la tarjeta
+    setIsAnimating(true);
 
     setTimeout(async () => {
       const likedProfile = store.searchMatchProfiles[currentUser];
-      if (!store.user?.profile?.id || !likedProfile?.id) return;
+      // Use user.id (not profile.id) — like/match endpoints expect user IDs
+      if (!store.user?.id || !likedProfile?.user_id) return;
 
       try {
-        await searchMatchServices.addLikeSent(store.user.profile.id, likedProfile.id);
+        await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
 
-        const matchesData = await searchMatchServices.getUserMatchesInfo(store.user.profile.id);
+        const matchesData = await searchMatchServices.getUserMatchesInfo(store.user.id);
         const matchesArray = matchesData.matches || [];
-        const matchedProfile = matchesArray.find(m => m.user_id === likedProfile.id);
+        const matchedProfile = matchesArray.find(m => m.user_id === likedProfile.user_id);
 
         if (matchedProfile) {
           const fullProfile = store.searchMatchProfiles.find(p => p.user_id === matchedProfile.user_id);
@@ -134,12 +135,13 @@ export const SearchMate = () => {
 
     setTimeout(async () => {
       const dislikedProfile = store.searchMatchProfiles[currentUser];
-      if (!store.user?.profile?.id || !dislikedProfile?.id) return;
+      // Use user.id (not profile.id) — reject endpoints expect user IDs
+      if (!store.user?.id || !dislikedProfile?.user_id) return;
 
       try {
         await searchMatchServices.addDislikeSent(
-          store.user.profile.id,
-          dislikedProfile.id
+          store.user.id,
+          dislikedProfile.user_id
         );
         dispatch({ type: "saveDislike", payload: dislikedProfile });
       } catch (error) {

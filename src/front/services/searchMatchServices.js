@@ -12,11 +12,9 @@ searchMatchServices.getUserInfo = async () => {
     });
     if (!resp.ok) throw Error("Something went wrong getting user information");
     const data = await resp.json();
-    console.log(data);
     localStorage.setItem("user", JSON.stringify(data.user));
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -24,13 +22,11 @@ searchMatchServices.getUserInfo = async () => {
 //Trae la infomación de todos los perfiles
 searchMatchServices.getAllProfiles = async () => {
   try {
-    // console.log("Fetching from URL:", url + "/api/profiles");//para ver si funciona
     const resp = await fetch(url + "/api/profiles");
     if (!resp.ok) throw Error("Failed to get all profiles");
     const data = await resp.json();
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -43,7 +39,6 @@ searchMatchServices.getOneProfile = async (user_id) => {
     const data = await resp.json();
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -61,7 +56,6 @@ searchMatchServices.getUserMatchesInfo = async (user_id) => {
     const data = await resp.json();
     return data;
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -74,7 +68,6 @@ searchMatchServices.getStarsByUser = async (userId) => {
     const data = await resp.json();
     const reviews = data.reviews_received;
 
-    // console.log("Stars--->", reviews); // Para ver si funciona
 
     // Calcula la media
     if (!Array.isArray(reviews) || reviews.length === 0) return 0;
@@ -84,7 +77,6 @@ searchMatchServices.getStarsByUser = async (userId) => {
 
     return average;
   } catch (error) {
-    console.log(error);
     return 0; // si no hay estrellas en vez de error, retorna 0
   }
 };

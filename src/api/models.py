@@ -135,9 +135,9 @@ class Review(db.Model):
         return {
             "id": self.id,
             'user_id': self.user_id,
-            'user_nickname': self.user.profile.nick_name if self.user.profile and self.user.profile.nick_name else "undefinied",
+            'user_nickname': self.user.profile.nick_name if self.user.profile and self.user.profile.nick_name else "undefined",
             'author_id': self.author_id,
-            'author_nickname': self.author.profile.nick_name if self.author.profile and self.author.profile.nick_name else "undefinied",
+            'author_nickname': self.author.profile.nick_name if self.author.profile and self.author.profile.nick_name else "undefined",
             "stars": self.stars,
             "comment": self.comment
         }
@@ -210,24 +210,23 @@ class Match(db.Model):
     def serialize(self):
         return {
             "match_id": self.id,
-            "user1":{
-                "user_id": self.user2_id,
-                "user_data":{
-                    "nickname": self.user1.profile.name if self.user1.profile.name else "undefined",
-                "games": [g.serialize() for g in self.user1.profile.games] if self.user1.profile.games else [],
-                "gender": self.user1.profile.gender if self.user1.profile.gender else "undefined",
-                "age": self.user1.profile.age if self.user1.profile.age else "undefined",
-                }if self.user1.profile
-                else "user has no data"
+            "user1": {
+                "user_id": self.user1_id,
+                "user_data": {
+                    "nickname": self.user1.profile.name if self.user1.profile and self.user1.profile.name else "undefined",
+                    "games": [g.serialize() for g in self.user1.profile.games] if self.user1.profile and self.user1.profile.games else [],
+                    "gender": self.user1.profile.gender if self.user1.profile and self.user1.profile.gender else "undefined",
+                    "age": self.user1.profile.age if self.user1.profile and self.user1.profile.age else "undefined",
+                } if self.user1.profile else "user has no data"
             },
-            "user2":{
+            "user2": {
                 "user_id": self.user2_id,
-                "user_data":{
-                    "nickname": self.user2.profile.name if self.user2.profile.name else "undefined",
-                "games": [g.serialize() for g in self.user2.profile.games] if self.user2.profile.games else [],
-                "gender": self.user2.profile.gender if self.user2.profile.gender else "undefined"
-                }if self.user2.profile
-                else "user has no data"
+                "user_data": {
+                    "nickname": self.user2.profile.name if self.user2.profile and self.user2.profile.name else "undefined",
+                    "games": [g.serialize() for g in self.user2.profile.games] if self.user2.profile and self.user2.profile.games else [],
+                    "gender": self.user2.profile.gender if self.user2.profile and self.user2.profile.gender else "undefined",
+                    "age": self.user2.profile.age if self.user2.profile and self.user2.profile.age else "undefined",
+                } if self.user2.profile else "user has no data"
             }
         }
 

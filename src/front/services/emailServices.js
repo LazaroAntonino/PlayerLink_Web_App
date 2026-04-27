@@ -4,9 +4,6 @@ export const emailServices = {};
 
 emailServices.updatePassword = async (password, token) => {
   //recibimos password nuevo  y el token (lo necesitamos ya que es una ruta protegida la que vamos a consumir y porque del token sacaremos la identidad del usuario)
-  console.log("🔐 updatePassword called with:");
-  console.log("👉 password:", password);
-  console.log("👉 token:", token);
   try {
     const resp = await fetch(url + "/api/password_update", {
       method: "PUT",
@@ -18,10 +15,8 @@ emailServices.updatePassword = async (password, token) => {
     });
     if (resp.status != 200) return false;
     const data = await resp.json();
-    console.log(data);
     return data;
   } catch (error) {
-    console.log("Error loading message from backend", error);
   }
 };
 
@@ -37,10 +32,8 @@ emailServices.sendResetEmail = async (email) => {
     });
     if (resp.status != 200) return false;
     const data = await resp.json();
-    console.log(data);
     return data;
   } catch (error) {
-    console.log("Error loading message from backend", error);
   }
 };
 
@@ -56,9 +49,7 @@ emailServices.checkAuth = async (token) => {
     });
     if (resp.status != 200) return false;
     const data = await resp.json();
-    console.log(data);
     return data;
   } catch (error) {
-    console.log("Error loading message from backend", error);
   }
 };

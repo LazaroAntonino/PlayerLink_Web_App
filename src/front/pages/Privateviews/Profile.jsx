@@ -73,7 +73,7 @@ const Profile = () => {
     name: " ",
     nick_name: "",
     age: 0,
-    gender: "undefinied",
+    gender: "undefined",
     location: " ",
     zodiac: " ",
     discord: " ",

@@ -19,6 +19,15 @@ export const NavbarHome = () => {
   const navigate = useNavigate()
   const { store, dispatch } = useGlobalReducer()
 
+  const closeStartModal = () => {
+    // Programmatically hide the Bootstrap modal when auth succeeds
+    const el = document.getElementById("startModal");
+    if (el && window.bootstrap) {
+      const modal = window.bootstrap.Modal.getInstance(el);
+      if (modal) modal.hide();
+    }
+  };
+
   // Para que siempre se muestre Sing-In el primero
   useEffect(() => {
     const modalElement = document.getElementById("exampleModal");
@@ -95,9 +104,9 @@ export const NavbarHome = () => {
               <div className="modal-body d-flex">
                 <div>
                   {showSignIn ? (
-                    <SignIn onSwitch={() => setShowSignIn(false)} />
+                    <SignIn onSwitch={() => setShowSignIn(false)} onSuccess={closeStartModal} />
                   ) : (
-                    <Register onSwitch={() => setShowSignIn(true)} />
+                    <Register onSwitch={() => setShowSignIn(true)} onSuccess={closeStartModal} />
                   )}
                 </div>
                 {/* <div>

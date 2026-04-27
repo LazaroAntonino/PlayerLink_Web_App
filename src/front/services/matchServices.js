@@ -8,7 +8,6 @@ matchServices.getAllMatchesInfo = async (user_id) => {
         const data = await resp.json()
         return data
     } catch (error) {
-        console.log(error)
         return error
     }
 }

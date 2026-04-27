@@ -5,7 +5,7 @@ import userServices from '../../services/userServices';
 import { Terms } from '../Terms/Terms';
 import useGlobalReducer from '../../hooks/useGlobalReducer';
 
-export const Register = ({ onSwitch }) => {
+export const Register = ({ onSwitch, onSuccess }) => {
 
     const navigate = useNavigate()
     const { store, dispatch } = useGlobalReducer()
@@ -53,15 +53,18 @@ export const Register = ({ onSwitch }) => {
         userServices.register(formData).then(async data => {
             if (data.success) {
                 localStorage.setItem('token', data.token);
-                const user = await userServices.getUserInfo();
-                await dispatch({ type: 'getUserInfo', payload: user });
+                const userInfo = await userServices.getUserInfo();
+                // getUserInfo saves to localStorage; dispatch the parsed user object
+                const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'));
+                dispatch({ type: 'getUserInfo', payload: parsedUser });
+                if (onSuccess) onSuccess();
                 navigate('/private/profile');
             } else {
-                setErrorEmailRegistered("Email already registered");
+                setErrorEmailRegistered(data?.error || "Email already registered");
             }
         }).catch(err => {
             console.error("Error en registro:", err);
-            setErrorEmailRegistered("Error inesperado. Intenta de nuevo.");
+            setErrorEmailRegistered("Unexpected error. Please try again.");
         });
 
     }
