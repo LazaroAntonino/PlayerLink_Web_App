@@ -154,7 +154,8 @@ def login():
         token = create_access_token(identity=str(user.id))
         return jsonify({'success': True, 'token': token}), 200
     except Exception as e:
-        return jsonify({'Error': 'algo paso'}), 400
+        print(f"[LOGIN ERROR] {type(e).__name__}: {e}")
+        return jsonify({'Error': 'algo paso', 'detail': str(e)}), 400
 
 
 @api.route('/mailer/<address>', methods=['POST'])

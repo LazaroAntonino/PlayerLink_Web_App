@@ -3,12 +3,20 @@
   box-sizing: border-box;
 }
 
-body.modal-open {
-  padding-right: 0 !important;
-  
+/* Prevent layout shift when Bootstrap modals open/close.
+   Forcing overflow-y: scroll keeps the scrollbar always visible,
+   so Bootstrap has nothing to compensate for. */
+html {
+  overflow-y: scroll;
 }
 
-body{
+/* Belt-and-suspenders: override Bootstrap's padding-right compensation */
+body.modal-open {
+  padding-right: 0 !important;
+  overflow: hidden;
+}
+
+body {
   padding: 0 !important;
 }
 
