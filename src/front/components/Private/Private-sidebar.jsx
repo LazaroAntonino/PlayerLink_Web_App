@@ -1,5 +1,5 @@
 import "./private-sidebar.css";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import profileicon from "../../assets/img/icons/icon-profile.png";
 import searchicon from "../../assets/img/icons/icon-search-a-mate.png";
@@ -23,8 +23,8 @@ export const Sidebar = ({ activePath }) => {
 
 
   const handleLogout = () => {
-      dispatch({ type: 'logout' })
-      navigate('/')
+    dispatch({ type: 'logout' })
+    navigate('/')
   }
 
   // useeffect par que no se rompa en resoluciones pequeñas,
@@ -48,6 +48,10 @@ export const Sidebar = ({ activePath }) => {
       </button>
       {open && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}
       <div className={`sidebar ${open ? "open" : ""}`}>
+        <Link to="/" className="sidebar-logo-link" onClick={() => setOpen(false)}>
+          Player<span className="sidebar-logo-highlight">Link</span>
+        </Link>
+        <div className="sidebar-divider" />
         {links.map(link => (
           <NavLink
             key={link.to}

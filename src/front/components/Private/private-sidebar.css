@@ -9,8 +9,34 @@
   position: static;
   min-width: 300px;
   max-width: 300px;
-   overflow-x: hidden;
+  overflow-x: hidden;
   box-sizing: border-box;
+}
+
+.sidebar-logo-link {
+  text-decoration: none;
+  font-size: 26px;
+  font-weight: 800;
+  color: #00f0ff;
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 4px 0;
+  transition: text-shadow 0.3s ease;
+}
+
+.sidebar-logo-link:hover {
+  text-shadow: 0 0 14px rgba(0, 255, 255, 0.7), 0 0 14px rgba(204, 0, 255, 0.5);
+  color: #00f0ff;
+}
+
+.sidebar-logo-highlight {
+  color: #cc00ff;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4), transparent);
+  margin: -10px 0;
 }
 
 .sidebar-button {

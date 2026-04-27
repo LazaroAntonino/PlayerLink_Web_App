@@ -31,9 +31,9 @@ export const YourMatches = () => {
 
         {loading ? (
           <>
-          <div className="spinner-border text-info"  role="status">
-          </div>
-          <h4 className="mt-3 text-center my-2 search-mate-font ">Loading matches...</h4>
+            <div className="spinner-border text-info" role="status">
+            </div>
+            <h4 className="mt-3 text-center my-2 search-mate-font ">Loading matches...</h4>
           </>
         ) : (
           <>

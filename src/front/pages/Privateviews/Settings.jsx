@@ -42,7 +42,7 @@ const SettingsView = () => {
     if (!store.user || store.user === "undefined") {
       navigate('/')
     }
-  },[]);
+  }, []);
 
   const submitEmailChange = async (e) => {
     e.preventDefault();

@@ -69,7 +69,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location }) =>
                     <img
                       src={el.gameImage}
                       className="img-fluid imagenminicard"
-                      style={{ width: '100px', height: '50px', cursor: 'pointer', objectFit:'cover' }}
+                      style={{ width: '100px', height: '50px', cursor: 'pointer', objectFit: 'cover' }}
                       alt={el.gameTitle}
                     />
                     <img

@@ -46,7 +46,7 @@ export const Home = () => {
 						</div>
 					</div>
 				</div>
-			
+
 				<section className="howitworks-section text-white border-bottom border-top border-white" id='howitworks'>
 					<div className="container">
 						<div className="row d-flex align-items-center justify-content-around">
