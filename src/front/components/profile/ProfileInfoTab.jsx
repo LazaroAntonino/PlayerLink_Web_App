@@ -16,6 +16,16 @@ const ZODIAC_SIGNS = [
 
 const GENDERS = ["Male", "Female", "Undefined"];
 
+/** Muestra el valor de un campo o un placeholder en modo lectura */
+const FieldValue = ({ value, emptyText = "Not set" }) => (
+    <div className="profile-read-field">
+        {value && String(value).trim().length > 0 && value !== "0" && value !== 0
+            ? <span className="profile-field-value">{value}</span>
+            : <span className="profile-field-empty">{emptyText}</span>
+        }
+    </div>
+);
+
 export const ProfileInfoTab = ({
     profile,
     isEditing,
@@ -40,7 +50,7 @@ export const ProfileInfoTab = ({
             {/* ── Bio ── */}
             <div className="row">
                 <div className="col-12">
-                    <label>Bio</label>
+                    <label className="profile-field-label">Bio</label>
                     {isEditing ? (
                         <textarea
                             className="form-control textareastyle"
@@ -59,7 +69,7 @@ export const ProfileInfoTab = ({
             <div className="row">
                 {["name", "nick_name"].map((field) => (
                     <div key={field} className="col-md-6">
-                        <label>{field === "nick_name" ? "Nickname" : "Name"}</label>
+                        <label className="profile-field-label">{field === "nick_name" ? "Nickname" : "Name"}</label>
                         {isEditing ? (
                             <input
                                 type="text"
@@ -69,7 +79,7 @@ export const ProfileInfoTab = ({
                                 aria-label={field === "nick_name" ? "Nickname" : "Name"}
                             />
                         ) : (
-                            <p>{profile[field]}</p>
+                            <FieldValue value={profile[field]} />
                         )}
                     </div>
                 ))}
@@ -78,7 +88,7 @@ export const ProfileInfoTab = ({
             {/* ── Age, Gender, Zodiac ── */}
             <div className="row">
                 <div className="col-md-4">
-                    <label>Age</label>
+                    <label className="profile-field-label">Age</label>
                     {isEditing ? (
                         <input
                             type="number"
@@ -89,12 +99,12 @@ export const ProfileInfoTab = ({
                             aria-label="Age"
                         />
                     ) : (
-                        <p>{profile.age}</p>
+                        <FieldValue value={profile.age > 0 ? profile.age : null} emptyText="Not set" />
                     )}
                 </div>
 
                 <div className="col-md-4">
-                    <label>Gender</label>
+                    <label className="profile-field-label">Gender</label>
                     {isEditing ? (
                         <select
                             value={profile.gender}
@@ -106,12 +116,12 @@ export const ProfileInfoTab = ({
                             ))}
                         </select>
                     ) : (
-                        <p>{profile.gender}</p>
+                        <FieldValue value={profile.gender !== "Undefined" ? profile.gender : null} emptyText="Not set" />
                     )}
                 </div>
 
                 <div className="col-md-4">
-                    <label>Zodiac</label>
+                    <label className="profile-field-label">Zodiac</label>
                     {isEditing ? (
                         <select
                             value={profile.zodiac}
@@ -123,7 +133,7 @@ export const ProfileInfoTab = ({
                             ))}
                         </select>
                     ) : (
-                        <p>{profile.zodiac}</p>
+                        <FieldValue value={profile.zodiac} emptyText="Not set" />
                     )}
                 </div>
             </div>
@@ -132,7 +142,7 @@ export const ProfileInfoTab = ({
             <div className="row">
                 {["discord", "steam_id"].map((field) => (
                     <div key={field} className="col-md-6">
-                        <label className="d-flex align-items-center gap-2 mt-1 mb-1">
+                        <label className="profile-field-label d-flex align-items-center gap-2 mt-1 mb-1">
                             {field === "steam_id" ? "Steam Friend ID" : "Discord"}
                             <span className="tooltip-wrapper">
                                 <i
@@ -161,14 +171,14 @@ export const ProfileInfoTab = ({
                                 aria-label={field === "steam_id" ? "Steam Friend ID" : "Discord"}
                             />
                         ) : (
-                            <p>{profile[field]}</p>
+                            <FieldValue value={profile[field]} emptyText="Not set" />
                         )}
                     </div>
                 ))}
 
                 {/* ── Gaming Preferences ── */}
                 <div className="gaming-prefs-box col-md-6">
-                    <label>Gaming Preferences</label>
+                    <label className="profile-field-label">Gaming Preferences</label>
                     {isEditing ? (
                         <>
                             <div className="section-container">
@@ -200,17 +210,16 @@ export const ProfileInfoTab = ({
                             )}
                         </>
                     ) : (
-                        <p>
-                            {profile.preferences && profile.preferences.trim().length > 0
-                                ? profile.preferences
-                                : "No preferences selected yet."}
-                        </p>
+                        <FieldValue
+                            value={profile.preferences && profile.preferences.trim().length > 0 ? profile.preferences : null}
+                            emptyText="No preferences selected yet."
+                        />
                     )}
                 </div>
 
                 {/* ── Location ── */}
                 <div className="col-md-6">
-                    <label>Location</label>
+                    <label className="profile-field-label">Location</label>
                     {isEditing ? (
                         <input
                             type="text"
@@ -221,14 +230,14 @@ export const ProfileInfoTab = ({
                             aria-label="Location"
                         />
                     ) : (
-                        <p>{profile.location}</p>
+                        <FieldValue value={profile.location} emptyText="Not set" />
                     )}
                 </div>
 
                 {/* ── Languages ── */}
                 <div className="col-md-12">
                     <div className="form-group">
-                        <label>Languages</label>
+                        <label className="profile-field-label">Languages</label>
                         {isEditing ? (
                             <>
                                 <div className="section-container">
@@ -260,9 +269,10 @@ export const ProfileInfoTab = ({
                                 )}
                             </>
                         ) : (
-                            <p style={{ minHeight: "38px" }}>
-                                {profile.languages ? profile.languages : "No languages selected."}
-                            </p>
+                            <FieldValue
+                                value={profile.languages || null}
+                                emptyText="No languages selected."
+                            />
                         )}
                     </div>
                 </div>

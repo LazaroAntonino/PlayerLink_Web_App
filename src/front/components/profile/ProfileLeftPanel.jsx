@@ -14,42 +14,70 @@ export const ProfileLeftPanel = ({
 }) => {
     return (
         <div className="left-panel">
-            {/* ── Sección de avatar ── */}
-            <div className="avatar-section">
+            {/* ── Avatar con ring de gradiente ── */}
+            <div className="left-avatar-wrapper">
+                <div className="left-avatar-ring">
+                    <img src={photoSrc} alt="User avatar" className="left-avatar-img" />
+                </div>
                 <button
-                    className="gear-btn"
+                    className="left-gear-btn"
                     onClick={onOpenAvatarPicker}
                     aria-label="Change avatar"
                 >
                     <i className="fa-solid fa-gear" aria-hidden="true"></i>
                 </button>
-                <img src={photoSrc} alt="User avatar" className="profile-avatar" />
             </div>
 
             {/* ── Nickname y ubicación ── */}
-            <h2>{nickName}</h2>
-            <p className="location">{location}</p>
+            <h2 className="left-nickname">{nickName || "—"}</h2>
 
-            {/* ── Medallas de los top 3 juegos por horas ── */}
+            {location && location.trim().length > 1 && (
+                <p className="left-location">
+                    <i className="fa-solid fa-location-dot me-1" aria-hidden="true"></i>
+                    {location}
+                </p>
+            )}
+
+            {/* ── Separador de sección ── */}
+            {topThreeGames.length > 0 && (
+                <div className="left-section-divider">
+                    <span>Top Games</span>
+                </div>
+            )}
+
+            {/* ── Medallas ── */}
             <div className="medal-list">
                 {topThreeGames.map((el, i) => (
                     <div key={el.id ?? i} className="medal-game-card">
-                        <img
-                            src={selectMedal(el.gameHoursPlayed)}
-                            alt={`Medal for ${el.gameTitle}`}
-                            className="medal-icon"
-                            role="button"
-                            data-bs-toggle="popover"
-                            data-bs-trigger="hover focus"
-                            data-bs-container="body"
-                            data-bs-placement="bottom"
-                            data-bs-content={`${el.gameTitle} — ${el.gameHoursPlayed} horas`}
-                        />
-                        <img
-                            className="img-fluid gameImg"
-                            src={el.gameImage}
-                            alt={`Cover of ${el.gameTitle}`}
-                        />
+                        {/* Icono de medalla con tooltip de horas */}
+                        <span
+                            className="medal-hours-tooltip"
+                            data-tooltip={`${el.gameHoursPlayed ?? 0} h`}
+                        >
+                            <img
+                                src={selectMedal(el.gameHoursPlayed)}
+                                alt={`Medal for ${el.gameTitle}`}
+                                className="medal-icon"
+                            />
+                        </span>
+
+                        {/* Portada o placeholder */}
+                        {el.gameImage ? (
+                            <img
+                                className="game-cover-img"
+                                src={el.gameImage}
+                                alt={`Cover of ${el.gameTitle}`}
+                            />
+                        ) : (
+                            <div className="game-cover-placeholder">
+                                <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
+                            </div>
+                        )}
+
+                        {/* Nombre del juego */}
+                        <span className="medal-game-title" title={el.gameTitle}>
+                            {el.gameTitle}
+                        </span>
                     </div>
                 ))}
             </div>

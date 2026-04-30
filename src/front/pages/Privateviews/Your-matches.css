@@ -1,0 +1,39 @@
+/* ===== Your-matches empty state ===== */
+
+.matches-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  padding: 40px 24px;
+  width: 100%;
+}
+
+.matches-empty-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  animation: matches-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.5));
+}
+
+@keyframes matches-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+.matches-empty-title {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 1.4rem;
+  color: var(--color-primary, #00f0ff);
+  text-shadow: 0 0 14px rgba(0, 229, 255, 0.45);
+  margin-bottom: 12px;
+}
+
+.matches-empty-sub {
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.95rem;
+  max-width: 340px;
+  line-height: 1.6;
+}

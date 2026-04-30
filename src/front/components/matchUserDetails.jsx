@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import userServices from "../services/userServices";
 import useGlobalReducer from "../hooks/useGlobalReducer";
@@ -142,49 +143,71 @@ export const MatchUserDetails = () => {
 
   return (
     <div className="profile-container">
-      {/* Left Panel */}
+      {/* ── Left Panel ── */}
       <div className="left-panel">
-        <div className="avatar-section">
-          <img
-            src={selectPhoto()}
-            alt="Profile avatar"
-            className="profile-avatar"
-          />
+        {/* Avatar */}
+        <div className="left-avatar-wrapper">
+          <div className="left-avatar-ring">
+            <img
+              src={selectPhoto()}
+              alt="Profile avatar"
+              className="left-avatar-img"
+            />
+          </div>
         </div>
-        <h2>{profile.nickname}</h2>
-        <p className="location">{profile.location}</p>
 
-        {/* Medals */}
-        <div className="medal-list">
-          {topThreeGames.map((el, index) => (
-            <div key={el.id ?? index} className="medal-game-card">
-              <img
-                src={selectMedal(el.gameHoursPlayed)}
-                alt={`${el.gameTitle} Medal`}
-                className="medal-icon"
-                role="button"
-                data-bs-toggle="popover"
-                data-bs-trigger="hover focus"
-                data-bs-container="body"
-                data-bs-placement="bottom"
-                data-bs-content={`${el.gameTitle} — ${el.gameHoursPlayed} horas`}
-              />
-              <img
-                className="img-fluid gameImg"
-                src={el.gameImage}
-                alt={`Portada de ${el.gameTitle}`}
-              />
+        <h2 className="left-nickname">{profile.nickname || "—"}</h2>
+
+        {profile.location && profile.location !== "no data" && (
+          <p className="left-location">
+            <i className="fa-solid fa-location-dot me-1" aria-hidden="true"></i>
+            {profile.location}
+          </p>
+        )}
+
+        {/* Separador + Medallas */}
+        {topThreeGames.length > 0 && (
+          <>
+            <div className="left-section-divider">
+              <span>Top Games</span>
             </div>
-          ))}
-        </div>
+
+            <div className="medal-list">
+              {topThreeGames.map((el, index) => (
+                <div key={el.id ?? index} className="medal-game-card">
+                  <span
+                    className="medal-hours-tooltip"
+                    data-tooltip={`${el.gameHoursPlayed ?? 0} h`}
+                  >
+                    <img
+                      src={selectMedal(el.gameHoursPlayed)}
+                      alt={`${el.gameTitle} Medal`}
+                      className="medal-icon"
+                    />
+                  </span>
+                  {el.gameImage ? (
+                    <img
+                      className="game-cover-img"
+                      src={el.gameImage}
+                      alt={`Portada de ${el.gameTitle}`}
+                    />
+                  ) : (
+                    <div className="game-cover-placeholder">
+                      <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
+                    </div>
+                  )}
+                  <span className="medal-game-title" title={el.gameTitle}>
+                    {el.gameTitle}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Right Panel */}
+      {/* ── Right Panel ── */}
       <div className="right-panel">
-        <div className="bio-box">
-          <p>{profile.bio}</p>
-        </div>
-
         {/* Tabs */}
         <div className="tabs">
           {['info', 'Games', 'comments'].map(tab => (
@@ -192,153 +215,156 @@ export const MatchUserDetails = () => {
               key={tab}
               className={activeTab === tab ? 'active' : ''}
               onClick={() => setActiveTab(tab)}
-            >{tab.charAt(0).toUpperCase() + tab.slice(1)}</button>
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
           ))}
         </div>
 
-        {/* Info Tab Content */}
+        {/* ── Info Tab ── */}
         {activeTab === "info" && (
           <div className="info-section container">
             <div className="row">
               <div className="col-md-6">
-                <label>Name</label>
-                <p>{profile.name}</p>
+                <label className="profile-field-label">Name</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.name}</span>
+                </div>
               </div>
               <div className="col-md-6">
-                <label>Nickname</label>
-                <p>{profile.nickname}</p>
+                <label className="profile-field-label">Nickname</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.nickname}</span>
+                </div>
               </div>
             </div>
 
             <div className="row">
               <div className="col-md-4">
-                <label>Age</label>
-                <p>{profile.age}</p>
+                <label className="profile-field-label">Age</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.age}</span>
+                </div>
               </div>
               <div className="col-md-4">
-                <label>Gender</label>
-                <p>{profile.gender}</p>
+                <label className="profile-field-label">Gender</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.gender}</span>
+                </div>
               </div>
               <div className="col-md-4">
-                <label>Zodiac</label>
-                <p>{profile.zodiac}</p>
+                <label className="profile-field-label">Zodiac</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.zodiac}</span>
+                </div>
               </div>
             </div>
 
             <div className="row">
               <div className="col-md-6">
-                <div className="d-flex align-items-center">
-
-                  <label>Discord</label>
+                <label className="profile-field-label d-flex align-items-center gap-2 mt-1 mb-1">
+                  Discord
                   <span className="tooltip-wrapper">
-                    <i className="ms-2 mt-4 fa-solid fa-circle-info fa-xl discord-info-icon"></i>
+                    <i className="ms-1 fa-solid fa-circle-info discord-info-icon" aria-hidden="true"></i>
                     <span className="tooltip-text discord-info-tooltip-text">
                       <strong>Connect with your match</strong>
-                      <div >
-                        Want to talk to your match?
-                        <br />
-                        Use their Discord or Steam
-                        <br />
-                        info to reach out
-                        <br />
-                        and start chatting!
-                      </div>
+                      <div>Use their Discord or Steam<br />info to reach out!</div>
                     </span>
                   </span>
+                </label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.discord}</span>
                 </div>
-
-                <p>{profile.discord}</p>
               </div>
               <div className="col-md-6">
-                <div className="d-flex align-items-center">
-                  <label>Steam friend id</label>
+                <label className="profile-field-label d-flex align-items-center gap-2 mt-1 mb-1">
+                  Steam Friend ID
                   <span className="tooltip-wrapper">
-                    <i className="ms-2 mt-4 fa-solid fa-circle-info fa-xl discord-info-icon"></i>
+                    <i className="ms-1 fa-solid fa-circle-info discord-info-icon" aria-hidden="true"></i>
                     <span className="tooltip-text discord-info-tooltip-text">
                       <strong>Connect with your match</strong>
-                      <div >
-                        Want to talk to your match?
-                        <br />
-                        Use their Discord or Steam
-                        <br />
-                        info to reach out
-                        <br />
-                        and start chatting!
-                      </div>
+                      <div>Use their Discord or Steam<br />info to reach out!</div>
                     </span>
                   </span>
+                </label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.steam}</span>
                 </div>
-                <p>{profile.steam}</p>
-              </div>
-              <div className="gaming-prefs-box col-md-6">
-                <label>Gaming Preferences</label>
-                <p>I'm looking for: {profile.gamingPrefs}</p>
               </div>
               <div className="col-md-6">
-                <label>Location</label>
-                <p>{profile.location}</p>
+                <label className="profile-field-label">Gaming Preferences</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.gamingPrefs}</span>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <label className="profile-field-label">Location</label>
+                <div className="profile-read-field">
+                  <span className="profile-field-value">{profile.location}</span>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Other Tabs */}
+        {/* ── Games Tab ── */}
         {activeTab === 'Games' && (
-          <div className="container info-section">
-
-            <div className="row justify-content-start">
-              <div className="col-lg-6 col-md-12 col-sm-12 d-flex align-items-center">
-                <h2 className="mb-0">Games</h2>
-                <span className="tooltip-wrapper ms-2">
-                  <i className="fa-solid fa-circle-info fa-xl medals-info-icon"></i>
-                  <span className="tooltip-text medal-info-tooltip-text">
-                    <strong>Medal Info:</strong>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-gold"></i> +2500 hours
-                    </div>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-silver"></i> +500 hours
-                    </div>
-                    <div>
-                      <i className="fa-solid fa-medal mt-1 medal-info-bronze"></i> 0-500 hours
-                    </div>
-                  </span>
+          <div className="info-section">
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Games</h3>
+              <span className="tooltip-wrapper">
+                <i className="fa-solid fa-circle-info medals-info-icon" aria-hidden="true"></i>
+                <span className="tooltip-text medal-info-tooltip-text">
+                  <strong>Medal Info:</strong>
+                  <div><i className="fa-solid fa-medal medal-info-gold" aria-hidden="true"></i> +2500 hours</div>
+                  <div><i className="fa-solid fa-medal medal-info-silver" aria-hidden="true"></i> +500 hours</div>
+                  <div><i className="fa-solid fa-medal medal-info-bronze" aria-hidden="true"></i> 0-500 hours</div>
                 </span>
-              </div>
+              </span>
             </div>
 
-
-            <div className="row mt-5 gap-3 justify-content-center gamesbigbox">
-              {store.itsMatchInfo?.profile?.games?.length > 0 ? (
-                store.itsMatchInfo.profile.games.map((el, i) => (
-                  <div key={i} className="col-12 gamesbox d-flex align-items-center py-3">
-                    <div className="row w-100 m-0">
-                      <div className="col-lg-10 col-md-12 d-flex justify-content-around align-items-center">
-                        <h6 className="m-0">{el.gameTitle}</h6>
-                        <h6 className="m-0">{el.gameHoursPlayed} hours</h6>
-                      </div>
-                    </div>
+            {store.itsMatchInfo?.profile?.games?.length > 0 ? (
+              store.itsMatchInfo.profile.games.map((el, i) => (
+                <div key={i} className="game-row">
+                  {el.gameImage && (
+                    <img src={el.gameImage} alt={el.gameTitle} className="game-row-cover" />
+                  )}
+                  <span className="game-row-title">{el.gameTitle}</span>
+                  <div className="game-row-actions">
+                    <span className="game-row-hours">
+                      {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
+                        ? `${el.gameHoursPlayed.toLocaleString()} h`
+                        : <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>—</span>
+                      }
+                    </span>
                   </div>
-                ))
-              ) : (
-                <p className="text-center">No games available.</p>
-              )}
-            </div>
+                </div>
+              ))
+            ) : (
+              <p style={{ color: 'rgba(255,255,255,0.4)', paddingTop: '20px', textAlign: 'center' }}>
+                No games available.
+              </p>
+            )}
           </div>
         )}
-        {activeTab === "comments" && <div className="info-section container">
-          <div className="row justify-content-around">
-            <h3 className="col-1 m-2 mb-4">Comments</h3>
-            <div className="col-auto m-2 mb-4">
+
+        {/* ── Comments Tab ── */}
+        {activeTab === "comments" && (
+          <div className="info-section">
+            <div className="d-flex align-items-center justify-content-between mb-3 pb-3" style={{ borderBottom: '1px solid rgba(0,229,255,0.1)' }}>
+              <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Comments</h3>
               <button
                 type="button"
-                className="btn botonLeaveComment"
+                className="botonLeaveComment"
                 data-bs-toggle="modal"
                 data-bs-target="#commentModal"
               >
-                Leave a new comment
+                Leave a comment
               </button>
-              {/* Modal de nuevo comentario */}
+            </div>
+
+            {/* ── Modal nuevo comentario — portal para escapar el backdrop-filter ── */}
+            {createPortal(
               <div
                 className="modal fade"
                 id="commentModal"
@@ -346,62 +372,61 @@ export const MatchUserDetails = () => {
                 aria-labelledby="commentModalLabel"
                 aria-hidden="true"
               >
-                <div className="modal-dialog">
+                <div className="modal-dialog modal-dialog-centered">
                   <div className="modal-content modal-sci-fi">
                     <div className="modal-header modal-sci-fi-header">
                       <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-                        Leave a new comment
+                        Leave a comment
                       </h5>
                       <button
                         type="button"
-                        className="btn-close "
+                        className="btn-close"
                         data-bs-dismiss="modal"
                         aria-label="Close"
                       />
                     </div>
-                    <div className="modal-body ">
-                      <div className="modal-body modal-sci-fi-body">
-                        {/* Rating */}
-                        <div className="mb-3 text-warning">
-                          <label className="form-label ">Stars</label>
-                          <div>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <i
-                                key={star}
-                                className={`fa-star fa-2x ${(hoverRating || newComment.stars) >= star ? "fa-solid" : "fa-regular"
-                                  }`}
-                                style={{ cursor: "pointer", marginRight: "0.5rem" }}
-                                onClick={() =>
-                                  setNewComment((prev) => ({ ...prev, stars: star }))
-                                }
-                                onMouseEnter={() => setHoverRating(star)}
-                                onMouseLeave={() => setHoverRating(0)}
-                              />
-                            ))}
-                          </div>
-                        </div>
 
-                        {/* Comment textarea */}
-                        <div className="mb-3">
-                          <label htmlFor="newComment" className="form-label">
-                            Comment
-                          </label>
-                          <textarea
-                            id="newComment"
-                            className="form-control"
-                            rows="3"
-                            value={newComment.comment}
-                            onChange={(e) =>
-                              setNewComment((prev) => ({ ...prev, comment: e.target.value }))
-                            }
-                          />
+                    <div className="modal-body modal-sci-fi-body">
+                      {/* Rating */}
+                      <div className="mb-4">
+                        <label className="label-sci-fi">Rating</label>
+                        <div className="d-flex gap-2 mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <i
+                              key={star}
+                              className={`fa-star fa-xl ${(hoverRating || newComment.stars) >= star ? "fa-solid" : "fa-regular"}`}
+                              style={{
+                                cursor: "pointer",
+                                color: (hoverRating || newComment.stars) >= star ? '#ffd700' : 'rgba(255,255,255,0.25)',
+                                transition: 'color 0.15s'
+                              }}
+                              onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
+                              onMouseEnter={() => setHoverRating(star)}
+                              onMouseLeave={() => setHoverRating(0)}
+                            />
+                          ))}
                         </div>
                       </div>
+
+                      {/* Comment */}
+                      <div className="mb-2">
+                        <label htmlFor="newComment" className="label-sci-fi">Comment</label>
+                        <textarea
+                          id="newComment"
+                          className="input-sci-fi"
+                          rows="3"
+                          style={{ resize: 'none', minHeight: '90px' }}
+                          placeholder="Share your experience with this player..."
+                          value={newComment.comment}
+                          onChange={(e) => setNewComment((prev) => ({ ...prev, comment: e.target.value }))}
+                        />
+                      </div>
                     </div>
+
                     <div className="modal-footer modal-sci-fi-footer">
                       <button
                         type="button"
-                        className="btn btn-sci-fi-primary"
+                        className="btn-sci-fi-secondary"
                         data-bs-dismiss="modal"
                       >
                         Cancel
@@ -412,32 +437,54 @@ export const MatchUserDetails = () => {
                         onClick={handleSaveComment}
                         disabled={!newComment.comment.trim() || newComment.stars === 0}
                       >
+                        <i className="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>
                         Save comment
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          <div className="row">
+              </div>,
+              document.body
+            )}
+
+            {/* Reviews list */}
             {store.matchReviewsReceived?.reviews_received?.length > 0 ? (
-              store.matchReviewsReceived.reviews_received.map((el) => (
-                <div key={el.id} className="review-card">
-                  <div className="review-container">
-                    <strong>Author:</strong> {el.author_nickname} — {el.stars} ⭐️
-                    <p className="m-0 border-0 review-box">
-                      <span className="fa-solid fa-comment mx-2"></span>
+              <div className="comments-list">
+                {store.matchReviewsReceived.reviews_received.map((el) => (
+                  <div key={el.id} className="comment-card">
+                    <div className="comment-header">
+                      <span className="comment-author">
+                        <i className="fa-solid fa-user me-2" aria-hidden="true"></i>
+                        {el.author_nickname}
+                      </span>
+                      <span className="comment-stars">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <i
+                            key={i}
+                            className={`fa-${i < el.stars ? 'solid' : 'regular'} fa-star`}
+                            style={{ color: i < el.stars ? '#ffd700' : 'rgba(255,255,255,0.2)' }}
+                            aria-hidden="true"
+                          />
+                        ))}
+                        <span className="comment-stars-num">{el.stars}/5</span>
+                      </span>
+                    </div>
+                    <p className="comment-text">
+                      <i className="fa-solid fa-comment me-2" style={{ color: 'rgba(0,229,255,0.4)' }} aria-hidden="true"></i>
                       {el.comment}
                     </p>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <p>No comments yet.</p>
+              <div className="comments-empty">
+                <i className="fa-regular fa-comment-dots comments-empty-icon" aria-hidden="true"></i>
+                <p>No comments yet.</p>
+                <span>Be the first to leave a comment!</span>
+              </div>
             )}
           </div>
-        </div>}
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 // Pestaña "Games": lista de juegos del usuario con edición de horas y botón
 // para añadir un nuevo juego mediante un modal Bootstrap.
 
+import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import Select from "react-select";
 
@@ -58,175 +59,176 @@ export const ProfileGamesTab = ({
                     Add a new game
                 </button>
 
-                {/* ── Add game modal ── */}
-                <div
-                    className="modal fade"
-                    id="commentModal"
-                    tabIndex="-1"
-                    aria-hidden="true"
-                    aria-labelledby="commentModalLabel"
-                >
-                    <div className="modal-dialog">
-                        <div className="modal-content modal-sci-fi">
-                            <div className="modal-header modal-sci-fi-header">
-                                <h5
-                                    className="modal-title modal-sci-fi-title"
-                                    id="commentModalLabel"
-                                >
-                                    Add a new game
-                                </h5>
-                                <button
-                                    type="button"
-                                    className="btn-close btn-sci-fi"
-                                    data-bs-dismiss="modal"
-                                    aria-label="Close"
-                                />
-                            </div>
-
-                            <div className="modal-body modal-sci-fi-body">
-                                <div className="mb-3">
-                                    <label htmlFor="gameName" className="label-sci-fi">
-                                        Select a game
-                                    </label>
-                                    <Select
-                                        className="selectorJuegos"
-                                        inputId="gameName"
-                                        options={gameOptions}
-                                        value={
-                                            gameOptions.find((opt) => opt.value === game.title) ||
-                                            null
-                                        }
-                                        onChange={(selected) =>
-                                            onGameChange({
-                                                target: {
-                                                    name: "title",
-                                                    value: selected?.value || "",
-                                                },
-                                            })
-                                        }
-                                        isClearable
-                                        isSearchable
-                                        placeholder="-- Select a game --"
+                {/* ── Add game modal — rendered via portal so backdrop-filter doesn't trap it ── */}
+                {createPortal(
+                    <div
+                        className="modal fade"
+                        id="commentModal"
+                        tabIndex="-1"
+                        aria-hidden="true"
+                        aria-labelledby="commentModalLabel"
+                    >
+                        <div className="modal-dialog">
+                            <div className="modal-content modal-sci-fi">
+                                <div className="modal-header modal-sci-fi-header">
+                                    <h5
+                                        className="modal-title modal-sci-fi-title"
+                                        id="commentModalLabel"
+                                    >
+                                        Add a new game
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        className="btn-close btn-sci-fi"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
                                     />
                                 </div>
 
-                                <div className="mb-3">
-                                    <label htmlFor="hoursPlayed" className="label-sci-fi">
-                                        Hours played
-                                    </label>
-                                    <input
-                                        type="number"
-                                        className="input-sci-fi"
-                                        id="hoursPlayed"
-                                        name="hours_played"
-                                        value={game.hours_played}
-                                        onChange={onGameChange}
-                                        placeholder="Eg.: 42"
-                                        min="1"
-                                        max="10000"
-                                    />
-                                    {errorHoursPlayed && (
-                                        <h6 className="text-danger ms-2 mt-2">{errorHoursPlayed}</h6>
-                                    )}
-                                    {errorRepeatedGame && (
-                                        <h6 className="text-danger ms-2 mt-2">{errorRepeatedGame}</h6>
-                                    )}
-                                </div>
-                            </div>
+                                <div className="modal-body modal-sci-fi-body">
+                                    <div className="mb-3">
+                                        <label htmlFor="gameName" className="label-sci-fi">
+                                            Select a game
+                                        </label>
+                                        <Select
+                                            className="selectorJuegos"
+                                            inputId="gameName"
+                                            options={gameOptions}
+                                            value={
+                                                gameOptions.find((opt) => opt.value === game.title) ||
+                                                null
+                                            }
+                                            onChange={(selected) =>
+                                                onGameChange({
+                                                    target: {
+                                                        name: "title",
+                                                        value: selected?.value || "",
+                                                    },
+                                                })
+                                            }
+                                            isClearable
+                                            isSearchable
+                                            placeholder="-- Select a game --"
+                                        />
+                                    </div>
 
-                            <div className="modal-footer modal-sci-fi-footer">
-                                <button
-                                    type="button"
-                                    className="btn-sci-fi-primary"
-                                    data-bs-dismiss="modal"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-sci-fi-primary"
-                                    onClick={onAddGame}
-                                >
-                                    Add
-                                </button>
+                                    <div className="mb-3">
+                                        <label htmlFor="hoursPlayed" className="label-sci-fi">
+                                            Hours played
+                                        </label>
+                                        <input
+                                            type="number"
+                                            className="input-sci-fi"
+                                            id="hoursPlayed"
+                                            name="hours_played"
+                                            value={game.hours_played}
+                                            onChange={onGameChange}
+                                            placeholder="Eg.: 42"
+                                            min="1"
+                                            max="10000"
+                                        />
+                                        {errorHoursPlayed && (
+                                            <h6 className="text-danger ms-2 mt-2">{errorHoursPlayed}</h6>
+                                        )}
+                                        {errorRepeatedGame && (
+                                            <h6 className="text-danger ms-2 mt-2">{errorRepeatedGame}</h6>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="modal-footer modal-sci-fi-footer">
+                                    <button
+                                        type="button"
+                                        className="btn-sci-fi-primary"
+                                        data-bs-dismiss="modal"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-sci-fi-primary"
+                                        onClick={onAddGame}
+                                    >
+                                        Add
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </div>,
+                    document.body
+                )}
             </div>
 
             {/* ── Games list ── */}
-            <div className="row mt-5 gap-3 d-flez justify-content-center gamesbigbox p-2">
+            <div className="mt-4">
                 {games && games.length > 0 ? (
                     games.map((el, i) => (
-                        <div
-                            key={el.id ?? i}
-                            className="row gamesbox d-flex align-content-center py-3"
-                        >
-                            {/* Game title */}
-                            <div className="d-flex justify-content-around col-lg-6 col-md-12 col-sm-12 align-items-center">
-                                <h6 className="m-0">{el.gameTitle}</h6>
-                            </div>
+                        <div key={el.id ?? i} className="game-row">
+                            {/* Portada si existe */}
+                            {el.gameImage && (
+                                <img src={el.gameImage} alt={el.gameTitle} className="game-row-cover" />
+                            )}
 
-                            {/* Edit hours inline form OR display row */}
+                            {/* Título */}
+                            <span className="game-row-title">{el.gameTitle}</span>
+
+                            {/* Horas o form de edición */}
                             {idOfGameBeingEdited === el.id ? (
-                                <form
-                                    className="d-flex justify-content-around col-lg-6 col-md-12 col-sm-12 align-items-center"
-                                    onSubmit={(e) => onUpdateHours(e, el.id)}
-                                >
-                                    <div className="row d-flex flex-row justify-content-around align-items-center">
-                                        {errorCeroHours && (
-                                            <h6 className="me-4 text-danger mt-2 error-hours-font">
-                                                {errorCeroHours}
-                                            </h6>
-                                        )}
-                                        <input
-                                            className="col-auto input-hours border-2 rounded-2 ms-2"
-                                            type="number"
-                                            name="hours_played"
-                                            value={game.hours_played}
-                                            onChange={(e) =>
-                                                setGame({ ...game, hours_played: e.target.value })
-                                            }
-                                            placeholder="Hours"
-                                            aria-label="Hours played"
-                                        />
-                                        <button
-                                            type="submit"
-                                            className="me-1 fa-solid fa-floppy-disk btn bg-transparent botonesAccionesJuegos btn-save-game col-auto"
-                                            aria-label="Save hours"
-                                        />
-                                        <span
-                                            className="ms-1 text-danger botonesAccionesJuegos btn-close-edit-game col-auto"
-                                            role="button"
-                                            aria-label="Cancel editing hours"
-                                            onClick={() => setIdOfGameBeingEdited(0)}
-                                        >
-                                            X
-                                        </span>
-                                    </div>
+                                <form className="game-row-edit-form" onSubmit={(e) => onUpdateHours(e, el.id)}>
+                                    {errorCeroHours && (
+                                        <span className="game-error-text">{errorCeroHours}</span>
+                                    )}
+                                    <input
+                                        className="game-hours-input"
+                                        type="number"
+                                        name="hours_played"
+                                        value={game.hours_played}
+                                        onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
+                                        placeholder="Hours"
+                                        aria-label="Hours played"
+                                    />
+                                    <button type="submit" className="game-action-btn game-action-save" aria-label="Save">
+                                        <i className="fa-solid fa-floppy-disk"></i>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="game-action-btn game-action-cancel"
+                                        onClick={() => setIdOfGameBeingEdited(0)}
+                                        aria-label="Cancel"
+                                    >
+                                        <i className="fa-solid fa-xmark"></i>
+                                    </button>
                                 </form>
                             ) : (
-                                <div className="d-flex justify-content-around col-lg-6 col-md-12 col-sm-12 align-items-center">
-                                    <h6 className="m-0 col-4">{el.gameHoursPlayed} hours</h6>
-                                    <span
-                                        className="text-light botonesAccionesJuegos col-auto fa-solid fa-pencil"
-                                        role="button"
-                                        aria-label={`Edit hours for ${el.gameTitle}`}
+                                <div className="game-row-actions">
+                                    <span className="game-row-hours">
+                                        {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
+                                            ? `${el.gameHoursPlayed.toLocaleString()} h`
+                                            : <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>No hours set</span>
+                                        }
+                                    </span>
+                                    <button
+                                        className="game-action-btn game-action-edit"
                                         onClick={() => setIdOfGameBeingEdited(el.id)}
-                                    />
-                                    <span
-                                        className="text-danger botonesAccionesJuegos col-auto fa-solid fa-trash"
-                                        role="button"
-                                        aria-label={`Delete ${el.gameTitle}`}
+                                        aria-label={`Edit ${el.gameTitle}`}
+                                    >
+                                        <i className="fa-solid fa-pencil"></i>
+                                    </button>
+                                    <button
+                                        className="game-action-btn game-action-delete"
                                         onClick={() => onDeleteGame(el.id)}
-                                    />
+                                        aria-label={`Delete ${el.gameTitle}`}
+                                    >
+                                        <i className="fa-solid fa-trash"></i>
+                                    </button>
                                 </div>
                             )}
                         </div>
                     ))
                 ) : (
-                    <p className="text-center">No games yet. Add your first game!</p>
+                    <p className="text-center" style={{ color: 'rgba(255,255,255,0.4)', paddingTop: '20px' }}>
+                        No games yet. Add your first game!
+                    </p>
                 )}
             </div>
         </div>

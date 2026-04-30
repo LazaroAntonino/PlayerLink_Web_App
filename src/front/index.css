@@ -184,3 +184,27 @@ body.modal-open {
   outline-offset: 3px;
   border-radius: var(--radius-sm);
 }
+
+/* ── Glass morphism panels ── */
+.glass-panel {
+  background: rgba(10, 15, 26, 0.80);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 16px;
+}
+
+.glass-panel-strong {
+  background: rgba(8, 12, 22, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  border-radius: 16px;
+}
+
+/* ── Page title glow ── */
+.page-title-neon {
+  color: var(--color-primary);
+  text-shadow: 0 0 18px rgba(0, 229, 255, 0.45);
+  font-family: var(--font-primary);
+}

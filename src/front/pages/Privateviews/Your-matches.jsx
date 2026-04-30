@@ -4,6 +4,7 @@ import useGlobalReducer from "../../hooks/useGlobalReducer";
 import userServices from "../../services/userServices";
 import matchServices from "../../services/matchServices";
 import { MatchMiniCard } from "../../components/matchMiniCard.jsx"
+import "./Your-matches.css"
 
 
 export const YourMatches = () => {
@@ -58,19 +59,10 @@ export const YourMatches = () => {
             ) : (
 
 
-              <div className="d-flex justify-content-center w-50 mt-5">
-                <div
-                  className="text-center search-mate-font px-3 py-2 rounded"
-                  style={{
-                    width: "fit-content",
-                    border: "2px solid #00f0ff",
-                    color: "#00f0ff",
-                    backgroundColor: "#121212"
-                  }}
-                >
-                  <h4 className="  text-center my-2 search-mate-font "> No matches yet! <br />Your perfect gaming buddy might be just one search away!</h4>
-
-                </div>
+              <div className="matches-empty-state">
+                <div className="matches-empty-icon">🎮</div>
+                <h4 className="matches-empty-title">No matches yet!</h4>
+                <p className="matches-empty-sub">Your perfect gaming buddy might be just one search away!</p>
               </div>
             )}
           </>
