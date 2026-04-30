@@ -1,0 +1,642 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ONBOARDING WIZARD — usa los tokens CSS de :root (index.css)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor principal ────────────────────────────────────────── */
+.onboarding-wrapper {
+  min-height: 100vh;
+  background: var(--color-bg, #07070f);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 4rem;
+}
+
+.onboarding-logo {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  color: var(--color-primary, #00f0ff);
+  font-size: 1.4rem;
+  letter-spacing: 0.12em;
+  text-shadow: var(--glow-primary, 0 0 12px #00f0ff);
+  margin-bottom: 2rem;
+  text-decoration: none;
+}
+
+.onboarding-card {
+  background: var(--color-surface, #131219);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--radius-lg, 16px);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 0 40px rgba(0, 240, 255, 0.05);
+  animation: ob-enter 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
+@keyframes ob-enter {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.onboarding-card h2 {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  color: var(--color-primary, #00f0ff);
+  font-size: 1.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.onboarding-card .ob-subtitle {
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.9rem;
+  margin-bottom: 1.75rem;
+}
+
+/* ── Barra de progreso ───────────────────────────────────────────── */
+.ob-progress-bar {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 560px;
+  margin-bottom: 0.5rem;
+}
+
+.ob-progress-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 240, 255, 0.12);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ob-progress-segment.active {
+  background: var(--color-primary, #00f0ff);
+  box-shadow: 0 0 8px var(--color-primary, #00f0ff);
+}
+
+.ob-progress-segment.done {
+  background: rgba(0, 240, 255, 0.45);
+}
+
+.ob-progress-label {
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.78rem;
+  margin-bottom: 1.5rem;
+  align-self: flex-start;
+}
+
+/* ── Botones de navegación ───────────────────────────────────────── */
+.ob-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.ob-btn-next {
+  flex: 1;
+  background: var(--color-primary, #00f0ff);
+  color: var(--color-bg, #07070f);
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.65rem 1.5rem;
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  text-transform: uppercase;
+  min-width: 120px;
+}
+
+.ob-btn-next:hover:not(:disabled) {
+  box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+}
+
+.ob-btn-next:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ob-btn-back {
+  background: transparent;
+  color: var(--color-text-muted, #8888aa);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.65rem 1.2rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.ob-btn-back:hover {
+  color: var(--color-primary, #00f0ff);
+  border-color: var(--color-primary, #00f0ff);
+}
+
+.ob-btn-skip {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.65rem 0;
+  transition: color 0.2s ease;
+}
+
+.ob-btn-skip:hover {
+  color: var(--color-primary, #00f0ff);
+}
+
+/* ── Inputs ──────────────────────────────────────────────────────── */
+.ob-input-label {
+  display: block;
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ob-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(0, 240, 255, 0.2);
+  border-radius: var(--radius-sm, 6px);
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.6rem 0.9rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.ob-input:focus {
+  border-color: var(--color-primary, #00f0ff);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12);
+}
+
+.ob-input.error {
+  border-color: #ff4466;
+}
+
+.ob-error-msg {
+  color: #ff4466;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.ob-hint {
+  color: var(--color-text-muted, #8888aa);
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+}
+
+/* ── Step 1: Avatar grid ─────────────────────────────────────────── */
+.ob-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.ob-avatar-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary, #00f0ff);
+  box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+  margin-bottom: 1rem;
+}
+
+.ob-avatar-initials {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary, #00f0ff), var(--color-accent, #ff00ff));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-bg, #07070f);
+  margin-bottom: 1rem;
+  border: 3px solid var(--color-primary, #00f0ff);
+  box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+}
+
+.ob-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.ob-avatar-option {
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  aspect-ratio: 1;
+}
+
+.ob-avatar-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ob-avatar-option:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  transform: scale(1.04);
+}
+
+.ob-avatar-option.selected {
+  border-color: var(--color-primary, #00f0ff);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+}
+
+/* ── Step 2: Juegos ──────────────────────────────────────────────── */
+.ob-game-search {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.ob-game-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted, #8888aa);
+  pointer-events: none;
+}
+
+.ob-game-search .ob-input {
+  padding-left: 2.25rem;
+}
+
+.ob-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  min-height: 36px;
+}
+
+.ob-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--color-primary, #00f0ff);
+  color: var(--color-primary, #00f0ff);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem 0.25rem 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  animation: ob-chip-in 0.2s ease forwards;
+}
+
+@keyframes ob-chip-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+.ob-chip-remove {
+  background: none;
+  border: none;
+  color: var(--color-primary, #00f0ff);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.ob-chip-remove:hover {
+  opacity: 1;
+}
+
+.ob-game-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.4rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 240, 255, 0.3) transparent;
+}
+
+.ob-game-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.9rem;
+  color: #ccd0dd;
+  border: 1.5px solid transparent;
+}
+
+.ob-game-item:hover {
+  background: rgba(0, 240, 255, 0.06);
+}
+
+.ob-game-item.selected {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.3);
+  color: var(--color-primary, #00f0ff);
+}
+
+.ob-game-item-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(0, 240, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ob-game-item.selected .ob-game-item-check {
+  background: var(--color-primary, #00f0ff);
+  border-color: var(--color-primary, #00f0ff);
+}
+
+.ob-game-counter {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #8888aa);
+  text-align: right;
+  margin-top: 0.35rem;
+}
+
+.ob-game-counter.at-max {
+  color: var(--color-accent, #ff00ff);
+}
+
+/* ── Step 3: Plataformas ─────────────────────────────────────────── */
+.ob-platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.ob-platform-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.1rem 0.5rem;
+  border: 2px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--radius-md, 10px);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.ob-platform-card:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.04);
+  transform: translateY(-2px);
+}
+
+.ob-platform-card.selected {
+  border-color: var(--color-primary, #00f0ff);
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);
+}
+
+.ob-platform-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.ob-platform-name {
+  font-size: 0.76rem;
+  color: #ccd0dd;
+  text-align: center;
+  font-weight: 600;
+}
+
+.ob-platform-card.selected .ob-platform-name {
+  color: var(--color-primary, #00f0ff);
+}
+
+/* ── Step 4: Play Style ──────────────────────────────────────────── */
+.ob-styles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.ob-style-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 2px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--radius-md, 10px);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+
+.ob-style-card:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.04);
+}
+
+.ob-style-card.selected {
+  border-color: var(--color-accent, #ff00ff);
+  background: rgba(255, 0, 255, 0.07);
+  box-shadow: 0 0 16px rgba(255, 0, 255, 0.2);
+}
+
+.ob-style-emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ob-style-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.ob-style-title {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #e0e0f0;
+  margin-bottom: 0.15rem;
+}
+
+.ob-style-card.selected .ob-style-title {
+  color: var(--color-accent, #ff00ff);
+}
+
+.ob-style-desc {
+  font-size: 0.76rem;
+  color: var(--color-text-muted, #8888aa);
+  line-height: 1.4;
+}
+
+/* ── Step 5: Preview ─────────────────────────────────────────────── */
+.ob-preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--radius-md, 10px);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.ob-preview-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary, #00f0ff);
+  box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+}
+
+.ob-preview-nick {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  color: var(--color-primary, #00f0ff);
+  font-size: 1.2rem;
+  text-shadow: var(--glow-primary, 0 0 8px #00f0ff);
+  margin: 0;
+}
+
+.ob-preview-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.ob-preview-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--color-primary, #00f0ff);
+}
+
+.ob-preview-chip.accent {
+  background: rgba(255, 0, 255, 0.1);
+  border-color: rgba(255, 0, 255, 0.3);
+  color: var(--color-accent, #ff00ff);
+}
+
+.ob-preview-section-title {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #8888aa);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+  align-self: flex-start;
+  width: 100%;
+  text-align: left;
+}
+
+.ob-edit-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.ob-edit-step-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #8888aa);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.ob-edit-step-btn:hover {
+  color: var(--color-primary, #00f0ff);
+  border-color: var(--color-primary, #00f0ff);
+}
+
+.ob-btn-publish {
+  width: 100%;
+  background: linear-gradient(135deg, var(--color-primary, #00f0ff), var(--color-accent, #ff00ff));
+  color: var(--color-bg, #07070f);
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.8rem 2rem;
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  text-transform: uppercase;
+}
+
+.ob-btn-publish:hover:not(:disabled) {
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.4), 0 0 30px rgba(255, 0, 255, 0.3);
+  opacity: 0.92;
+}
+
+.ob-btn-publish:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ob-publish-error {
+  color: #ff4466;
+  font-size: 0.82rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .onboarding-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .ob-platforms-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ob-styles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ob-avatar-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .ob-platform-icon {
+    font-size: 1.8rem;
+  }
+}

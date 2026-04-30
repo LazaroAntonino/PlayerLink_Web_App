@@ -1,22 +1,186 @@
-* {
-  font-family: 'Audiowide', sans-serif;
+/* ========================================================
+   PLAYERLINK — Global Design System
+   ======================================================== */
+
+/* ── Design Tokens ── */
+:root {
+  /* Brand Colors */
+  --color-primary: #00f0ff;       /* cyan neón — acción principal */
+  --color-accent: #ff00ff;        /* magenta neón — acento/highlights */
+  --color-success: #00ff88;       /* verde neón — estados positivos */
+  --color-danger: #ff4d6d;        /* rojo neón — errores / dislike */
+  --color-warning: #ffcc00;       /* amarillo — advertencias */
+
+  /* Backgrounds */
+  --color-bg: #07070f;            /* negro profundo — fondo principal */
+  --color-surface: #131219;       /* gris muy oscuro — cards, paneles */
+  --color-surface-2: #1c1b27;     /* gris oscuro 2 — modales, inputs */
+  --color-border: rgba(0, 240, 255, 0.18); /* borde sutil neón */
+
+  /* Text */
+  --color-text: #e2e2f0;          /* blanco suave */
+  --color-text-muted: #8888aa;    /* texto secundario */
+  --color-text-disabled: #444466; /* texto deshabilitado */
+
+  /* Glow Effects */
+  --glow-primary: 0 0 8px var(--color-primary), 0 0 20px rgba(0, 240, 255, 0.3);
+  --glow-accent: 0 0 8px var(--color-accent), 0 0 20px rgba(255, 0, 255, 0.3);
+  --glow-success: 0 0 8px var(--color-success);
+  --glow-danger: 0 0 8px var(--color-danger);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  --gradient-surface: linear-gradient(180deg, var(--color-surface), var(--color-bg));
+  --gradient-border: linear-gradient(var(--color-primary), var(--color-accent));
+
+  /* Typography */
+  --font-primary: 'Audiowide', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 3rem;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  /* Z-index layers */
+  --z-base: 1;
+  --z-overlay: 100;
+  --z-modal: 1050;
+  --z-toast: 2000;
+}
+
+/* ── Base Reset & Defaults ── */
+/* box-sizing on pseudo-elements; font-family ONLY on real elements
+   to avoid overriding Font Awesome's ::before font-family inheritance */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* Prevent layout shift when Bootstrap modals open/close.
-   Forcing overflow-y: scroll keeps the scrollbar always visible,
-   so Bootstrap has nothing to compensate for. */
-html {
-  overflow-y: scroll;
+* {
+  font-family: var(--font-primary);
 }
 
-/* Belt-and-suspenders: override Bootstrap's padding-right compensation */
+html {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  padding: 0 !important;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Prevent Bootstrap modal layout shift ── */
 body.modal-open {
   padding-right: 0 !important;
   overflow: hidden;
 }
 
-body {
-  padding: 0 !important;
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  opacity: 0.6;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
 }
 
+/* ── Utility: Neon text effect ── */
+.text-neon-primary {
+  color: var(--color-primary);
+  text-shadow: var(--glow-primary);
+}
+
+.text-neon-accent {
+  color: var(--color-accent);
+  text-shadow: var(--glow-accent);
+}
+
+/* ── Utility: Neon border card ── */
+.card-neon {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.03);
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.card-neon:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* ── Utility: Neon button ── */
+.btn-neon {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-lg);
+  font-family: var(--font-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.btn-neon:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  box-shadow: var(--glow-primary);
+}
+
+.btn-neon-accent {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.btn-neon-accent:hover {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  box-shadow: var(--glow-accent);
+}
+
+/* ── Focus visible for accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}

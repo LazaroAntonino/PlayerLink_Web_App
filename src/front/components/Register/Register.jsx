@@ -58,7 +58,7 @@ export const Register = ({ onSwitch, onSuccess }) => {
                 const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'));
                 dispatch({ type: 'getUserInfo', payload: parsedUser });
                 if (onSuccess) onSuccess();
-                navigate('/private/profile');
+                navigate('/onboarding');
             } else {
                 setErrorEmailRegistered(data?.error || "Email already registered");
             }

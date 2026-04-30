@@ -289,6 +289,171 @@
 	animation: slide-out-blurred-right 0.60s cubic-bezier(0.755, 0.050, 0.855, 0.060) both;
 } */
 
+/* ══════════════════════════════════════════════════════
+   Card entrance animation — plays when a new card mounts
+   ══════════════════════════════════════════════════════ */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.93) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.search-match-card {
+  animation: card-enter 0.38s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
+/* ══════════════════════════════════════════════════════
+   Skeleton loader — mirrors SearchMatchCard structure
+   ══════════════════════════════════════════════════════ */
+
+/* Shimmer wave animation */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton-card {
+  /* Disable the card-enter animation on the skeleton so it doesn't flicker */
+  animation: none !important;
+  pointer-events: none;
+  cursor: default !important;
+  border-color: #1c2a3a !important;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #0e1a28 25%,
+    #1a2d42 50%,
+    #0e1a28 75%
+  );
+  background-size: 600px 100%;
+  animation: skeleton-shimmer 1.6s infinite linear;
+  border-radius: 8px;
+}
+
+/* Shape tokens */
+.skeleton-avatar {
+  width: 180px;
+  height: 200px;
+  border-radius: 20px;
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 60%;
+  border-radius: 6px;
+}
+
+.skeleton-line--title {
+  height: 22px;
+  width: 45%;
+}
+
+.skeleton-line--medium {
+  height: 14px;
+  width: 50%;
+}
+
+.skeleton-line--short {
+  height: 14px;
+  width: 35%;
+}
+
+.skeleton-star {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.skeleton-btn {
+  width: 70px;
+  height: 70px;
+  border-radius: 35%;
+}
+
+.skeleton-divider {
+  height: 2px;
+  background: #1a2d42;
+  width: 100%;
+  margin: 0 auto 1rem auto;
+  opacity: 0.5;
+  border-radius: 2px;
+}
+
+/* ══════════════════════════════════════════════════════
+   Empty state
+   ══════════════════════════════════════════════════════ */
+.empty-state-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl, 4rem) var(--space-xl, 2rem);
+  text-align: center;
+  animation: card-enter 0.5s ease forwards;
+}
+
+.empty-state-icon {
+  font-size: 5rem;
+  color: var(--color-primary, #00f0ff);
+  text-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+  margin-bottom: var(--space-xl, 2rem);
+  animation: empty-icon-float 3s ease-in-out infinite;
+}
+
+@keyframes empty-icon-float {
+  0%, 100% { transform: translateY(0px);   }
+  50%       { transform: translateY(-12px); }
+}
+
+.empty-state-title {
+  font-size: var(--font-size-2xl, 1.5rem);
+  color: var(--color-primary, #00f0ff);
+  text-shadow: var(--glow-primary, 0 0 8px #00f0ff);
+  margin-bottom: var(--space-md, 1rem);
+}
+
+.empty-state-subtitle {
+  font-size: var(--font-size-base, 1rem);
+  color: var(--color-text-muted, #8888aa);
+  line-height: 1.7;
+  max-width: 340px;
+  margin-bottom: var(--space-xl, 2rem);
+}
+
+.empty-state-name {
+  color: var(--color-accent, #ff00ff);
+  text-shadow: var(--glow-accent, 0 0 8px #ff00ff);
+}
+
+.empty-state-btn {
+  background: transparent;
+  color: var(--color-primary, #00f0ff);
+  border: 2px solid var(--color-primary, #00f0ff);
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-sm, 0.5rem) var(--space-xl, 2rem);
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: var(--font-size-sm, 0.875rem);
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+.empty-state-btn:hover,
+.empty-state-btn:focus-visible {
+  background: var(--color-primary, #00f0ff);
+  color: var(--color-bg, #07070f);
+  box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
+  outline: none;
+}
+
 .preferences-full {
   display: inline;
 }
@@ -330,4 +495,105 @@
   .preferences-full {
     display: none !important;
   }
+}
+
+/* ============================================================
+   SWIPE EXIT ANIMATIONS
+   ============================================================ */
+
+@keyframes fly-right {
+  from { transform: translateX(0)     rotate(0deg);   opacity: 1; }
+  to   { transform: translateX(130%)  rotate(20deg);  opacity: 0; }
+}
+
+@keyframes fly-left {
+  from { transform: translateX(0)     rotate(0deg);   opacity: 1; }
+  to   { transform: translateX(-130%) rotate(-20deg); opacity: 0; }
+}
+
+.search-match-card.exiting-right {
+  animation: fly-right 0.38s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  pointer-events: none;
+}
+
+.search-match-card.exiting-left {
+  animation: fly-left 0.38s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+  pointer-events: none;
+}
+
+/* ============================================================
+   STAMPS DE LIKE / PASS
+   ============================================================ */
+
+.card-stamp {
+  position: absolute;
+  top: 28px;
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 3px solid;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.1s ease;
+}
+
+.card-stamp.stamp-like {
+  left: 24px;
+  color: #00ff88;
+  border-color: #00ff88;
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.8);
+  box-shadow: 0 0 16px rgba(0, 255, 136, 0.25);
+  transform: rotate(-15deg);
+}
+
+.card-stamp.stamp-pass {
+  right: 24px;
+  color: #ff3250;
+  border-color: #ff3250;
+  text-shadow: 0 0 12px rgba(255, 50, 80, 0.8);
+  box-shadow: 0 0 16px rgba(255, 50, 80, 0.25);
+  transform: rotate(15deg);
+}
+
+.card-stamp.visible {
+  opacity: 1;
+}
+
+/* ============================================================
+   BOTONES LIKE / PASS — hover, active, pulso
+   ============================================================ */
+
+.search-match-like-btn-border,
+.search-match-dislike-btn-border {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-match-like-btn-border:hover {
+  transform: scale(1.12);
+  box-shadow: 0 0 22px rgba(0, 255, 136, 0.55);
+}
+
+.search-match-dislike-btn-border:hover {
+  transform: scale(1.12);
+  box-shadow: 0 0 22px rgba(255, 50, 80, 0.55);
+}
+
+.search-match-like-btn-border:active,
+.search-match-dislike-btn-border:active {
+  transform: scale(0.94);
+}
+
+@keyframes btn-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.28); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.search-match-like-btn-border.pulsing {
+  animation: btn-pulse 0.4s ease forwards;
 }

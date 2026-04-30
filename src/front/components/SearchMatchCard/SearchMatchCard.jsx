@@ -88,13 +88,19 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   // ──────────────────────────────────────────────────────────────────────────
 
   const handleLike = () => {
-    setAnimationClass('slide-out-right');
-    setTimeout(() => { setAnimationClass(''); onLike(); }, 500);
+    setAnimationClass('exiting-right');
+    // trigger button pulse
+    const likeBtn = document.querySelector('.search-match-like-btn-border');
+    if (likeBtn) {
+      likeBtn.classList.add('pulsing');
+      likeBtn.addEventListener('animationend', () => likeBtn.classList.remove('pulsing'), { once: true });
+    }
+    setTimeout(() => { setAnimationClass(''); onLike(); }, 420);
   };
 
   const handleDislike = () => {
-    setAnimationClass('slide-out-left');
-    setTimeout(() => { setAnimationClass(''); onDislike(); }, 500);
+    setAnimationClass('exiting-left');
+    setTimeout(() => { setAnimationClass(''); onDislike(); }, 420);
   };
 
   const formattedPreferences = profile?.preferences
@@ -126,17 +132,13 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
             onTouchEnd={handleTouchEnd}
             style={{ userSelect: 'none', cursor: 'grab' }}
           >
-            {/* Swipe hint badges */}
-            {swipeHint === 'like' && (
-              <div className="swipe-hint swipe-hint-like">
-                <i className="fa-solid fa-heart me-2" /> LIKE
-              </div>
-            )}
-            {swipeHint === 'dislike' && (
-              <div className="swipe-hint swipe-hint-dislike">
-                NOPE <i className="fa-solid fa-xmark ms-2" />
-              </div>
-            )}
+            {/* Swipe stamps — always in DOM, opacity toggled via .visible */}
+            <div className={`card-stamp stamp-like${swipeHint === 'like' ? ' visible' : ''}`}>
+              <i className="fa-solid fa-heart me-2" />LIKE
+            </div>
+            <div className={`card-stamp stamp-pass${swipeHint === 'dislike' ? ' visible' : ''}`}>
+              NOPE <i className="fa-solid fa-xmark ms-2" />
+            </div>
 
             <div className="card-body">
               <div className='d-flex justify-content-center'>

@@ -13,6 +13,7 @@
 .private-content {
   flex-grow: 1;
   padding: 20px;
+  overflow-x: hidden;
   overflow-y: auto;
   background-color: #121212;
   color: white;

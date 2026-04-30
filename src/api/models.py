@@ -207,6 +207,10 @@ class Match(db.Model):
         'User', foreign_keys=[user1_id], back_populates='matches_initiated')
     user2: Mapped[User] = relationship(
         'User', foreign_keys=[user2_id], back_populates='matches_received')
+    messages: Mapped[List['ChatMessage']] = relationship(
+        'ChatMessage', back_populates='match', cascade='all, delete-orphan',
+        order_by='ChatMessage.created_at'
+    )
 
     def serialize(self):
         return {
@@ -214,7 +218,8 @@ class Match(db.Model):
             "user1": {
                 "user_id": self.user1_id,
                 "user_data": {
-                    "nickname": self.user1.profile.name if self.user1.profile and self.user1.profile.name else "undefined",
+                    "nickname": self.user1.profile.nick_name if self.user1.profile and self.user1.profile.nick_name else "undefined",
+                    "name": self.user1.profile.name if self.user1.profile and self.user1.profile.name else "undefined",
                     "games": [g.serialize() for g in self.user1.profile.games] if self.user1.profile and self.user1.profile.games else [],
                     "gender": self.user1.profile.gender if self.user1.profile and self.user1.profile.gender else "undefined",
                     "age": self.user1.profile.age if self.user1.profile and self.user1.profile.age else "undefined",
@@ -223,7 +228,8 @@ class Match(db.Model):
             "user2": {
                 "user_id": self.user2_id,
                 "user_data": {
-                    "nickname": self.user2.profile.name if self.user2.profile and self.user2.profile.name else "undefined",
+                    "nickname": self.user2.profile.nick_name if self.user2.profile and self.user2.profile.nick_name else "undefined",
+                    "name": self.user2.profile.name if self.user2.profile and self.user2.profile.name else "undefined",
                     "games": [g.serialize() for g in self.user2.profile.games] if self.user2.profile and self.user2.profile.games else [],
                     "gender": self.user2.profile.gender if self.user2.profile and self.user2.profile.gender else "undefined",
                     "age": self.user2.profile.age if self.user2.profile and self.user2.profile.age else "undefined",
@@ -254,4 +260,35 @@ class Reject(db.Model):
             "id": self.id,
             "rejector_id": self.rejector_id,
             "rejected_id": self.rejected_id
+        }
+
+
+# ── Chat messages ────────────────────────────────────────────────────────────
+# NOTE: Class is named ChatMessage (not Message) to avoid collision with
+#       flask_mail.Message which is imported in routes.py.
+
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(
+        ForeignKey('matches.id', ondelete='CASCADE'), nullable=False)
+    sender_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    content: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[DateTime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # Relaciones
+    match: Mapped['Match'] = relationship('Match', back_populates='messages')
+    sender: Mapped[User] = relationship('User', foreign_keys=[sender_id])
+
+    def serialize(self):
+        return {
+            'id':         self.id,
+            'match_id':   self.match_id,
+            'sender_id':  self.sender_id,
+            'content':    self.content,
+            'created_at': self.created_at.isoformat(),
+            'read':       self.read,
         }

@@ -156,15 +156,27 @@ searchMatchServices.getDislikesReceived = async (userId) => {
 };
 
 // Trae perfiles filtrados (excluye a los que ya se dio like o dislike)
-searchMatchServices.getFilteredProfiles = async (userId) => {
+// filters: objeto con claves opcionales: game, preference, language, location, gender, age_min, age_max
+searchMatchServices.getFilteredProfiles = async (userId, filters = {}) => {
   try {
-    const resp = await fetch(`${url}/api/profiles/profiles_to_explore/${userId}`, {
-      headers: {
-        Authorization: "Bearer " + localStorage.getItem("token"),
-      },
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        params.append(key, val);
+      }
     });
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const resp = await fetch(
+      `${url}/api/profiles/profiles_to_explore/${userId}${qs}`,
+      {
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      }
+    );
     if (!resp.ok) throw new Error(`Failed to get profiles to explore: ${resp.status}`);
     const data = await resp.json();
+    // Support both legacy array response and new { profiles, total, filters_applied } shape
     return data;
   } catch (error) {
     console.error("Error in getFilteredProfiles:", error);

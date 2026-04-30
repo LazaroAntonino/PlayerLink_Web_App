@@ -18,6 +18,9 @@ import { FindGames } from "./pages/Privateviews/Find-games";
 import Settings from "./pages/Privateviews/Settings";
 import { MatchUserDetails } from "./components/matchUserDetails";
 import { Reset } from "./pages/Reset.jsx"
+import Onboarding from "./pages/Onboarding.jsx"
+import Chats from "./pages/Chats.jsx"
+import Chat from "./pages/Chat.jsx"
 
 
 export const router = createBrowserRouter(
@@ -47,8 +50,12 @@ export const router = createBrowserRouter(
         <Route path="find-games" element={<FindGames />} />
         <Route path="settings" element={<Settings />} />
         <Route path="your-matches/matchDetails/:id" element={<MatchUserDetails />} />
+        <Route path="chats" element={<Chats />} />
+        <Route path="chat/:matchId" element={<Chat />} />
       </Route>
       <Route path="/reset" element={<Reset />} />
+      {/* Onboarding: fuera del PrivateLayout para tener pantalla completa propia */}
+      <Route path="/onboarding" element={<Onboarding />} />
     </Route >
   )
 );

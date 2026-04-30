@@ -19,6 +19,7 @@ export const initialStore = () => {
     starsByUser: null,
     searchMatchProfiles: safeJSONParse("searchMatchProfiles", []),
     matchReviewsReceived: null,
+    unreadCount: 0,
   };
 };
 
@@ -108,12 +109,19 @@ export default function storeReducer(store, action = {}) {
         starsByUser: null,
         searchMatchProfiles: [],
         matchReviewsReceived: null,
+        unreadCount: 0,
       };
 
     case "matchReviewsReceived":
       return {
         ...store,
         matchReviewsReceived: action.payload,
+      };
+
+    case "setUnreadCount":
+      return {
+        ...store,
+        unreadCount: action.payload,
       };
 
     case "getUserInfo": {

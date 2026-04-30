@@ -1,14 +1,13 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from sqlalchemy import not_, or_
 import os
 import openai
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Profile, Review, Match, Reject, Game, Like
+from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, not_
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -129,7 +128,7 @@ def register():
         db.session.commit()
 
         token = create_access_token(identity=str(new_user.id))
-        return jsonify({'success': True, 'token': token}), 200
+        return jsonify({'success': True, 'token': token}), 201
 
     except Exception as e:
         return jsonify({'error': 'Internal error during registration'}), 500
@@ -155,7 +154,7 @@ def login():
         return jsonify({'success': True, 'token': token}), 200
     except Exception as e:
         print(f"[LOGIN ERROR] {type(e).__name__}: {e}")
-        return jsonify({'Error': 'algo paso', 'detail': str(e)}), 400
+        return jsonify({'error': 'Login failed', 'detail': str(e)}), 400
 
 
 @api.route('/mailer/<address>', methods=['POST'])
@@ -180,7 +179,7 @@ def check_mail():
     try:
         data = request.json
         # buscamos el correo en la base de datos y almacenamos el resultado en la variable user
-        user = User.query.filter_by(email=data['email']).first()
+        user = db.session.execute(select(User).where(User.email == data['email'])).scalar_one_or_none()
         # si no se encuentra, se devuelve que el correo no se ha encontrado
         if not user:
             return jsonify({'success': False, 'msg': 'email not found'}), 404
@@ -208,7 +207,7 @@ def password_update():
         if not id:
             return jsonify({'success': False, 'msg': 'Falta el id'}), 422
         # buscamos usuario por id
-        user = User.query.get(id)
+        user = db.session.get(User, id)
         if not user:
             return jsonify({'success': False, 'msg': 'Falta el user'}), 422
 
@@ -251,7 +250,7 @@ def get_single_user(user_id):
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'user whit id: {user_id} not found'}), 414
+        return jsonify({'error': f'User with id {user_id} not found'}), 404
     return jsonify(user.serialize()), 200
 
 # DELETE USER
@@ -305,21 +304,25 @@ def put_user(user_id):
 
 # PUT USER EMAIL
 @api.route('/users_email/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def put_user_email(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
     if not data or 'email' not in data:
         return jsonify({'error': 'Missing data'}), 400
-    
+
     emailstmt = select(User).where(User.email == data['email'])
     existingEmail = db.session.execute(emailstmt).scalar_one_or_none()
 
     if existingEmail is not None:
-        return jsonify({'error':'that email already exists'}), 400
+        return jsonify({'error': 'That email is already in use'}), 409
 
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'})
+        return jsonify({'error': f'User with id {user_id} not found'}), 404
     user.email = data.get('email', user.email)
     db.session.commit()
     return jsonify(user.serialize()), 200
@@ -327,7 +330,11 @@ def put_user_email(user_id):
 
 # PUT USER PASSWORD
 @api.route('/users_password/<int:user_id>', methods=['PUT'])
+@jwt_required()
 def users_password(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
     required_fields = ['password', 'actualPassword']
 
@@ -363,7 +370,7 @@ def get_single_profile_by_user(user_id):
     stmt = select(Profile).where(Profile.user_id == user_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
     if profile is None:
-        return jsonify({'error': f'the profile of the user with id: {user_id} not found'}), 414
+        return jsonify({'error': f'Profile for user with id {user_id} not found'}), 404
     return jsonify(profile.serialize()), 200
 
 # GET SINGLE PROFILE BY PROFILE ID
@@ -374,34 +381,39 @@ def get_single_profile(profile_id):
     stmt = select(Profile).where(Profile.id == profile_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
     if profile is None:
-        return jsonify({'error': f'the profile with id: {profile_id} not found'}), 414
+        return jsonify({'error': f'Profile with id {profile_id} not found'}), 404
     return jsonify(profile.serialize()), 200
 
 # DELETE PROFILE BY USER ID
-
-
 @api.route('/profiles/user/<int:user_id>', methods=['DELETE'])
+@jwt_required()
 def delete_profile_by_user_id(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     stmt = select(Profile).where(Profile.user_id == user_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
     if profile is None:
-        return jsonify({'error': f'the profile of the user with id: {user_id} not found'}), 414
+        return jsonify({'error': f'Profile for user with id {user_id} not found'}), 404
     db.session.delete(profile)
     db.session.commit()
-    return jsonify({'message': f'profile of user with id: {user_id} deleted'})
+    return jsonify({'message': f'Profile of user {user_id} deleted'}), 200
 
 # DELETE PROFILE BY PROFILE ID
-
-
 @api.route('/profiles/<int:profile_id>', methods=['DELETE'])
+@jwt_required()
 def delete_profile(profile_id):
     stmt = select(Profile).where(Profile.id == profile_id)
     profile = db.session.execute(stmt).scalar_one_or_none()
     if profile is None:
-        return jsonify({'error': f'the profile with id: {profile_id} not found'}), 414
+        return jsonify({'error': f'Profile with id {profile_id} not found'}), 404
+    # Only the owner may delete their own profile
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != profile.user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     db.session.delete(profile)
     db.session.commit()
-    return jsonify({'message': f'profile with id: {profile_id} deleted'})
+    return jsonify({'message': f'Profile {profile_id} deleted'}), 200
 
 # POST PROFILE
 
@@ -484,18 +496,72 @@ def profiles_to_explore(user_id):
     if not user:
         return jsonify({'error': f'User with id {user_id} not found'}), 404
 
-    liked_user_ids = [like.liked_id for like in user.likes_given]
+    liked_user_ids    = [like.liked_id for like in user.likes_given]
     rejected_user_ids = [reject.rejected_id for reject in user.rejects_given]
     exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id])
 
-    profiles = (
+    # ── Query base — idéntica al comportamiento anterior ──────────────────
+    query = (
         db.session.query(Profile)
         .join(User)
         .filter(~User.id.in_(exclude_ids))
-        .all()
     )
 
-    return jsonify([profile.serialize() for profile in profiles]), 200
+    # ── Filtros opcionales — solo se aplican si se pasan como query params ─
+    filters_applied = {}
+
+    # game: filtra por título de juego (join con tabla games)
+    game = request.args.get('game', '').strip()
+    if game:
+        from api.models import Game as GameModel
+        query = (
+            query
+            .join(GameModel, GameModel.profile_id == Profile.id)
+            .filter(GameModel.game_title.ilike(f'%{game}%'))
+        )
+        filters_applied['game'] = game
+
+    # preference: filtra en el campo preferences (plataformas + estilo almacenados como CSV)
+    preference = request.args.get('preference', '').strip()
+    if preference:
+        query = query.filter(Profile.preferences.ilike(f'%{preference}%'))
+        filters_applied['preference'] = preference
+
+    # language: filtra en el campo language (CSV de idiomas)
+    language = request.args.get('language', '').strip()
+    if language:
+        query = query.filter(Profile.language.ilike(f'%{language}%'))
+        filters_applied['language'] = language
+
+    # location: coincidencia parcial en location
+    location = request.args.get('location', '').strip()
+    if location:
+        query = query.filter(Profile.location.ilike(f'%{location}%'))
+        filters_applied['location'] = location
+
+    # gender: coincidencia exacta (case-insensitive)
+    gender = request.args.get('gender', '').strip()
+    if gender:
+        query = query.filter(Profile.gender.ilike(gender))
+        filters_applied['gender'] = gender
+
+    # age_min / age_max: rango de edad
+    age_min = request.args.get('age_min', type=int)
+    age_max = request.args.get('age_max', type=int)
+    if age_min is not None:
+        query = query.filter(Profile.age >= age_min)
+        filters_applied['age_min'] = age_min
+    if age_max is not None:
+        query = query.filter(Profile.age <= age_max)
+        filters_applied['age_max'] = age_max
+
+    profiles = query.all()
+
+    return jsonify({
+        'profiles':        [p.serialize() for p in profiles],
+        'total':           len(profiles),
+        'filters_applied': filters_applied,
+    }), 200
 
 # PUT PHOTO PROFILE
 
@@ -522,7 +588,7 @@ def put_profilephoto(user_id):
     return jsonify(user.profile.serialize()), 200
 
 
-# GET ALL REWVIEWS
+# GET ALL REVIEWS
 @api.route('/reviews', methods=['GET'])
 def get_All_Reviews():
     stmt = select(Review)
@@ -544,7 +610,7 @@ def get_reviews(review_id):
 @api.route('/reviews_authored/<int:user_id>', methods=['GET'])
 def get_reviews_authored(user_id):
     # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
 
@@ -564,7 +630,7 @@ def get_reviews_authored(user_id):
 @api.route('/reviews_received/<int:user_id>', methods=['GET'])
 def get_user_reviews(user_id):
     # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
 
@@ -583,7 +649,7 @@ def get_user_reviews(user_id):
 # DELETE REVIEW
 @api.route('/reviews/<int:review_id>', methods=['DELETE'])
 def delete_review(review_id):
-    review = Review.query.get(review_id)
+    review = db.session.get(Review, review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
 
@@ -598,8 +664,8 @@ def post_review(author_id, receiver_id):
     if author_id == receiver_id:
         return jsonify({'error': 'No puedes comentar sobre ti mismo'}), 400
 
-    user_author = User.query.get(author_id)
-    user_receiver = User.query.get(receiver_id)
+    user_author = db.session.get(User, author_id)
+    user_receiver = db.session.get(User, receiver_id)
     if user_author is None or user_receiver is None:
         return jsonify({'error': 'Usuario no encontrado'}), 404
 
@@ -632,7 +698,7 @@ def post_review(author_id, receiver_id):
 # PUT REVIEW
 @api.route('/reviews/<int:review_id>', methods=['PUT'])
 def put_review(review_id):
-    review = Review.query.get(review_id)
+    review = db.session.get(Review, review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
     data = request.get_json()
@@ -720,8 +786,8 @@ def get_matches_for_user(user_id):
 def post_match(user1_id, user2_id):
     if user1_id == user2_id:
         return jsonify({'error': 'Cannot match yourself'}), 400
-    user1 = User.query.get(user1_id)
-    user2 = User.query.get(user2_id)
+    user1 = db.session.get(User, user1_id)
+    user2 = db.session.get(User, user2_id)
     if not user1 or not user2:
         return jsonify({'error': 'User not found'}), 404
     # prevent duplicates regardless of order
@@ -772,7 +838,7 @@ def get_single_reject(reject_id):
 @api.route('/rejects_sent/<user_id>', methods=['GET'])
 def get_rejects_sent(user_id):
     # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
 
@@ -790,7 +856,7 @@ def get_rejects_sent(user_id):
 @api.route('/rejects_received/<user_id>', methods=['GET'])
 def get_rejects_received(user_id):
     # 1. Buscamos al usuario; si no existe devolvemos 404
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
 
@@ -971,8 +1037,8 @@ def post_like(liker_id, liked_id):
         return jsonify({'error': 'Cannot like yourself'}), 400
 
     # Obtener usuarios de la base de datos
-    liker = User.query.get(liker_id)
-    liked = User.query.get(liked_id)
+    liker = db.session.get(User, liker_id)
+    liked = db.session.get(User, liked_id)
     if not liker or not liked:
         return jsonify({'error': 'User not found'}), 404
 
@@ -1039,7 +1105,7 @@ def post_like(liker_id, liked_id):
 @api.route('/likes/<int:like_id>', methods=['DELETE'])
 def delete_like(like_id):
     # Buscar el like
-    like = db.session.query(Like).get(like_id)
+    like = db.session.get(Like, like_id)
     if not like:
         return jsonify({'error': f'Like with id {like_id} not found'}), 404
 
@@ -1061,3 +1127,169 @@ def delete_like(like_id):
     db.session.commit()
 
     return jsonify({'message': f'Like {like_id} deleted, match removed' if match else f'Like {like_id} deleted'}), 200
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# CHAT — REST polling (no WebSockets required)
+# ════════════════════════════════════════════════════════════════════════════
+
+def _assert_match_member(match, user_id: int):
+    """Returns (match, None) if ok, or (None, error_response) if unauthorized."""
+    if match.user1_id != user_id and match.user2_id != user_id:
+        return None, (jsonify({'error': 'Unauthorized: you are not part of this match'}), 403)
+    return match, None
+
+
+# GET /api/chat/messages/<match_id>
+# Returns last 50 messages; marks incoming messages as read.
+@api.route('/chat/messages/<int:match_id>', methods=['GET'])
+@jwt_required()
+def get_chat_messages(match_id):
+    user_id = int(get_jwt_identity())
+
+    match = db.session.get(Match, match_id)
+    if not match:
+        return jsonify({'error': f'Match {match_id} not found'}), 404
+
+    match, err = _assert_match_member(match, user_id)
+    if err:
+        return err
+
+    # Last 50 messages ordered ascending for display
+    messages = (
+        db.session.query(ChatMessage)
+        .filter(ChatMessage.match_id == match_id)
+        .order_by(ChatMessage.created_at.desc())
+        .limit(50)
+        .all()
+    )
+    messages = list(reversed(messages))
+
+    # Mark unread messages from the OTHER user as read
+    (
+        db.session.query(ChatMessage)
+        .filter(
+            ChatMessage.match_id == match_id,
+            ChatMessage.sender_id != user_id,
+            ChatMessage.read == False,          # noqa: E712
+        )
+        .update({'read': True}, synchronize_session=False)
+    )
+    db.session.commit()
+
+    return jsonify([m.serialize() for m in messages]), 200
+
+
+# POST /api/chat/messages/<match_id>
+# Send a new message.
+@api.route('/chat/messages/<int:match_id>', methods=['POST'])
+@jwt_required()
+def post_chat_message(match_id):
+    user_id = int(get_jwt_identity())
+
+    match = db.session.get(Match, match_id)
+    if not match:
+        return jsonify({'error': f'Match {match_id} not found'}), 404
+
+    match, err = _assert_match_member(match, user_id)
+    if err:
+        return err
+
+    data = request.get_json()
+    content = (data or {}).get('content', '').strip()
+
+    if not content:
+        return jsonify({'error': 'El mensaje no puede estar vacío'}), 400
+    if len(content) > 500:
+        return jsonify({'error': 'El mensaje no puede superar los 500 caracteres'}), 400
+
+    msg = ChatMessage(match_id=match_id, sender_id=user_id, content=content)
+    db.session.add(msg)
+    db.session.commit()
+
+    return jsonify(msg.serialize()), 201
+
+
+# GET /api/chat/messages/unread/count
+# Returns total unread messages across all matches for the authenticated user.
+@api.route('/chat/messages/unread/count', methods=['GET'])
+@jwt_required()
+def get_unread_count():
+    user_id = int(get_jwt_identity())
+
+    # All match IDs where this user is a participant
+    match_ids = (
+        db.session.query(Match.id)
+        .filter(
+            (Match.user1_id == user_id) | (Match.user2_id == user_id)
+        )
+        .all()
+    )
+    match_ids = [m.id for m in match_ids]
+
+    if not match_ids:
+        return jsonify({'unread': 0}), 200
+
+    count = (
+        db.session.query(ChatMessage)
+        .filter(
+            ChatMessage.match_id.in_(match_ids),
+            ChatMessage.sender_id != user_id,
+            ChatMessage.read == False,          # noqa: E712
+        )
+        .count()
+    )
+    return jsonify({'unread': count}), 200
+
+
+# GET /api/chat/preview/<user_id>
+# Returns list of matches with last message + unread count per match.
+# Used by the Chats list page.
+@api.route('/chat/preview/<int:user_id>', methods=['GET'])
+@jwt_required()
+def get_chat_preview(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    stmt = select(Match).where(
+        (Match.user1_id == user_id) | (Match.user2_id == user_id)
+    )
+    matches = db.session.execute(stmt).scalars().all()
+
+    result = []
+    for m in matches:
+        other = m.user2 if m.user1_id == user_id else m.user1
+
+        last_msg = (
+            db.session.query(ChatMessage)
+            .filter(ChatMessage.match_id == m.id)
+            .order_by(ChatMessage.created_at.desc())
+            .first()
+        )
+
+        unread = (
+            db.session.query(ChatMessage)
+            .filter(
+                ChatMessage.match_id == m.id,
+                ChatMessage.sender_id != user_id,
+                ChatMessage.read == False,      # noqa: E712
+            )
+            .count()
+        )
+
+        result.append({
+            'match_id':      m.id,
+            'other_user_id': other.id,
+            'nickname':      other.profile.nick_name if other.profile else 'Sin nick',
+            'photo':         other.profile.photo    if other.profile else None,
+            'last_message':  last_msg.serialize()   if last_msg else None,
+            'unread':        unread,
+        })
+
+    # Sort by last message timestamp, most recent first; matches with no messages go last
+    result.sort(
+        key=lambda x: x['last_message']['created_at'] if x['last_message'] else '',
+        reverse=True,
+    )
+    return jsonify(result), 200

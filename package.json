@@ -1,5 +1,5 @@
 {
-	"name": "react-hello-webapp",
+	"name": "playerlink-web-app",
 	"engines": {
 		"node": ">=20.0.0"
 	},

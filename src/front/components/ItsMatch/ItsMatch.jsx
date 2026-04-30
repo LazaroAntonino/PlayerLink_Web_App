@@ -69,7 +69,7 @@ function Confetti() {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ItsMatch = ({ profile, myProfile, onClose }) => {
+export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
     const navigate = useNavigate();
 
     if (!profile) return null;
@@ -77,6 +77,11 @@ export const ItsMatch = ({ profile, myProfile, onClose }) => {
     const handleGoToMatches = () => {
         onClose?.();
         navigate('/private/your-matches/');
+    };
+
+    const handleGoToChat = () => {
+        onClose?.();
+        navigate(`/private/chat/${matchId}`);
     };
 
     const copyDiscord = () => {
@@ -162,8 +167,17 @@ export const ItsMatch = ({ profile, myProfile, onClose }) => {
 
             {/* ── Actions ── */}
             <div className="its-match-actions">
+                {matchId && (
+                    <button
+                        className="its-match-btn its-match-btn-primary"
+                        onClick={handleGoToChat}
+                    >
+                        <i className="fa-solid fa-message me-2" />
+                        Enviar mensaje
+                    </button>
+                )}
                 <button
-                    className="its-match-btn its-match-btn-primary"
+                    className="its-match-btn its-match-btn-secondary"
                     onClick={handleGoToMatches}
                 >
                     <i className="fa-solid fa-users me-2" />
