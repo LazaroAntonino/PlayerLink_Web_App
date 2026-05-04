@@ -137,8 +137,16 @@ export const MatchUserDetails = () => {
       case "photo7": return photo7;
       case "photo8": return photo8;
       case "photo9": return photo9;
-      default: return "photo1";
+      default: return photo1;
     }
+  };
+
+  // Helper: campos vacíos o "no data" muestran "Not set"
+  const FieldValue = ({ value }) => {
+    const isEmpty = !value || value === "no data" || value === "undefined" || value === "0" || value === 0;
+    return isEmpty
+      ? <span className="profile-field-empty">Not set</span>
+      : <span className="profile-field-value">{value}</span>;
   };
 
   return (
@@ -224,17 +232,32 @@ export const MatchUserDetails = () => {
         {/* ── Info Tab ── */}
         {activeTab === "info" && (
           <div className="info-section container">
+
+            {/* Bio */}
+            {profile.bio && profile.bio !== "no data" && (
+              <div className="row mb-2">
+                <div className="col-12">
+                  <label className="profile-field-label">Bio</label>
+                  <div className="profile-read-field" style={{ minHeight: '60px', alignItems: 'flex-start', padding: '12px 14px' }}>
+                    <span className="profile-field-value" style={{ lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                      {profile.bio}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="row">
               <div className="col-md-6">
                 <label className="profile-field-label">Name</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.name}</span>
+                  <FieldValue value={profile.name} />
                 </div>
               </div>
               <div className="col-md-6">
                 <label className="profile-field-label">Nickname</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.nickname}</span>
+                  <FieldValue value={profile.nickname} />
                 </div>
               </div>
             </div>
@@ -243,19 +266,19 @@ export const MatchUserDetails = () => {
               <div className="col-md-4">
                 <label className="profile-field-label">Age</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.age}</span>
+                  <FieldValue value={profile.age} />
                 </div>
               </div>
               <div className="col-md-4">
                 <label className="profile-field-label">Gender</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.gender}</span>
+                  <FieldValue value={profile.gender} />
                 </div>
               </div>
               <div className="col-md-4">
                 <label className="profile-field-label">Zodiac</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.zodiac}</span>
+                  <FieldValue value={profile.zodiac} />
                 </div>
               </div>
             </div>
@@ -273,7 +296,7 @@ export const MatchUserDetails = () => {
                   </span>
                 </label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.discord}</span>
+                  <FieldValue value={profile.discord} />
                 </div>
               </div>
               <div className="col-md-6">
@@ -288,19 +311,19 @@ export const MatchUserDetails = () => {
                   </span>
                 </label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.steam}</span>
+                  <FieldValue value={profile.steam} />
                 </div>
               </div>
               <div className="col-md-6">
                 <label className="profile-field-label">Gaming Preferences</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.gamingPrefs}</span>
+                  <FieldValue value={profile.gamingPrefs} />
                 </div>
               </div>
               <div className="col-md-6">
                 <label className="profile-field-label">Location</label>
                 <div className="profile-read-field">
-                  <span className="profile-field-value">{profile.location}</span>
+                  <FieldValue value={profile.location} />
                 </div>
               </div>
             </div>
@@ -326,22 +349,36 @@ export const MatchUserDetails = () => {
             {store.itsMatchInfo?.profile?.games?.length > 0 ? (
               store.itsMatchInfo.profile.games.map((el, i) => (
                 <div key={i} className="game-row">
-                  {el.gameImage && (
-                    <img src={el.gameImage} alt={el.gameTitle} className="game-row-cover" />
-                  )}
+                  {el.gameImage ? (
+                    <img
+                      src={el.gameImage}
+                      alt={el.gameTitle}
+                      className="game-row-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="game-cover-placeholder"
+                    style={{ display: el.gameImage ? 'none' : 'flex', width: '52px', height: '30px' }}
+                  >
+                    <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
+                  </div>
                   <span className="game-row-title">{el.gameTitle}</span>
                   <div className="game-row-actions">
                     <span className="game-row-hours">
                       {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
                         ? `${el.gameHoursPlayed.toLocaleString()} h`
-                        : <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>—</span>
+                        : <span className="game-row-hours-empty">—</span>
                       }
                     </span>
                   </div>
                 </div>
               ))
             ) : (
-              <p style={{ color: 'rgba(255,255,255,0.4)', paddingTop: '20px', textAlign: 'center' }}>
+              <p className="match-ud-games-empty">
                 No games available.
               </p>
             )}
@@ -355,7 +392,7 @@ export const MatchUserDetails = () => {
               <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Comments</h3>
               <button
                 type="button"
-                className="botonLeaveComment"
+                className="botonLeaveComment pl-btn pl-btn--accent pl-btn--sm"
                 data-bs-toggle="modal"
                 data-bs-target="#commentModal"
               >
@@ -426,14 +463,14 @@ export const MatchUserDetails = () => {
                     <div className="modal-footer modal-sci-fi-footer">
                       <button
                         type="button"
-                        className="btn-sci-fi-secondary"
+                        className="btn-sci-fi-secondary pl-btn pl-btn--danger"
                         data-bs-dismiss="modal"
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
-                        className="btn-sci-fi-primary"
+                        className="btn-sci-fi-primary pl-btn pl-btn--primary"
                         onClick={handleSaveComment}
                         disabled={!newComment.comment.trim() || newComment.stars === 0}
                       >

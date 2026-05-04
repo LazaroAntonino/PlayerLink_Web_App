@@ -12,10 +12,10 @@ export const ProfileEditBar = ({ onCancel, onSave }) => {
                 Editing profile
             </span>
             <div className="edit-mode-actions">
-                <button className="edit-cancel-btn" onClick={onCancel} aria-label="Cancel editing">
+                <button className="edit-cancel-btn pl-btn pl-btn--ghost pl-btn--sm" onClick={onCancel} aria-label="Cancel editing">
                     <i className="fa-solid fa-xmark me-1" aria-hidden="true"></i>Cancel
                 </button>
-                <button className="edit-save-btn" onClick={onSave} aria-label="Save profile changes">
+                <button className="edit-save-btn pl-btn pl-btn--primary pl-btn--sm" onClick={onSave} aria-label="Save profile changes">
                     <i className="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>Save
                 </button>
             </div>

@@ -11,6 +11,9 @@ import userServices from "../../services/userServices.js";
 import reviewServices from "../../services/reviewServices.js";
 import gameServices from "../../services/gameServices.js";
 
+// Catálogo de juegos estático (sustituye la API de RAWG)
+import { GAMES_OPTIONS, getGameImage } from "../../../data/gamesCatalog.js";
+
 // Sub-componentes de perfil
 import { ProfileLeftPanel } from "../../components/profile/ProfileLeftPanel.jsx";
 import { ProfileEditBar } from "../../components/profile/ProfileEditBar.jsx";
@@ -83,19 +86,18 @@ const Profile = () => {
   const { store, dispatch } = useGlobalReducer();
 
   const url = import.meta.env.VITE_BACKEND_URL;
-  const rawgApi = import.meta.env.VITE_RAWG_KEY;
 
   // ── Estado del perfil ──
   const [profile, setProfile] = useState({
     name: " ",
     nick_name: "",
     age: 0,
-    gender: "undefined",
+    gender: "Undefined",
     location: " ",
-    zodiac: " ",
+    zodiac: "Aries",
     discord: " ",
     steam_id: " ",
-    languages: " ",
+    language: " ",
     preferences: " ",
     bio: " ",
     photo: "photo1",
@@ -105,7 +107,8 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [showIncompleteToast, setShowIncompleteToast] = useState(false);
+  const toastTimerRef = useRef(null);
   const clearNoticeTimerRef = useRef(null);
 
   // ── Estado de modales de preferencias/idiomas ──
@@ -115,11 +118,10 @@ const Profile = () => {
   );
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState(
-    parsePreferences(profile.languages)
+    parsePreferences(profile.language)
   );
 
   // ── Estado de juegos ──
-  const [availableGames, setAvailableGames] = useState([]);
   const [game, setGame] = useState({ title: "", hours_played: "", image: "" });
   const [idOfGameBeingEdited, setIdOfGameBeingEdited] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -133,7 +135,7 @@ const Profile = () => {
     .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
     .slice(0, 3);
 
-  const gameOptions = availableGames.map((name) => ({ value: name, label: name }));
+  const gameOptions = GAMES_OPTIONS;
 
   // ── Efectos ──────────────────────────────────────────────────────────────
 
@@ -143,7 +145,10 @@ const Profile = () => {
       return;
     }
     loadProfile();
-    return () => clearTimeout(clearNoticeTimerRef.current);
+    return () => {
+      clearTimeout(clearNoticeTimerRef.current);
+      clearTimeout(toastTimerRef.current);
+    };
   }, []);
 
   // Reinicializar popovers de Bootstrap cuando cambian las medallas
@@ -157,11 +162,8 @@ const Profile = () => {
     });
   }, [topThreeGames]);
 
-  // Carga diferida: juegos de RAWG y reviews
+  // Carga diferida: reviews al entrar en la pestaña
   useEffect(() => {
-    if (activeTab === "Games" && availableGames.length < 1) {
-      fetchGames();
-    }
     if (activeTab === "comments") {
       getReviews();
     }
@@ -173,27 +175,6 @@ const Profile = () => {
     reviewServices
       .getAllReviewsReceived(store.user?.id)
       .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
-  };
-
-  const fetchGames = async () => {
-    try {
-      const pageSize = 40;
-      const pages = 25;
-      let fetched = [];
-      for (let page = 1; page <= pages; page++) {
-        const resp = await fetch(
-          `https://api.rawg.io/api/games?key=${rawgApi}&page_size=${pageSize}&page=${page}`
-        );
-        if (!resp.ok) throw new Error("Error loading games");
-        const data = await resp.json();
-        fetched = fetched.concat(data.results.map((g) => g.name));
-      }
-      setAvailableGames(fetched);
-    } catch (err) {
-      console.error("RAWG fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const loadProfile = async () => {
@@ -213,7 +194,7 @@ const Profile = () => {
         zodiac: p.zodiac,
         discord: p.discord,
         steam_id: p.steam,
-        languages: p.language,
+        language: p.language,
         preferences: p.preferences,
         bio: p.bio,
         photo: p.photo || "photo1",
@@ -234,13 +215,9 @@ const Profile = () => {
         !p.photo || p.photo.length < 2;
 
       if (isIncomplete) {
-        setNotice(
-          <h4 className="text-center text-danger">
-            <i className="fa-solid fa-triangle-exclamation text-warning fa-xl"></i>
-            {" "}Profile incomplete. Remember to complete it to unlock the full potential of PlayerLink.
-          </h4>
-        );
-        clearNoticeTimerRef.current = setTimeout(() => setNotice(""), 10000);
+        // Pequeño delay para que la animación de entrada sea visible
+        setTimeout(() => setShowIncompleteToast(true), 400);
+        toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10400);
       }
     } catch (error) {
       console.error("Error in loadProfile:", error);
@@ -298,20 +275,6 @@ const Profile = () => {
     }));
   };
 
-  const selectGameImage = async (gameTitle) => {
-    try {
-      const response = await fetch(
-        `https://api.rawg.io/api/games?key=${rawgApi}&search=${gameTitle}`
-      );
-      const data = await response.json();
-      if (!data.results?.length) return null;
-      return data.results[0].background_image;
-    } catch (error) {
-      console.error("Error fetching game image:", error);
-      return null;
-    }
-  };
-
   const handleAddGame = async () => {
     setErrorRepeatedGame("");
     setErrorHoursPlayed("");
@@ -325,7 +288,7 @@ const Profile = () => {
       return;
     }
     try {
-      const image = await selectGameImage(game.title);
+      const image = getGameImage(game.title);
       await gameServices.postNewGame(store.user.profile?.id, { ...game, image });
       await loadProfile();
 
@@ -360,7 +323,60 @@ const Profile = () => {
 
   return (
     <>
-      {notice && <div className="alert alert-danger">{notice}</div>}
+      {/* ── Toast perfil incompleto ── */}
+      <div className={`profile-incomplete-toast${showIncompleteToast ? " visible" : ""}`}>
+        <div className="pit-body">
+          <div className="pit-header">
+            <span className="pit-icon">⚡</span>
+            <div className="pit-text">
+              <p className="pit-title">Your profile is incomplete</p>
+              <p className="pit-subtitle">
+                Fill in all your details to start matching with other players and unlock all features.
+              </p>
+            </div>
+            <button
+              className="pit-close"
+              aria-label="Dismiss"
+              onClick={() => {
+                clearTimeout(toastTimerRef.current);
+                setShowIncompleteToast(false);
+              }}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div className="pit-actions">
+            <button
+              className="pit-btn-complete"
+              onClick={() => {
+                clearTimeout(toastTimerRef.current);
+                setShowIncompleteToast(false);
+                setActiveTab("info");
+                setIsEditing(true);
+              }}
+            >
+              <i className="fa-solid fa-pen-to-square me-2"></i>Complete now
+            </button>
+            <button
+              className="pit-btn-later"
+              onClick={() => {
+                clearTimeout(toastTimerRef.current);
+                setShowIncompleteToast(false);
+              }}
+            >
+              Remind me later
+            </button>
+          </div>
+          <div className="pit-progress">
+            {showIncompleteToast && (
+              <div
+                className="pit-progress-bar"
+                style={{ "--pit-duration": "10s" }}
+              />
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="profile-container">
         {/* ── Panel izquierdo ── */}

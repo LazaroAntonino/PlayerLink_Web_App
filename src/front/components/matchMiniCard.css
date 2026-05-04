@@ -44,3 +44,186 @@
 .imagenminicard:hover {
   box-shadow: 0 0 14px rgba(138, 0, 255, 0.6), 0 0 18px rgba(0, 192, 255, 0.5);
 }
+
+/* ── Nuevo diseño MatchMiniCard ─────────────────────────── */
+
+.match-mini-card {
+  background: rgba(10, 15, 26, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 220px;
+  position: relative;
+}
+
+.match-mini-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-primary, #00e5ff), var(--color-accent, #ff00ff));
+  opacity: 0;
+  transition: opacity 0.22s;
+}
+.match-mini-card:hover::before { opacity: 1; }
+
+.match-mini-card:hover {
+  border-color: rgba(0, 229, 255, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 229, 255, 0.15);
+}
+
+/* Header */
+.match-card-header {
+  padding: 20px 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.match-card-avatar-ring {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--color-primary, #00e5ff), #a020f0);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.match-card-avatar {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #0a0f1a;
+  display: block;
+}
+
+.match-card-avatar-placeholder {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: rgba(0, 229, 255, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--color-primary, #00e5ff);
+}
+
+.match-card-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.match-card-nickname {
+  font-size: 1.1rem; font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin: 0 0 3px;
+}
+
+.match-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.match-card-meta-item {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  display: flex; align-items: center; gap: 4px;
+}
+.match-card-meta-item i {
+  font-size: 0.7rem;
+  color: rgba(0, 229, 255, 0.5);
+}
+
+/* Games section */
+.match-card-games {
+  padding: 14px 20px 20px;
+  flex: 1;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.match-card-games-label {
+  font-size: 0.62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: rgba(0, 229, 255, 0.4);
+  margin-bottom: 2px;
+}
+
+.match-card-game-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.match-card-game-item:hover {
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.match-card-game-img {
+  width: 52px; height: 30px;
+  object-fit: cover; border-radius: 5px;
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.match-card-game-img-placeholder {
+  width: 52px; height: 30px;
+  border-radius: 5px;
+  background: rgba(0, 229, 255, 0.06);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: rgba(0, 229, 255, 0.3);
+  font-size: 0.7rem;
+}
+
+.match-card-game-name {
+  font-size: 0.82rem; font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.match-card-medal {
+  width: 22px; height: 22px;
+  object-fit: contain; flex-shrink: 0;
+}
+
+.match-card-no-games {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.82rem; font-style: italic;
+}
+
+/* Footer */
+.match-card-footer {
+  padding: 10px 20px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: flex-end;
+}
+
+.match-card-view-btn {
+  font-size: 0.78rem;
+  color: rgba(0, 229, 255, 0.7);
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0; transition: color 0.15s;
+}
+.match-card-view-btn:hover {
+  color: var(--color-primary, #00e5ff);
+}

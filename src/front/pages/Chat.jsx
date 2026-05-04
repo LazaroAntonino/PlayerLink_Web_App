@@ -171,124 +171,131 @@ const Chat = () => {
 
     // ── Render ────────────────────────────────────────────────
     return (
-        <div className="chat-window">
-            {/* Header */}
-            <div className="chat-header">
-                <button
-                    className="chat-header-back"
-                    onClick={() => navigate("/private/chats")}
-                    aria-label="Volver"
-                >
-                    <i className="fa-solid fa-arrow-left" />
-                </button>
+        <div className="chat-page-wrapper">
+            <div className="chat-window">
+                {/* Header */}
+                <div className="chat-header">
+                    <button
+                        className="chat-header-back"
+                        onClick={() => navigate("/private/chats")}
+                        aria-label="Volver"
+                    >
+                        <i className="fa-solid fa-arrow-left" />
+                    </button>
 
-                {otherPhoto ? (
-                    <img src={otherPhoto} alt={otherUser?.nickname} className="chat-header-avatar" />
-                ) : (
-                    <div className="chat-header-avatar-placeholder">{otherInitials}</div>
-                )}
+                    {otherPhoto ? (
+                        <img src={otherPhoto} alt={otherUser?.nickname} className="chat-header-avatar" />
+                    ) : (
+                        <div className="chat-header-avatar-placeholder">{otherInitials}</div>
+                    )}
 
-                <span className="chat-header-nick">
-                    {otherUser?.nickname ?? "Cargando..."}
-                </span>
-            </div>
+                    <div className="chat-header-info">
+                        <span className="chat-header-nick">
+                            {otherUser?.nickname ?? "Cargando..."}
+                        </span>
+                        <span className="chat-header-status">
+                            <i className="fa-solid fa-circle"
+                                style={{ fontSize: "0.45rem", color: "var(--color-success, #00ff88)" }}
+                                aria-hidden="true" />
+                            PlayerLink
+                        </span>
+                    </div>
+                </div>
 
-            {/* Messages area */}
-            <div className="chat-messages-area" ref={messagesAreaRef}>
-                {loading && (
-                    <p style={{ textAlign: "center", color: "var(--color-text-muted)" }}>
-                        <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
-                    </p>
-                )}
+                {/* Messages area */}
+                <div className="chat-messages-area" ref={messagesAreaRef}>
+                    {loading && (
+                        <div className="chat-status-msg">
+                            <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
+                        </div>
+                    )}
 
-                {!loading && messages.length === 0 && (
-                    <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginTop: "2rem" }}>
-                        Aún no hay mensajes. ¡Di hola! 👋
-                    </p>
-                )}
+                    {!loading && messages.length === 0 && (
+                        <div className="chat-conversation-empty">
+                            <div className="chat-conv-empty-icon">👋</div>
+                            <p>¡Sois un match!</p>
+                            <span>Sé el primero en decir hola a {otherUser?.nickname ?? "tu match"}</span>
+                        </div>
+                    )}
 
-                {messages.map((msg, idx) => {
-                    const mine = msg.sender_id === store.user?.id;
-                    const showDateSep =
-                        idx === 0 ||
-                        !isSameDay(messages[idx - 1].created_at, msg.created_at);
+                    {messages.map((msg, idx) => {
+                        const mine = msg.sender_id === store.user?.id;
+                        const showDateSep =
+                            idx === 0 ||
+                            !isSameDay(messages[idx - 1].created_at, msg.created_at);
 
-                    return (
-                        <div key={msg.id}>
-                            {showDateSep && (
-                                <div className="chat-date-separator">
-                                    {formatDateLabel(msg.created_at)}
-                                </div>
-                            )}
+                        return (
+                            <div key={msg.id}>
+                                {showDateSep && (
+                                    <div className="chat-date-separator">
+                                        {formatDateLabel(msg.created_at)}
+                                    </div>
+                                )}
 
-                            <div className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}>
-                                <div className={`chat-bubble ${mine ? "mine" : "theirs"}`}>
-                                    {msg.content}
-                                    <div className="chat-bubble-meta">
-                                        <span>{formatTime(msg.created_at)}</span>
-                                        {mine && (
-                                            <span
-                                                className="chat-read-icon"
-                                                title={msg.read ? "Leído" : "Enviado"}
-                                            >
-                                                {msg.read ? "✓✓" : "✓"}
-                                            </span>
-                                        )}
+                                <div className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}>
+                                    <div className={`chat-bubble ${mine ? "mine" : "theirs"}`}>
+                                        {msg.content}
+                                        <div className="chat-bubble-meta">
+                                            <span>{formatTime(msg.created_at)}</span>
+                                            {mine && (
+                                                <span
+                                                    className="chat-read-icon"
+                                                    title={msg.read ? "Leído" : "Enviado"}
+                                                >
+                                                    {msg.read ? "✓✓" : "✓"}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
 
-                <div ref={bottomRef} />
-            </div>
-
-            {/* Error bar */}
-            {error && (
-                <div
-                    style={{
-                        background: "rgba(255,68,102,0.12)",
-                        border: "1px solid #ff4466",
-                        color: "#ff4466",
-                        padding: "0.4rem 1rem",
-                        fontSize: "0.8rem",
-                        display: "flex",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    {error}
-                    <button
-                        style={{ background: "none", border: "none", color: "#ff4466", cursor: "pointer" }}
-                        onClick={() => setError("")}
-                    >
-                        ×
-                    </button>
+                    <div ref={bottomRef} />
                 </div>
-            )}
 
-            {/* Input bar */}
-            <div className="chat-input-bar">
-                <textarea
-                    ref={textareaRef}
-                    className="chat-textarea"
-                    placeholder="Escribe un mensaje..."
-                    value={text}
-                    onChange={handleTextChange}
-                    onKeyDown={handleKeyDown}
-                    rows={1}
-                    aria-label="Mensaje"
-                />
-                <button
-                    className="chat-send-btn"
-                    onClick={handleSend}
-                    disabled={!text.trim() || sending}
-                    aria-label="Enviar"
-                >
-                    {sending
-                        ? <i className="fa-solid fa-spinner fa-spin" />
-                        : <i className="fa-solid fa-paper-plane" />}
-                </button>
+                {/* Error bar */}
+                {error && (
+                    <div className="chat-error-bar">
+                        <span>{error}</span>
+                        <button className="chat-error-close" onClick={() => setError("")}>×</button>
+                    </div>
+                )}
+
+                {/* Input bar */}
+                <div className="chat-input-bar">
+                    {text.length > 0 && (
+                        <div
+                            className="chat-char-counter"
+                            style={{ color: text.length > 450 ? "var(--color-danger, #ff4d6d)" : "rgba(255,255,255,0.3)" }}
+                        >
+                            {text.length}/{MAX_CHARS}
+                        </div>
+                    )}
+                    <div className="chat-input-row">
+                        <textarea
+                            ref={textareaRef}
+                            className="chat-textarea"
+                            placeholder="Escribe un mensaje..."
+                            value={text}
+                            onChange={handleTextChange}
+                            onKeyDown={handleKeyDown}
+                            rows={1}
+                            aria-label="Mensaje"
+                        />
+                        <button
+                            className="chat-send-btn"
+                            onClick={handleSend}
+                            disabled={!text.trim() || sending}
+                            aria-label="Enviar"
+                        >
+                            {sending
+                                ? <i className="fa-solid fa-spinner fa-spin" />
+                                : <i className="fa-solid fa-paper-plane" />}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

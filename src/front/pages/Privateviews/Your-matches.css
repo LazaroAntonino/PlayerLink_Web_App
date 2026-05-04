@@ -1,3 +1,44 @@
+/* ===== Your-matches layout ===== */
+
+.matches-page-wrapper {
+  padding: 24px;
+  min-height: calc(100vh - 40px);
+}
+
+.matches-page-header {
+  margin-bottom: 24px;
+}
+
+.matches-page-title {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 1.3rem;
+  color: var(--color-primary, #00f0ff);
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+  margin: 0 0 4px;
+}
+
+.matches-page-subtitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}
+
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.matches-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 16px;
+  color: var(--color-primary, #00f0ff);
+}
+
 /* ===== Your-matches empty state ===== */
 
 .matches-empty-state {

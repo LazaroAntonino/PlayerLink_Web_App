@@ -4,7 +4,85 @@
 
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
-import Select from "react-select";
+import Select, { components } from "react-select";
+
+// Opción personalizada del selector: muestra miniatura + nombre del juego
+const GameOption = ({ data, ...props }) => (
+    <components.Option {...props}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {data.image && (
+                <img
+                    src={data.image}
+                    alt={data.label}
+                    style={{
+                        width: "52px",
+                        height: "30px",
+                        objectFit: "cover",
+                        borderRadius: "4px",
+                        flexShrink: 0,
+                        border: "1px solid rgba(0,229,255,0.2)",
+                    }}
+                    onError={(e) => { e.target.style.display = "none"; }}
+                />
+            )}
+            <span style={{ color: "#fff", fontSize: "0.9rem" }}>{data.label}</span>
+        </div>
+    </components.Option>
+);
+
+const SELECT_STYLES = {
+    control: (base, state) => ({
+        ...base,
+        background: "#0d1220",
+        border: `1px solid ${state.isFocused ? "rgba(0,229,255,0.7)" : "rgba(0,229,255,0.3)"}`,
+        borderRadius: "8px",
+        color: "#fff",
+        boxShadow: state.isFocused ? "0 0 0 2px rgba(0,229,255,0.15)" : "none",
+        minHeight: "42px",
+        "&:hover": { borderColor: "rgba(0,229,255,0.6)" },
+    }),
+    menu: (base) => ({
+        ...base,
+        background: "#0d1220",
+        border: "1px solid rgba(0,229,255,0.35)",
+        borderRadius: "10px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,229,255,0.1)",
+        overflow: "hidden",
+        zIndex: 9999,
+    }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menuList: (base) => ({
+        ...base,
+        padding: "4px",
+        maxHeight: "280px",
+        background: "#0d1220",
+    }),
+    option: (base, state) => ({
+        ...base,
+        background: state.isSelected
+            ? "rgba(0,229,255,0.15)"
+            : state.isFocused
+                ? "rgba(0,229,255,0.08)"
+                : "transparent",
+        color: state.isSelected ? "#00e5ff" : "#e2e2f0",
+        cursor: "pointer",
+        padding: "6px 10px",
+        borderRadius: "6px",
+        transition: "background 0.12s ease",
+    }),
+    input: (base) => ({ ...base, color: "#fff" }),
+    placeholder: (base) => ({ ...base, color: "rgba(255,255,255,0.3)" }),
+    singleValue: (base) => ({ ...base, color: "#fff" }),
+    noOptionsMessage: (base) => ({
+        ...base,
+        color: "rgba(255,255,255,0.4)",
+        background: "#0d1220",
+        padding: "12px",
+    }),
+    dropdownIndicator: (base) => ({ ...base, color: "rgba(0,229,255,0.5)" }),
+    clearIndicator: (base) => ({ ...base, color: "rgba(255,255,255,0.4)" }),
+    indicatorSeparator: (base) => ({ ...base, background: "rgba(0,229,255,0.15)" }),
+};
 
 export const ProfileGamesTab = ({
     games,
@@ -52,7 +130,7 @@ export const ProfileGamesTab = ({
 
                 <button
                     type="button"
-                    className="btn botonLeaveComment col-lg-4 col-md-12 col-sm-12"
+                    className="btn botonLeaveComment col-lg-4 col-md-12 col-sm-12 pl-btn pl-btn--accent"
                     data-bs-toggle="modal"
                     data-bs-target="#commentModal"
                 >
@@ -94,6 +172,7 @@ export const ProfileGamesTab = ({
                                             className="selectorJuegos"
                                             inputId="gameName"
                                             options={gameOptions}
+                                            components={{ Option: GameOption }}
                                             value={
                                                 gameOptions.find((opt) => opt.value === game.title) ||
                                                 null
@@ -108,7 +187,11 @@ export const ProfileGamesTab = ({
                                             }
                                             isClearable
                                             isSearchable
-                                            placeholder="-- Select a game --"
+                                            placeholder="Buscar juego..."
+                                            noOptionsMessage={() => "No encontrado"}
+                                            menuPortalTarget={document.body}
+                                            menuPosition="fixed"
+                                            styles={SELECT_STYLES}
                                         />
                                     </div>
 
@@ -139,14 +222,14 @@ export const ProfileGamesTab = ({
                                 <div className="modal-footer modal-sci-fi-footer">
                                     <button
                                         type="button"
-                                        className="btn-sci-fi-primary"
+                                        className="btn-sci-fi-primary pl-btn pl-btn--ghost pl-btn--sm"
                                         data-bs-dismiss="modal"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="button"
-                                        className="btn-sci-fi-primary"
+                                        className="btn-sci-fi-primary pl-btn pl-btn--primary pl-btn--sm"
                                         onClick={onAddGame}
                                     >
                                         Add

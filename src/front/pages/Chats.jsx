@@ -36,6 +36,44 @@ const formatTime = (isoString) => {
     return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
 };
 
+// ── Item individual (componente interno) ─────────────────
+const ChatListItemJSX = ({ p, navigate, userId }) => {
+    const photoSrc = p.photo ? (PHOTO_ASSETS[p.photo] ?? DEFAULT_PHOTO) : null;
+    const initials = (p.nickname || "??").slice(0, 2).toUpperCase();
+
+    return (
+        <button
+            className={`chat-list-item ${p.unread > 0 ? "has-unread" : ""}`}
+            onClick={() => navigate(`/private/chat/${p.match_id}`)}
+        >
+            {photoSrc ? (
+                <img src={photoSrc} alt={p.nickname} className="chat-list-avatar" />
+            ) : (
+                <div className="chat-list-avatar-placeholder">{initials}</div>
+            )}
+
+            <div className="chat-list-info">
+                <div className="chat-list-nick">{p.nickname}</div>
+                <div className="chat-list-last">
+                    {p.last_message
+                        ? (p.last_message.sender_id === userId ? "Tú: " : "") +
+                        p.last_message.content
+                        : "Sin mensajes aún"}
+                </div>
+            </div>
+
+            <div className="chat-list-meta">
+                <span className="chat-list-time">
+                    {p.last_message ? formatTime(p.last_message.created_at) : ""}
+                </span>
+                {p.unread > 0 && (
+                    <span className="chat-unread-badge">{p.unread}</span>
+                )}
+            </div>
+        </button>
+    );
+};
+
 // ── Componente principal ──────────────────────────────────
 const Chats = () => {
     const navigate = useNavigate();
@@ -63,78 +101,82 @@ const Chats = () => {
         load();
     }, [store.user]);
 
+    const withMsg = previews.filter(p => p.last_message);
+    const withoutMsg = previews.filter(p => !p.last_message);
+
     // ── Render ──────────────────────────────────────────────
     return (
         <div className="chats-page">
-            <h1>Mensajes</h1>
+            <div className="chats-glass-container">
 
-            {loading && <ChatListSkeleton />}
-
-            {!loading && error && (
-                <p style={{ color: "#ff4466", textAlign: "center" }}>{error}</p>
-            )}
-
-            {!loading && !error && previews.length === 0 && (
-                <div className="chat-empty">
-                    <div className="chat-empty-icon">🎮</div>
-                    <p className="chat-empty-title">Aún no tienes chats</p>
-                    <p>Consigue matches para empezar a chatear</p>
-                    <Link
-                        to="/private/search-a-mate"
-                        style={{
-                            marginTop: "1rem",
-                            color: "var(--color-primary)",
-                            textDecoration: "underline",
-                            fontSize: "0.9rem",
-                        }}
-                    >
-                        Buscar jugadores →
-                    </Link>
+                {/* Header */}
+                <div className="chats-header">
+                    <h1 className="pl-page-title">
+                        <i className="fa-solid fa-message me-2" aria-hidden="true"></i>
+                        Mensajes
+                    </h1>
                 </div>
-            )}
 
-            {!loading && !error && previews.length > 0 && (
-                <div className="chat-list">
-                    {previews.map((p) => {
-                        const photoSrc = p.photo ? (PHOTO_ASSETS[p.photo] ?? DEFAULT_PHOTO) : null;
-                        const initials = (p.nickname || "??").slice(0, 2).toUpperCase();
+                {/* Contenido */}
+                <div className="chats-list-wrapper">
+                    {loading && <ChatListSkeleton />}
 
-                        return (
-                            <button
-                                key={p.match_id}
-                                className="chat-list-item"
-                                style={{ border: "none", textAlign: "left", width: "100%", background: "none" }}
-                                onClick={() => navigate(`/private/chat/${p.match_id}`)}
-                            >
-                                {photoSrc ? (
-                                    <img src={photoSrc} alt={p.nickname} className="chat-list-avatar" />
-                                ) : (
-                                    <div className="chat-list-avatar-placeholder">{initials}</div>
-                                )}
+                    {!loading && error && (
+                        <div className="chats-error">
+                            <i className="fa-solid fa-triangle-exclamation"></i>
+                            {error}
+                        </div>
+                    )}
 
-                                <div className="chat-list-info">
-                                    <div className="chat-list-nick">{p.nickname}</div>
-                                    <div className="chat-list-last">
-                                        {p.last_message
-                                            ? (p.last_message.sender_id === store.user.id ? "Tú: " : "") +
-                                            p.last_message.content
-                                            : "Sin mensajes aún"}
+                    {!loading && !error && previews.length === 0 && (
+                        <div className="chat-empty">
+                            <div className="chat-empty-icon">🎮</div>
+                            <p className="chat-empty-title">Aún no tienes chats</p>
+                            <p className="chat-empty-subtitle">
+                                Consigue matches para empezar a chatear
+                            </p>
+                            <Link to="/private/search-a-mate" className="chat-empty-link">
+                                Buscar jugadores →
+                            </Link>
+                        </div>
+                    )}
+
+                    {!loading && !error && previews.length > 0 && (
+                        <div className="chat-list">
+                            {withMsg.length > 0 && (
+                                <>
+                                    <div className="chat-section-label">Conversaciones activas</div>
+                                    {withMsg.map(p => (
+                                        <ChatListItemJSX
+                                            key={p.match_id}
+                                            p={p}
+                                            navigate={navigate}
+                                            userId={store.user.id}
+                                        />
+                                    ))}
+                                </>
+                            )}
+
+                            {withoutMsg.length > 0 && (
+                                <>
+                                    <div className="chat-section-label" style={{ marginTop: withMsg.length ? "12px" : "0" }}>
+                                        Sin mensajes aún
                                     </div>
-                                </div>
-
-                                <div className="chat-list-meta">
-                                    <span className="chat-list-time">
-                                        {p.last_message ? formatTime(p.last_message.created_at) : ""}
-                                    </span>
-                                    {p.unread > 0 && (
-                                        <span className="chat-unread-badge">{p.unread}</span>
-                                    )}
-                                </div>
-                            </button>
-                        );
-                    })}
+                                    {withoutMsg.map(p => (
+                                        <ChatListItemJSX
+                                            key={p.match_id}
+                                            p={p}
+                                            navigate={navigate}
+                                            userId={store.user.id}
+                                        />
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
-            )}
+
+            </div>
         </div>
     );
 };

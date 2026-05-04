@@ -259,7 +259,7 @@ export const ProfileInfoTab = ({
                                         setSelected={setSelectedLanguages}
                                         onSave={() => {
                                             onInputChange(
-                                                "languages",
+                                                "language",
                                                 formatPreferences(selectedLanguages)
                                             );
                                             setShowLanguageModal(false);
@@ -270,7 +270,7 @@ export const ProfileInfoTab = ({
                             </>
                         ) : (
                             <FieldValue
-                                value={profile.languages || null}
+                                value={profile.language || null}
                                 emptyText="No languages selected."
                             />
                         )}

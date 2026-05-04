@@ -1,142 +1,178 @@
+/* ═══════════════════════════════════════════════════════════
+   PROFILE MODALS — Gaming Preferences & Languages
+   Renderizados con ReactDOM.createPortal en document.body
+   para evitar el stacking context de backdrop-filter.
+   ═══════════════════════════════════════════════════════════ */
 
-* {
-  box-sizing: border-box;
-}
-
-.abmodal {
+/* ── Overlay ───────────────────────────────────────────── */
+.pl-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(10, 10, 30, 0.85);
+  inset: 0;
+  background: rgba(4, 5, 14, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 20px;
+  animation: pl-overlay-in 0.2s ease;
+}
+@keyframes pl-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.abmodal-content {
-  background: #111d3d;
-  padding: 25px;
-  border: 2px solid #00ffff;
-  border-radius: 14px;
+/* ── Box ───────────────────────────────────────────────── */
+.pl-modal-box {
+  background: rgba(8, 11, 22, 0.98);
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  border-radius: 18px;
   width: 100%;
-  max-width: 720px;
+  max-width: 600px;
   max-height: 85vh;
-  overflow-y: auto;
-  color: #e0e0ff;
-  animation: ab-border-glow 2.5s infinite alternate;
-  box-shadow: 0 0 12px #00ffff, 0 0 28px #ff00ff;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(0, 229, 255, 0.06),
+    0 0 40px rgba(0, 229, 255, 0.05);
+  animation: pl-box-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+@keyframes pl-box-in {
+  from { opacity: 0; transform: scale(0.93) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@keyframes ab-border-glow {
-  0% {
-    border-color: #00ffff;
-    box-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;
-  }
-  100% {
-    border-color: #ff00ff;
-    box-shadow: 0 0 15px #ff00ff, 0 0 25px #00ffff;
-  }
-}
-
-.abmodal-content h3 {
-  font-size: 1.6rem;
-  color: #00ffff;
-  margin-bottom: 15px;
-  text-align: center;
-  text-shadow: 0 0 6px #00ffff;
-}
-
-.abcheckbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.abcheckbox-label {
+/* ── Header ────────────────────────────────────────────── */
+.pl-modal-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  gap: 12px;
+  padding: 20px 24px 0;
+  flex-shrink: 0;
+}
+
+.pl-modal-title {
+  font-family: 'Audiowide', sans-serif;
+  font-size: 1rem;
+  color: var(--color-primary, #00e5ff);
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+  flex: 1;
+}
+
+.pl-modal-counter {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(0, 229, 255, 0.5);
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 20px;
+  padding: 3px 10px;
+  letter-spacing: 0.05em;
+}
+
+.pl-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 1rem;
   cursor: pointer;
-  background: #0a0a0a;
-  color: #ccc;
-  font-size: 0.95rem;
-  transition: 0.3s ease;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.18s;
+  line-height: 1;
+}
+.pl-modal-close:hover { color: rgba(255, 255, 255, 0.8); }
+
+.pl-modal-subtitle {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 6px 24px 0;
+  margin: 0;
+  flex-shrink: 0;
 }
 
-.abcheckbox-label:hover {
-  border-color: #00ffff;
-  box-shadow: 0 0 10px #00ffff;
-  background-color: #121212;
+/* ── Grid de chips ─────────────────────────────────────── */
+.pl-checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 18px 24px;
+  overflow-y: auto;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.2) transparent;
+}
+.pl-checkbox-grid::-webkit-scrollbar { width: 4px; }
+.pl-checkbox-grid::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
+  border-radius: 2px;
 }
 
-.abcheckbox-label input[type="checkbox"] {
-  accent-color: cyan;
-  transform: scale(1.2);
-  transition: box-shadow 0.3s ease, outline 0.3s ease;
-  outline: none !important;
-  box-shadow: none !important;
+/* Chips tipo pill */
+.pl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.65);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.pl-chip:hover:not(.pl-chip--disabled) {
+  border-color: rgba(0, 229, 255, 0.4);
+  background: rgba(0, 229, 255, 0.07);
+  color: rgba(255, 255, 255, 0.9);
+}
+.pl-chip--active {
+  border-color: rgba(0, 229, 255, 0.6) !important;
+  background: rgba(0, 229, 255, 0.12) !important;
+  color: #00e5ff !important;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+}
+.pl-chip--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
+/* Ocultar el checkbox nativo */
+.pl-chip-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
 
-.abmodal-buttons {
+.pl-chip-check {
+  font-size: 0.7rem;
+}
+
+/* ── Footer ────────────────────────────────────────────── */
+.pl-modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 229, 255, 0.08);
+  flex-shrink: 0;
 }
 
-.abmodal-buttons button {
-  padding: 10px 20px;
-  font-weight: bold;
-  border-radius: 8px;
-  border: 2px solid #00ffff;
-  background-color: transparent;
-  color: #00ffff;
-  cursor: pointer;
-  transition: 0.3s ease;
-  text-transform: uppercase;
-}
-
-.abmodal-buttons button:hover {
-  background-color: #00ffff;
-  color: #111d3d;
-  box-shadow: 0 0 8px #00ffff;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .abmodal-content {
-    padding: 20px;
-  }
-
-  .abcheckbox-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
-
-  .abmodal-content h3 {
-    font-size: 1.3rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .abcheckbox-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  }
-
-  .abmodal-buttons {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .abmodal-buttons button {
-    width: 100%;
-  }
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .pl-modal-box { border-radius: 14px; }
+  .pl-modal-header { padding: 16px 16px 0; }
+  .pl-checkbox-grid { padding: 14px 16px; gap: 6px; }
+  .pl-modal-footer { padding: 12px 16px; }
+  .pl-chip { font-size: 0.78rem; padding: 6px 12px; }
 }

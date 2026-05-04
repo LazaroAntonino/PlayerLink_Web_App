@@ -1,28 +1,6 @@
 import { useState, useMemo } from "react";
 import PropTypes from "prop-types";
-
-const POPULAR_GAMES = [
-    { title: "Valorant", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/2694490/header.jpg" },
-    { title: "League of Legends", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/359550/header.jpg" },
-    { title: "CS2", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/730/header.jpg" },
-    { title: "Fortnite", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1172620/header.jpg" },
-    { title: "Minecraft", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1672970/header.jpg" },
-    { title: "Apex Legends", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/header.jpg" },
-    { title: "Overwatch 2", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/2357570/header.jpg" },
-    { title: "GTA V", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/271590/header.jpg" },
-    { title: "FIFA 24", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/2195250/header.jpg" },
-    { title: "Elden Ring", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/header.jpg" },
-    { title: "Call of Duty", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1938090/header.jpg" },
-    { title: "Rocket League", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/252950/header.jpg" },
-    { title: "Among Us", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/945360/header.jpg" },
-    { title: "Fall Guys", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1097150/header.jpg" },
-    { title: "Genshin Impact", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1971870/header.jpg" },
-    { title: "The Last of Us", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1888930/header.jpg" },
-    { title: "God of War", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/header.jpg" },
-    { title: "Cyberpunk 2077", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/header.jpg" },
-    { title: "Hollow Knight", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/367520/header.jpg" },
-    { title: "Celeste", image: "https://cdn.cloudflare.steamstatic.com/steam/apps/504230/header.jpg" },
-];
+import { GAMES_CATALOG } from "../../../data/gamesCatalog.js";
 
 const MAX_GAMES = 5;
 
@@ -31,7 +9,7 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
 
     const filtered = useMemo(() => {
         const q = query.toLowerCase().trim();
-        return q ? POPULAR_GAMES.filter(g => g.title.toLowerCase().includes(q)) : POPULAR_GAMES;
+        return q ? GAMES_CATALOG.filter(g => g.title.toLowerCase().includes(q)) : GAMES_CATALOG;
     }, [query]);
 
     const isSelected = (title) => data.games.some(g => g.title === title);
