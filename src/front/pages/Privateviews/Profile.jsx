@@ -4,6 +4,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import "./Profile.css";
+import { useNavigate } from "react-router-dom";
 
 // Hooks y servicios
 import useGlobalReducer from "../../hooks/useGlobalReducer";
@@ -38,8 +39,6 @@ import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
 import goldMedal from "../../assets/img/medals/gold-medal.png";
 import silverMedal from "../../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../../assets/img/medals/bronze-medal.png";
-
-import { useNavigate } from "react-router-dom";
 
 // ── Helpers de preferencias/idiomas ─────────────────────────────────────────
 
@@ -356,6 +355,18 @@ const Profile = () => {
               }}
             >
               <i className="fa-solid fa-pen-to-square me-2"></i>Complete now
+            </button>
+            <button
+              className="pit-btn-ai"
+              onClick={() => {
+                clearTimeout(toastTimerRef.current);
+                setShowIncompleteToast(false);
+                navigate("/private/find-games", {
+                  state: { autoMessage: "Quiero terminar de rellenar mi perfil, ¿me ayudas? 🎮" }
+                });
+              }}
+            >
+              <i className="fa-solid fa-robot me-2"></i>Completar con IA
             </button>
             <button
               className="pit-btn-later"

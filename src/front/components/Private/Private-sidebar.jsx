@@ -6,6 +6,7 @@ import searchicon from "../../assets/img/icons/icon-search-a-mate.png";
 import matchicon from "../../assets/img/icons/icon-your-mates.png";
 import findicon from "../../assets/img/icons/icon-find-games.png";
 import settingsicon from "../../assets/img/icons/icon-settings.png";
+import messageicon from "../../assets/img/icons/icon-message.png";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import chatServices from "../../services/chatServices.js";
 
@@ -34,7 +35,7 @@ export const Sidebar = ({ activePath }) => {
     { to: "/private/profile", icon: profileicon, label: "Profile" },
     { to: "/private/search-a-mate", icon: searchicon, label: "Search a mate" },
     { to: "/private/your-matches", icon: matchicon, label: "Your matches" },
-    { to: "/private/chats", icon: null, label: "Mensajes", isChat: true },
+    { to: "/private/chats", icon: messageicon, label: "Mensajes", isChat: true },
     { to: "/private/find-games", icon: findicon, label: "Find games" },
     { to: "/private/settings", icon: settingsicon, label: "Settings" },
   ];
@@ -72,9 +73,7 @@ export const Sidebar = ({ activePath }) => {
             onClick={() => setOpen(false)}
           >
             <span className="sidebar-icon">
-              {link.isChat
-                ? <i className="fa-solid fa-message" style={{ fontSize: "1.1rem" }} />
-                : <img className="Privateicons" src={link.icon} alt={link.label} />}
+              <img className="Privateicons" src={link.icon} alt={link.label} />
             </span>
             <span className="sidebar-text">
               {link.label}

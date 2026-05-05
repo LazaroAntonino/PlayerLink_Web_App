@@ -1243,6 +1243,24 @@
 }
 .pit-btn-later:hover { color: rgba(255, 255, 255, 0.6); }
 
+.pit-btn-ai {
+  background: linear-gradient(135deg, rgba(100, 160, 255, 0.18), rgba(60, 100, 220, 0.1));
+  border: 1px solid rgba(100, 160, 255, 0.45);
+  color: rgba(140, 190, 255, 1);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.pit-btn-ai:hover {
+  background: linear-gradient(135deg, rgba(100, 160, 255, 0.3), rgba(60, 100, 220, 0.2));
+  box-shadow: 0 0 14px rgba(100, 160, 255, 0.3);
+}
+
 /* Barra de progreso autocierre */
 .pit-progress {
   height: 3px;

@@ -30,6 +30,7 @@ python-dotenv = "*"
 flask-mail = "*"
 werkzeug = "*"
 axios = "*"
+anthropic = "*"
 
 [requires]
 python_version = "3.9"

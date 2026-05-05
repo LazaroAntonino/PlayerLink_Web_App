@@ -3,21 +3,22 @@ from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash
 from api.models import User, Profile, Review, Game, Match, Reject, Like
 
+# macOS Python 3.9 no tiene scrypt en hashlib — forzar pbkdf2:sha256
+def hash_password(pwd):
+    return generate_password_hash(pwd, method="pbkdf2:sha256")
+
 with app.app_context():
     # db.drop_all()
     # db.create_all()
 
-    # hashear la contraseña
-    # def hash(pwd): return generate_password_hash(pwd) password=hash
-
     #Creación de users
-    user1 = User(email="juan.perez@example.com", password=generate_password_hash("password123"))
-    user2 = User(email="ana.gomez@example.com", password=generate_password_hash("mypassword"))
-    user3 = User(email="carlos.ruiz@example.com", password=generate_password_hash("securepass"))
-    user4 = User(email="maria.lopez@example.com", password=generate_password_hash("pass456"))
-    user5 = User(email="luis.fernandez@example.com", password=generate_password_hash("pass789"))
-    user6 = User(email="laura.diaz@example.com", password=generate_password_hash("mypassword2"))
-    user7 = User(email="jorge.martinez@example.com", password=generate_password_hash("secretpass"))
+    user1 = User(email="juan.perez@example.com", password=hash_password("password123"))
+    user2 = User(email="ana.gomez@example.com", password=hash_password("mypassword"))
+    user3 = User(email="carlos.ruiz@example.com", password=hash_password("securepass"))
+    user4 = User(email="maria.lopez@example.com", password=hash_password("pass456"))
+    user5 = User(email="luis.fernandez@example.com", password=hash_password("pass789"))
+    user6 = User(email="laura.diaz@example.com", password=hash_password("mypassword2"))
+    user7 = User(email="jorge.martinez@example.com", password=hash_password("secretpass"))
     db.session.add_all([user1, user2, user3, user4, user5, user6, user7])
     db.session.commit()
 
@@ -104,39 +105,33 @@ with app.app_context():
     #Crear games para los perfiles de usuarios
     games = [
         # Perfil 1
-        Game(profile_id=1, game={"title": "Call of Duty", "hours_played": 120}),
-        Game(profile_id=1, game={"title": "Halo Infinite", "hours_played": 90}),
-        Game(profile_id=1, game={"title": "Celeste", "hours_played": 45}),
-
+        Game(profile_id=1, game_title="Call of Duty",               game_hoursPlayed=120),
+        Game(profile_id=1, game_title="Halo Infinite",              game_hoursPlayed=90),
+        Game(profile_id=1, game_title="Celeste",                    game_hoursPlayed=45),
         # Perfil 2
-        Game(profile_id=2, game={"title": "Civilization VI", "hours_played": 200}),
-        Game(profile_id=2, game={"title": "Stardew Valley", "hours_played": 130}),
-        Game(profile_id=2, game={"title": "Divinity: Original Sin 2", "hours_played": 160}),
-
+        Game(profile_id=2, game_title="Civilization VI",            game_hoursPlayed=200),
+        Game(profile_id=2, game_title="Stardew Valley",             game_hoursPlayed=130),
+        Game(profile_id=2, game_title="Divinity: Original Sin 2",   game_hoursPlayed=160),
         # Perfil 3
-        Game(profile_id=3, game={"title": "FIFA 21", "hours_played": 150}),
-        Game(profile_id=3, game={"title": "NBA 2K24", "hours_played": 95}),
-        Game(profile_id=3, game={"title": "Rocket League", "hours_played": 110}),
-
+        Game(profile_id=3, game_title="FIFA 21",                    game_hoursPlayed=150),
+        Game(profile_id=3, game_title="NBA 2K24",                   game_hoursPlayed=95),
+        Game(profile_id=3, game_title="Rocket League",              game_hoursPlayed=110),
         # Perfil 4
-        Game(profile_id=4, game={"title": "Stardew Valley", "hours_played": 80}),
-        Game(profile_id=4, game={"title": "Unpacking", "hours_played": 40}),
-        Game(profile_id=4, game={"title": "Gris", "hours_played": 30}),
-
+        Game(profile_id=4, game_title="Stardew Valley",             game_hoursPlayed=80),
+        Game(profile_id=4, game_title="Unpacking",                  game_hoursPlayed=40),
+        Game(profile_id=4, game_title="Gris",                       game_hoursPlayed=30),
         # Perfil 5
-        Game(profile_id=5, game={"title": "The Witcher 3", "hours_played": 300}),
-        Game(profile_id=5, game={"title": "Skyrim", "hours_played": 250}),
-        Game(profile_id=5, game={"title": "Zelda: BOTW", "hours_played": 180}),
-
+        Game(profile_id=5, game_title="The Witcher 3",              game_hoursPlayed=300),
+        Game(profile_id=5, game_title="Skyrim",                     game_hoursPlayed=250),
+        Game(profile_id=5, game_title="Zelda: BOTW",                game_hoursPlayed=180),
         # Perfil 6
-        Game(profile_id=6, game={"title": "World of Warcraft", "hours_played": 500}),
-        Game(profile_id=6, game={"title": "Age of Empires IV", "hours_played": 120}),
-        Game(profile_id=6, game={"title": "Final Fantasy XIV", "hours_played": 400}),
-
+        Game(profile_id=6, game_title="World of Warcraft",          game_hoursPlayed=500),
+        Game(profile_id=6, game_title="Age of Empires IV",          game_hoursPlayed=120),
+        Game(profile_id=6, game_title="Final Fantasy XIV",          game_hoursPlayed=400),
         # Perfil 7
-        Game(profile_id=7, game={"title": "Forza Horizon 5", "hours_played": 220}),
-        Game(profile_id=7, game={"title": "Valorant", "hours_played": 180}),
-        Game(profile_id=7, game={"title": "Gran Turismo 7", "hours_played": 150}),
+        Game(profile_id=7, game_title="Forza Horizon 5",            game_hoursPlayed=220),
+        Game(profile_id=7, game_title="Valorant",                   game_hoursPlayed=180),
+        Game(profile_id=7, game_title="Gran Turismo 7",             game_hoursPlayed=150),
     ]
 
     db.session.add_all(games)
