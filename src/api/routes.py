@@ -5,10 +5,9 @@ import os
 import json
 import openai
 import anthropic as _anthropic_module
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, request, jsonify, url_for, Blueprint, current_app
 from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage, PasswordResetToken
 from api.utils import generate_sitemap, APIException, admin_required, hash_password
-from flask_cors import CORS
 from sqlalchemy import select, or_, not_
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import check_password_hash
@@ -32,10 +31,12 @@ else:
     import warnings
     warnings.warn("OPENAI_API_KEY is not set — the /chat endpoint will be disabled.", RuntimeWarning)
 
+from api.extensions import limiter
+from flask_limiter.util import get_remote_address
+
 api = Blueprint('api', __name__)
 
-# Allow CORS requests to this API
-CORS(api)
+# Allow CORS requests to this API — configured in app.py
 
 # ── Anthropic client (instanciado una vez) ────────────────────────────────
 _anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -100,6 +101,7 @@ def chat():
 
 
 @api.route('/register', methods=['POST'])
+@limiter.limit("3 per minute")
 def register():
     try:
         data = request.get_json()
@@ -142,6 +144,7 @@ def register():
 
 # LOGIN
 @api.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     try:
         data = request.get_json()
@@ -181,6 +184,7 @@ def check_jwt():
 
 
 @api.route("/check_mail", methods=['POST'])
+@limiter.limit("3 per 15 minutes", key_func=lambda: (request.get_json(silent=True) or {}).get('email') or get_remote_address())
 def check_mail():
     try:
         data = request.json

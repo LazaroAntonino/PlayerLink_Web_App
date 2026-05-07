@@ -31,6 +31,7 @@ flask-mail = "*"
 werkzeug = "*"
 axios = "*"
 anthropic = "*"
+flask-limiter = "*"
 
 [requires]
 python_version = "3.9"
