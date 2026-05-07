@@ -3,7 +3,6 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 import os
 import json
-import openai
 import anthropic as _anthropic_module
 from flask import Flask, request, jsonify, url_for, Blueprint, current_app
 from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage, PasswordResetToken
@@ -23,14 +22,6 @@ from api.mail.mailer import send_email
 # Carga variables de entorno desde .env
 load_dotenv()
 
-# Obtén la clave de OpenAI
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    openai.api_key = OPENAI_API_KEY
-else:
-    import warnings
-    warnings.warn("OPENAI_API_KEY is not set — the /chat endpoint will be disabled.", RuntimeWarning)
-
 from api.extensions import limiter
 from flask_limiter.util import get_remote_address
 
@@ -41,63 +32,6 @@ api = Blueprint('api', __name__)
 # ── Anthropic client (instanciado una vez) ────────────────────────────────
 _anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 anthropic_client = _anthropic_module.Anthropic(api_key=_anthropic_api_key) if _anthropic_api_key else None
-
-
-@api.route("/chat", methods=["POST"])
-def chat():
-    """
-    Accepts JSON:
-    - { "text": "...", "userInfo": "..." }        → single message
-    - { "messages": [...], "userInfo": "..." }    → full conversation history
-    Calls OpenAI and returns the generated reply.
-    """
-    if not OPENAI_API_KEY:
-        return jsonify({"error": "AI service is not configured on this server."}), 503
-
-    data = request.get_json()
-
-    if not data or "userInfo" not in data or ("messages" not in data and "text" not in data):
-        return jsonify({"error": "Missing required fields"}), 400
-    user_info = data["userInfo"]
-
-    # ✅ Si viene un único mensaje como texto:
-    if "text" in data:
-        history = [{"sender": "user", "text": data["text"]}]
-    else:
-        history = data["messages"]
-
-    try:
-        formatted_messages = [
-            {
-                "role": "system",
-                "content": (
-                    f"Eres un asistente virtual experto en videojuegos. "
-                    f"Si te preguntan sobre otro tema, responde con educación que solo puedes hablar de videojuegos. "
-                    f"Trabajas para PlayerLink, una app para encontrar compañeros de juego. "
-                    f"La primera vez saludas con cercanía. "
-                    f"Información del usuario: {user_info}"
-                )
-            }
-        ]
-
-        # Construir conversación para OpenAI
-        for msg in history:
-            role = "user" if msg.get("sender") == "user" else "assistant"
-            content = msg.get("text", "")
-            formatted_messages.append({"role": role, "content": content})
-
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=formatted_messages,
-            temperature=0.7,
-            max_tokens=512,
-        )
-
-        reply_text = response.choices[0].message.content.strip()
-        return jsonify({"reply": reply_text})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 
 @api.route('/register', methods=['POST'])
