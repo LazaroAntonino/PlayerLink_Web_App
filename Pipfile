@@ -4,6 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
+pytest-flask = "*"
 
 [packages]
 flask-sqlalchemy = "*"
@@ -26,7 +28,6 @@ flask-mail = "*"
 werkzeug = "*"
 flask-limiter = "*"
 anthropic = "*"
-flask-limiter = "*"
 
 [requires]
 python_version = "3.13"
