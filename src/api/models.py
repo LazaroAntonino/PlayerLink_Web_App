@@ -14,6 +14,7 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relaciones
     profile: Mapped[Optional[Profile]] = relationship(
@@ -66,6 +67,7 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "is_admin": self.is_admin,
             # No serializar password por seguridad
             "profile": self.profile.serialize() if self.profile else None
         }

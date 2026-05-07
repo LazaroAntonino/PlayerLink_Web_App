@@ -1,4 +1,27 @@
+from functools import wraps
 from flask import jsonify, url_for
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+from werkzeug.security import generate_password_hash
+
+
+def hash_password(password: str) -> str:
+    """Hash a password using pbkdf2:sha256 (works on all platforms)."""
+    return generate_password_hash(password, method="pbkdf2:sha256")
+
+
+def admin_required(fn):
+    """Decorator: requires a valid JWT and that the user has is_admin=True."""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        verify_jwt_in_request()
+        from api.models import db, User
+        requesting_id = int(get_jwt_identity())
+        user = db.session.get(User, requesting_id)
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Forbidden: admin access required'}), 403
+        return fn(*args, **kwargs)
+    return wrapper
+
 
 class APIException(Exception):
     status_code = 400
