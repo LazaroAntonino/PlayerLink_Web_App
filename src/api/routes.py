@@ -5,19 +5,18 @@ import os
 import json
 import openai
 import anthropic as _anthropic_module
-from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage
-from api.utils import generate_sitemap, APIException
-from flask_cors import CORS
+from flask import Flask, request, jsonify, url_for, Blueprint, current_app
+from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage, PasswordResetToken
+from api.utils import generate_sitemap, APIException, admin_required, hash_password
 from sqlalchemy import select, or_, not_
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
 
-# Python 3.9 on macOS ships without scrypt in hashlib.
-# Force pbkdf2:sha256 so hashing works on all platforms.
-def hash_password(password: str) -> str:
-    return generate_password_hash(password, method="pbkdf2:sha256")
 from dotenv import load_dotenv
+import secrets
+import hashlib
+from datetime import timedelta
+from datetime import datetime
 from flask_mail import Message
 from api.mail.mailer import send_email
 
@@ -32,10 +31,12 @@ else:
     import warnings
     warnings.warn("OPENAI_API_KEY is not set — the /chat endpoint will be disabled.", RuntimeWarning)
 
+from api.extensions import limiter
+from flask_limiter.util import get_remote_address
+
 api = Blueprint('api', __name__)
 
-# Allow CORS requests to this API
-CORS(api)
+# Allow CORS requests to this API — configured in app.py
 
 # ── Anthropic client (instanciado una vez) ────────────────────────────────
 _anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -100,6 +101,7 @@ def chat():
 
 
 @api.route('/register', methods=['POST'])
+@limiter.limit("3 per minute")
 def register():
     try:
         data = request.get_json()
@@ -142,6 +144,7 @@ def register():
 
 # LOGIN
 @api.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     try:
         data = request.get_json()
@@ -181,23 +184,41 @@ def check_jwt():
 
 
 @api.route("/check_mail", methods=['POST'])
+@limiter.limit("3 per 15 minutes", key_func=lambda: (request.get_json(silent=True) or {}).get('email') or get_remote_address())
 def check_mail():
     try:
         data = request.json
-        # buscamos el correo en la base de datos y almacenamos el resultado en la variable user
-        user = db.session.execute(select(User).where(User.email == data['email'])).scalar_one_or_none()
-        # si no se encuentra, se devuelve que el correo no se ha encontrado
-        if not user:
-            return jsonify({'success': False, 'msg': 'email not found'}), 404
-        # creamos el token que se va a enviar y necesario para la recuperacion de la contraseña
-        token = create_access_token(identity=str(user.id))
-        if not token:
-            return jsonify({'success': False, 'msg': 'token not found'}), 404
+        email = data.get('email', '')
+        user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
-        result = send_email(data['email'], token)
+        # Anti-enumeration: always respond 200 regardless of whether user exists
+        if user:
+            # Invalidate previous unused tokens for this user
+            prev_tokens = db.session.query(PasswordResetToken).filter_by(
+                user_id=user.id
+            ).filter(PasswordResetToken.used_at.is_(None)).all()
+            for t in prev_tokens:
+                t.used_at = datetime.utcnow()
+
+            # Generate a new single-use token
+            raw_token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+            expires_at = datetime.utcnow() + timedelta(minutes=15)
+
+            reset_token = PasswordResetToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at
+            )
+            db.session.add(reset_token)
+            db.session.commit()
+
+            # Send email with the raw token (not the hash)
+            send_email(email, raw_token)
+
         return jsonify({'success': True}), 200
     except Exception as e:
-        return jsonify({'success': False, 'msg': 'something went wrong'})
+        return jsonify({'success': True}), 200
 
 
 # ruta para actualizar el password. Se consume desde la vista para hacer el reset en el front
@@ -228,7 +249,42 @@ def password_update():
         return jsonify({'success': False, 'msg': f"Error al enviar el correo: {str(e)}"})
 
 
-# PRIVATE ENDPOINT
+# POST — single-use reset token flow (no JWT required)
+@api.route('/password_update_with_token', methods=['POST'])
+def password_update_with_token():
+    try:
+        data = request.get_json(force=True)
+        raw_token = (data or {}).get('token', '')
+        new_password = (data or {}).get('password', '')
+
+        if not raw_token or not new_password:
+            return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
+
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        reset_token = db.session.query(PasswordResetToken).filter_by(
+            token_hash=token_hash
+        ).first()
+
+        now = datetime.utcnow()
+        if (
+            not reset_token
+            or reset_token.used_at is not None
+            or reset_token.expires_at < now
+        ):
+            return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
+
+        # Mark as used
+        reset_token.used_at = now
+
+        # Update password
+        user = db.session.get(User, reset_token.user_id)
+        user.password = hash_password(new_password)
+        db.session.commit()
+
+        return jsonify({'success': True, 'msg': 'Password updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
 @api.route('/private', methods=['GET'])
 @jwt_required()
 def get_user_info():
@@ -243,6 +299,7 @@ def get_user_info():
 
 
 @api.route('/users', methods=['GET'])
+@admin_required
 def get_users():
     stmt = select(User)
     users = db.session.execute(stmt).scalars().all()
@@ -364,6 +421,7 @@ def users_password(user_id):
 
 # GET ALL PROFILES
 @api.route('/profiles', methods=['GET'])
+@admin_required
 def get_profiles():
     stmt = select(Profile)
     profiles = db.session.execute(stmt).scalars().all()
@@ -425,7 +483,11 @@ def delete_profile(profile_id):
 
 
 @api.route('/profiles/<int:user_id>', methods=['POST'])
+@jwt_required()
 def post_profile(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Missing data'}), 400
@@ -596,6 +658,7 @@ def put_profilephoto(user_id):
 
 # GET ALL REVIEWS
 @api.route('/reviews', methods=['GET'])
+@admin_required
 def get_All_Reviews():
     stmt = select(Review)
     reviews = db.session.execute(stmt).scalars().all()
@@ -654,10 +717,14 @@ def get_user_reviews(user_id):
 
 # DELETE REVIEW
 @api.route('/reviews/<int:review_id>', methods=['DELETE'])
+@jwt_required()
 def delete_review(review_id):
     review = db.session.get(Review, review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
+    requesting_id = int(get_jwt_identity())
+    if review.author_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
 
     db.session.delete(review)
     db.session.commit()
@@ -666,7 +733,11 @@ def delete_review(review_id):
 
 # POST REVIEW
 @api.route('/reviews/<int:author_id>/<int:receiver_id>', methods=['POST'])
+@jwt_required()
 def post_review(author_id, receiver_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != author_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     if author_id == receiver_id:
         return jsonify({'error': 'No puedes comentar sobre ti mismo'}), 400
 
@@ -703,10 +774,14 @@ def post_review(author_id, receiver_id):
 
 # PUT REVIEW
 @api.route('/reviews/<int:review_id>', methods=['PUT'])
+@jwt_required()
 def put_review(review_id):
     review = db.session.get(Review, review_id)
     if review is None:
         return jsonify({'error': 'that review does not exist'}), 400
+    requesting_id = int(get_jwt_identity())
+    if review.author_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     data = request.get_json()
 
     if 'stars' not in data or 'comment' not in data:
@@ -720,6 +795,7 @@ def put_review(review_id):
 
 # GET ALL MATCHES
 @api.route('/matches', methods=['GET'])
+@admin_required
 def get_all_matches():
     stmt = select(Match)
     matches = db.session.execute(stmt).scalars().all()
@@ -737,7 +813,11 @@ def get_single_match(match_id):
 
 
 @api.route('/matches/user/<int:user_id>', methods=['GET'])
+@jwt_required()
 def get_matches_for_user(user_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     # 1) Sacar todos los Match donde aparezca este usuario como user1 o como user2
     stmt = select(Match).where(
         or_(
@@ -787,34 +867,17 @@ def get_matches_for_user(user_id):
     return jsonify({"matches": deduped}), 200
 
 
-# POST A MATCH
-@api.route('/matches/<int:user1_id>/<int:user2_id>', methods=['POST'])
-def post_match(user1_id, user2_id):
-    if user1_id == user2_id:
-        return jsonify({'error': 'Cannot match yourself'}), 400
-    user1 = db.session.get(User, user1_id)
-    user2 = db.session.get(User, user2_id)
-    if not user1 or not user2:
-        return jsonify({'error': 'User not found'}), 404
-    # prevent duplicates regardless of order
-    existing = (db.session.query(Match)
-                .filter(((Match.user1_id == user1_id) & (Match.user2_id == user2_id)) |
-                ((Match.user1_id == user2_id) & (Match.user2_id == user1_id))).first())
-    if existing:
-        return jsonify({'error': 'Match already exists'}), 409
-    new_match = Match(user1_id=user1_id, user2_id=user2_id)
-    db.session.add(new_match)
-    db.session.commit()
-    return jsonify(new_match.serialize()), 201
-
-
 # DELETE A MATCH
 @api.route('/matches/<int:match_id>', methods=['DELETE'])
+@jwt_required()
 def delete_match(match_id):
     stmt = select(Match).where(Match.id == match_id)
     match = db.session.execute(stmt).scalar_one_or_none()
     if not match:
         return jsonify({'error': f'Match with id {match_id} not found'}), 404
+    requesting_id = int(get_jwt_identity())
+    if match.user1_id != requesting_id and match.user2_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     db.session.delete(match)
     db.session.commit()
     return jsonify({'message': f'Match {match_id} deleted'}), 200
@@ -822,6 +885,7 @@ def delete_match(match_id):
 
 # GET ALL REJECT
 @api.route('/rejects', methods=['GET'])
+@admin_required
 def get_all_rejects():
     stmt = select(Reject)
     rejects = db.session.execute(stmt).scalars().all()
@@ -877,21 +941,28 @@ def get_rejects_received(user_id):
 # DELETE REJECT
 
 
-@api.route('/rejects/<reject_id>', methods=['DELETE'])
+@api.route('/rejects/<int:reject_id>', methods=['DELETE'])
+@jwt_required()
 def delete_reject(reject_id):
     stmt = select(Reject).where(Reject.id == reject_id)
     reject = db.session.execute(stmt).scalar_one_or_none()
     if reject is None:
-        return jsonify({'error': f'reject with id: {reject_id} not found'})
-
+        return jsonify({'error': f'reject with id: {reject_id} not found'}), 404
+    requesting_id = int(get_jwt_identity())
+    if reject.rejector_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     db.session.delete(reject)
     db.session.commit()
-    return jsonify({'message': f'reject with id: {reject_id} deleted'})
+    return jsonify({'message': f'reject with id: {reject_id} deleted'}), 200
 
 
 # POST REJECT
 @api.route('/rejects/<int:rejector_id>/<int:rejected_id>', methods=['POST'])
+@jwt_required()
 def post_reject(rejector_id, rejected_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != rejector_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     rejector = db.session.get(User, rejector_id)
     if rejector is None:
         return jsonify({'error': f'User (rejector) with id={rejector_id} not found'}), 404
@@ -919,6 +990,7 @@ def post_reject(rejector_id, rejected_id):
 
 # GET ALL GAMES
 @api.route('/games', methods=['GET'])
+@admin_required
 def get_all_games():
     stmt = select(Game)
     games = db.session.execute(stmt).scalars().all()
@@ -955,7 +1027,9 @@ def get_games_by_profile_id(profile_id):
 
 
 @api.route('/games/hours/<int:game_id>', methods=['PUT'])
+@jwt_required()
 def put_game_hours(game_id):
+    requesting_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
@@ -968,6 +1042,9 @@ def put_game_hours(game_id):
     if game is None:
         return jsonify({'error': 'Este juego no existe'}), 404
 
+    if game.profile.user_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
     # Actualizar los valores
     game.game_hoursPlayed = data.get("hours_played") or 'undefined'
 
@@ -978,8 +1055,16 @@ def put_game_hours(game_id):
 
 
 # POST GAMES
-@api.route('/games/<profile_id>', methods=['POST'])
+@api.route('/games/<int:profile_id>', methods=['POST'])
+@jwt_required()
 def post_game(profile_id):
+    requesting_id = int(get_jwt_identity())
+    # Verify ownership: the profile must belong to the requesting user
+    profile = db.session.get(Profile, profile_id)
+    if not profile:
+        return jsonify({'error': 'Profile not found'}), 404
+    if profile.user_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     # 1) Asegurarnos de que el Content-Type sea application/json
     if not request.is_json:
         return jsonify({'error': 'Se requiere Content-Type: application/json'}), 400
@@ -1004,13 +1089,16 @@ def post_game(profile_id):
 
 
 # DELETE GAME
-@api.route('/games/<game_id>', methods=['DELETE'])
+@api.route('/games/<int:game_id>', methods=['DELETE'])
+@jwt_required()
 def delete_game(game_id):
     stmt = select(Game).where(Game.id == game_id)
     game = db.session.execute(stmt).scalar_one_or_none()
     if game is None:
         return jsonify({'error': f'game with id: {game_id} not found'}), 400
-
+    requesting_id = int(get_jwt_identity())
+    if game.profile.user_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     db.session.delete(game)
     db.session.commit()
     return jsonify({'message': f'game with id: {game_id} deleted'}), 200
@@ -1018,6 +1106,7 @@ def delete_game(game_id):
 
 # GET ALL LIKES
 @api.route('/likes', methods=['GET'])
+@admin_required
 def get_all_likes():
     stmt = select(Like)
     likes = db.session.execute(stmt).scalars().all()
@@ -1109,11 +1198,15 @@ def post_like(liker_id, liked_id):
 
 # DELETE LIKE (ESTÁ LA LÓGICA PARA QUE SE BORRE EL MATCH SI ES NECESARIO)
 @api.route('/likes/<int:like_id>', methods=['DELETE'])
+@jwt_required()
 def delete_like(like_id):
     # Buscar el like
     like = db.session.get(Like, like_id)
     if not like:
         return jsonify({'error': f'Like with id {like_id} not found'}), 404
+    requesting_id = int(get_jwt_identity())
+    if like.liker_id != requesting_id:
+        return jsonify({'error': 'Unauthorized'}), 403
 
     # Comprobar si este like formó parte de un match
     match = (db.session.query(Match)
@@ -1529,40 +1622,43 @@ def _execute_get_user_profile(user_id):
         return {"error": str(e)}
 
 
+_GAMES_CATALOG = [
+    {"title": "Valorant",              "genre": "FPS Táctico",            "platform": "PC"},
+    {"title": "CS2",                   "genre": "FPS Táctico",            "platform": "PC"},
+    {"title": "Apex Legends",          "genre": "Battle Royale",          "platform": "PC/Console"},
+    {"title": "Overwatch 2",           "genre": "FPS Hero Shooter",       "platform": "PC/Console"},
+    {"title": "League of Legends",     "genre": "MOBA",                   "platform": "PC"},
+    {"title": "Dota 2",                "genre": "MOBA",                   "platform": "PC"},
+    {"title": "Fortnite",              "genre": "Battle Royale",          "platform": "PC/Console/Mobile"},
+    {"title": "Elden Ring",            "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Cyberpunk 2077",        "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "The Witcher 3",         "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Baldur's Gate 3",       "genre": "RPG",                    "platform": "PC/Console"},
+    {"title": "God of War",            "genre": "Action Adventure",       "platform": "PC/Console"},
+    {"title": "Hollow Knight",         "genre": "Metroidvania",           "platform": "PC/Console"},
+    {"title": "Hades",                 "genre": "Roguelike",              "platform": "PC/Console"},
+    {"title": "Dead Cells",            "genre": "Roguelike",              "platform": "PC/Console"},
+    {"title": "Minecraft",             "genre": "Sandbox/Survival",       "platform": "PC/Console/Mobile"},
+    {"title": "Terraria",              "genre": "Sandbox/Survival",       "platform": "PC/Console"},
+    {"title": "Valheim",               "genre": "Survival/Co-op",         "platform": "PC"},
+    {"title": "Deep Rock Galactic",    "genre": "Co-op Shooter",          "platform": "PC/Console"},
+    {"title": "It Takes Two",          "genre": "Co-op Adventure",        "platform": "PC/Console"},
+    {"title": "Helldivers 2",          "genre": "Co-op Shooter",          "platform": "PC/Console"},
+    {"title": "Stardew Valley",        "genre": "Farming Sim",            "platform": "PC/Console/Mobile"},
+    {"title": "Monster Hunter: World", "genre": "Action RPG/Co-op",       "platform": "PC/Console"},
+    {"title": "Destiny 2",             "genre": "MMO Shooter",            "platform": "PC/Console"},
+    {"title": "Warframe",              "genre": "MMO Shooter",            "platform": "PC/Console"},
+    {"title": "Path of Exile",         "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Diablo IV",             "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Celeste",               "genre": "Platformer",             "platform": "PC/Console"},
+    {"title": "Cuphead",               "genre": "Run and Gun",            "platform": "PC/Console"},
+    {"title": "Slay the Spire",        "genre": "Roguelike Deck Builder", "platform": "PC/Console"},
+]
+
+
 def _execute_search_games_catalog(query, limit=5):
     """Busca en el catálogo de juegos integrado por similitud de nombre/género."""
-    GAMES_CATALOG = [
-        {"title": "Valorant",              "genre": "FPS Táctico",            "platform": "PC"},
-        {"title": "CS2",                   "genre": "FPS Táctico",            "platform": "PC"},
-        {"title": "Apex Legends",          "genre": "Battle Royale",          "platform": "PC/Console"},
-        {"title": "Overwatch 2",           "genre": "FPS Hero Shooter",       "platform": "PC/Console"},
-        {"title": "League of Legends",     "genre": "MOBA",                   "platform": "PC"},
-        {"title": "Dota 2",                "genre": "MOBA",                   "platform": "PC"},
-        {"title": "Fortnite",              "genre": "Battle Royale",          "platform": "PC/Console/Mobile"},
-        {"title": "Elden Ring",            "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Cyberpunk 2077",        "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "The Witcher 3",         "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Baldur's Gate 3",       "genre": "RPG",                    "platform": "PC/Console"},
-        {"title": "God of War",            "genre": "Action Adventure",       "platform": "PC/Console"},
-        {"title": "Hollow Knight",         "genre": "Metroidvania",           "platform": "PC/Console"},
-        {"title": "Hades",                 "genre": "Roguelike",              "platform": "PC/Console"},
-        {"title": "Dead Cells",            "genre": "Roguelike",              "platform": "PC/Console"},
-        {"title": "Minecraft",             "genre": "Sandbox/Survival",       "platform": "PC/Console/Mobile"},
-        {"title": "Terraria",              "genre": "Sandbox/Survival",       "platform": "PC/Console"},
-        {"title": "Valheim",               "genre": "Survival/Co-op",         "platform": "PC"},
-        {"title": "Deep Rock Galactic",    "genre": "Co-op Shooter",          "platform": "PC/Console"},
-        {"title": "It Takes Two",          "genre": "Co-op Adventure",        "platform": "PC/Console"},
-        {"title": "Helldivers 2",          "genre": "Co-op Shooter",          "platform": "PC/Console"},
-        {"title": "Stardew Valley",        "genre": "Farming Sim",            "platform": "PC/Console/Mobile"},
-        {"title": "Monster Hunter: World", "genre": "Action RPG/Co-op",       "platform": "PC/Console"},
-        {"title": "Destiny 2",             "genre": "MMO Shooter",            "platform": "PC/Console"},
-        {"title": "Warframe",              "genre": "MMO Shooter",            "platform": "PC/Console"},
-        {"title": "Path of Exile",         "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Diablo IV",             "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Celeste",               "genre": "Platformer",             "platform": "PC/Console"},
-        {"title": "Cuphead",               "genre": "Run and Gun",            "platform": "PC/Console"},
-        {"title": "Slay the Spire",        "genre": "Roguelike Deck Builder", "platform": "PC/Console"},
-    ]
+    GAMES_CATALOG = _GAMES_CATALOG
 
     try:
         q = query.lower()
@@ -1754,7 +1850,6 @@ def _execute_update_user_profile(user_id, fields: dict):
 def _execute_add_game_to_profile(user_id, game_title: str, hours_played: int):
     """Añade un juego al perfil del usuario."""
     try:
-        from data.gamesCatalog import GAMES_CATALOG
         user = db.session.get(User, user_id)
         if not user or not user.profile:
             return {"error": "Perfil no encontrado"}
@@ -1775,7 +1870,7 @@ def _execute_add_game_to_profile(user_id, game_title: str, hours_played: int):
         # Buscar imagen en el catálogo
         game_image = "default.jpg"
         try:
-            catalog = GAMES_CATALOG
+            catalog = _GAMES_CATALOG
             for entry in catalog:
                 if entry.get("title", "").lower() == game_title.lower():
                     game_image = entry.get("image", "default.jpg")

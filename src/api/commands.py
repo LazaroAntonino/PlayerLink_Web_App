@@ -1,10 +1,7 @@
 
 import click
-from werkzeug.security import generate_password_hash
-
-def hash_password(password: str) -> str:
-    return generate_password_hash(password, method="pbkdf2:sha256")
 from api.models import db, User, Profile, Game, Like, Match
+from api.utils import hash_password
 
 """
 In this file, you can add as many commands as you want using the @app.cli.command decorator

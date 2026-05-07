@@ -1,15 +1,11 @@
-const url = import.meta.env.VITE_BACKEND_URL
+import apiFetch from "./apiFetch";
+
 const matchServices = {};
 
 matchServices.getAllMatchesInfo = async (user_id) => {
-    try {
-        const resp = await fetch(url + `/api/matches/user/${user_id}`)
-        if (!resp.ok) throw Error('Something went wrong traying to get matches info')
-        const data = await resp.json()
-        return data
-    } catch (error) {
-        return error
-    }
-}
+  const resp = await apiFetch(`/api/matches/user/${user_id}`);
+  if (!resp.ok) throw Error("Something went wrong trying to get matches info");
+  return resp.json();
+};
 
-export default matchServices
+export default matchServices;

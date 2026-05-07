@@ -26,10 +26,10 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   const selectPhoto = () => PHOTO_MAP[profile.photo] || photo1;
 
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!profile?.user_id) return;
     const getAvgStars = async () => {
       try {
-        const average = await searchMatchServices.getStarsByUser(profile.id);
+        const average = await searchMatchServices.getStarsByUser(profile.user_id);
         setAvgStars(Number(average));
       } catch (err) {
         console.error(err);
