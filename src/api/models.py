@@ -7,7 +7,6 @@ from typing import List, Optional
 
 db = SQLAlchemy()
 
-
 class User(db.Model):
     __tablename__ = 'users'
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -294,3 +293,14 @@ class ChatMessage(db.Model):
             'created_at': self.created_at.isoformat(),
             'read':       self.read,
         }
+
+
+class PasswordResetToken(db.Model):
+    __tablename__ = 'password_reset_tokens'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+

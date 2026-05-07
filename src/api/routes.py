@@ -6,7 +6,7 @@ import json
 import openai
 import anthropic as _anthropic_module
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage
+from api.models import db, User, Profile, Review, Match, Reject, Game, Like, ChatMessage, PasswordResetToken
 from api.utils import generate_sitemap, APIException, admin_required, hash_password
 from flask_cors import CORS
 from sqlalchemy import select, or_, not_
@@ -14,6 +14,10 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 from werkzeug.security import check_password_hash
 
 from dotenv import load_dotenv
+import secrets
+import hashlib
+from datetime import timedelta
+from datetime import datetime
 from flask_mail import Message
 from api.mail.mailer import send_email
 
@@ -180,20 +184,37 @@ def check_jwt():
 def check_mail():
     try:
         data = request.json
-        # buscamos el correo en la base de datos y almacenamos el resultado en la variable user
-        user = db.session.execute(select(User).where(User.email == data['email'])).scalar_one_or_none()
-        # si no se encuentra, se devuelve que el correo no se ha encontrado
-        if not user:
-            return jsonify({'success': False, 'msg': 'email not found'}), 404
-        # creamos el token que se va a enviar y necesario para la recuperacion de la contraseña
-        token = create_access_token(identity=str(user.id))
-        if not token:
-            return jsonify({'success': False, 'msg': 'token not found'}), 404
+        email = data.get('email', '')
+        user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
-        result = send_email(data['email'], token)
+        # Anti-enumeration: always respond 200 regardless of whether user exists
+        if user:
+            # Invalidate previous unused tokens for this user
+            prev_tokens = db.session.query(PasswordResetToken).filter_by(
+                user_id=user.id
+            ).filter(PasswordResetToken.used_at.is_(None)).all()
+            for t in prev_tokens:
+                t.used_at = datetime.utcnow()
+
+            # Generate a new single-use token
+            raw_token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+            expires_at = datetime.utcnow() + timedelta(minutes=15)
+
+            reset_token = PasswordResetToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at
+            )
+            db.session.add(reset_token)
+            db.session.commit()
+
+            # Send email with the raw token (not the hash)
+            send_email(email, raw_token)
+
         return jsonify({'success': True}), 200
     except Exception as e:
-        return jsonify({'success': False, 'msg': 'something went wrong'})
+        return jsonify({'success': True}), 200
 
 
 # ruta para actualizar el password. Se consume desde la vista para hacer el reset en el front
@@ -224,7 +245,42 @@ def password_update():
         return jsonify({'success': False, 'msg': f"Error al enviar el correo: {str(e)}"})
 
 
-# PRIVATE ENDPOINT
+# POST — single-use reset token flow (no JWT required)
+@api.route('/password_update_with_token', methods=['POST'])
+def password_update_with_token():
+    try:
+        data = request.get_json(force=True)
+        raw_token = (data or {}).get('token', '')
+        new_password = (data or {}).get('password', '')
+
+        if not raw_token or not new_password:
+            return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
+
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        reset_token = db.session.query(PasswordResetToken).filter_by(
+            token_hash=token_hash
+        ).first()
+
+        now = datetime.utcnow()
+        if (
+            not reset_token
+            or reset_token.used_at is not None
+            or reset_token.expires_at < now
+        ):
+            return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
+
+        # Mark as used
+        reset_token.used_at = now
+
+        # Update password
+        user = db.session.get(User, reset_token.user_id)
+        user.password = hash_password(new_password)
+        db.session.commit()
+
+        return jsonify({'success': True, 'msg': 'Password updated successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'msg': 'Invalid or expired token'}), 400
 @api.route('/private', methods=['GET'])
 @jwt_required()
 def get_user_info():
