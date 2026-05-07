@@ -1,11 +1,7 @@
 from app import app, db
 from datetime import datetime, timezone
-from werkzeug.security import generate_password_hash
 from api.models import User, Profile, Review, Game, Match, Reject, Like
-
-# macOS Python 3.9 no tiene scrypt en hashlib — forzar pbkdf2:sha256
-def hash_password(pwd):
-    return generate_password_hash(pwd, method="pbkdf2:sha256")
+from api.utils import hash_password
 
 with app.app_context():
     # db.drop_all()

@@ -3,11 +3,6 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[[source]]
-url = "l"
-verify_ssl = true
-name = ""
-
 [dev-packages]
 
 [packages]
@@ -29,12 +24,12 @@ flask-jwt-extended = "*"
 python-dotenv = "*"
 flask-mail = "*"
 werkzeug = "*"
-axios = "*"
+flask-limiter = "*"
 anthropic = "*"
 flask-limiter = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.13"
 
 [scripts]
 start="flask run -p 3001 -h 0.0.0.0"

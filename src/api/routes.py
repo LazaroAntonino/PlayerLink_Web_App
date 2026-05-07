@@ -1622,40 +1622,43 @@ def _execute_get_user_profile(user_id):
         return {"error": str(e)}
 
 
+_GAMES_CATALOG = [
+    {"title": "Valorant",              "genre": "FPS Táctico",            "platform": "PC"},
+    {"title": "CS2",                   "genre": "FPS Táctico",            "platform": "PC"},
+    {"title": "Apex Legends",          "genre": "Battle Royale",          "platform": "PC/Console"},
+    {"title": "Overwatch 2",           "genre": "FPS Hero Shooter",       "platform": "PC/Console"},
+    {"title": "League of Legends",     "genre": "MOBA",                   "platform": "PC"},
+    {"title": "Dota 2",                "genre": "MOBA",                   "platform": "PC"},
+    {"title": "Fortnite",              "genre": "Battle Royale",          "platform": "PC/Console/Mobile"},
+    {"title": "Elden Ring",            "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Cyberpunk 2077",        "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "The Witcher 3",         "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Baldur's Gate 3",       "genre": "RPG",                    "platform": "PC/Console"},
+    {"title": "God of War",            "genre": "Action Adventure",       "platform": "PC/Console"},
+    {"title": "Hollow Knight",         "genre": "Metroidvania",           "platform": "PC/Console"},
+    {"title": "Hades",                 "genre": "Roguelike",              "platform": "PC/Console"},
+    {"title": "Dead Cells",            "genre": "Roguelike",              "platform": "PC/Console"},
+    {"title": "Minecraft",             "genre": "Sandbox/Survival",       "platform": "PC/Console/Mobile"},
+    {"title": "Terraria",              "genre": "Sandbox/Survival",       "platform": "PC/Console"},
+    {"title": "Valheim",               "genre": "Survival/Co-op",         "platform": "PC"},
+    {"title": "Deep Rock Galactic",    "genre": "Co-op Shooter",          "platform": "PC/Console"},
+    {"title": "It Takes Two",          "genre": "Co-op Adventure",        "platform": "PC/Console"},
+    {"title": "Helldivers 2",          "genre": "Co-op Shooter",          "platform": "PC/Console"},
+    {"title": "Stardew Valley",        "genre": "Farming Sim",            "platform": "PC/Console/Mobile"},
+    {"title": "Monster Hunter: World", "genre": "Action RPG/Co-op",       "platform": "PC/Console"},
+    {"title": "Destiny 2",             "genre": "MMO Shooter",            "platform": "PC/Console"},
+    {"title": "Warframe",              "genre": "MMO Shooter",            "platform": "PC/Console"},
+    {"title": "Path of Exile",         "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Diablo IV",             "genre": "Action RPG",             "platform": "PC/Console"},
+    {"title": "Celeste",               "genre": "Platformer",             "platform": "PC/Console"},
+    {"title": "Cuphead",               "genre": "Run and Gun",            "platform": "PC/Console"},
+    {"title": "Slay the Spire",        "genre": "Roguelike Deck Builder", "platform": "PC/Console"},
+]
+
+
 def _execute_search_games_catalog(query, limit=5):
     """Busca en el catálogo de juegos integrado por similitud de nombre/género."""
-    GAMES_CATALOG = [
-        {"title": "Valorant",              "genre": "FPS Táctico",            "platform": "PC"},
-        {"title": "CS2",                   "genre": "FPS Táctico",            "platform": "PC"},
-        {"title": "Apex Legends",          "genre": "Battle Royale",          "platform": "PC/Console"},
-        {"title": "Overwatch 2",           "genre": "FPS Hero Shooter",       "platform": "PC/Console"},
-        {"title": "League of Legends",     "genre": "MOBA",                   "platform": "PC"},
-        {"title": "Dota 2",                "genre": "MOBA",                   "platform": "PC"},
-        {"title": "Fortnite",              "genre": "Battle Royale",          "platform": "PC/Console/Mobile"},
-        {"title": "Elden Ring",            "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Cyberpunk 2077",        "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "The Witcher 3",         "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Baldur's Gate 3",       "genre": "RPG",                    "platform": "PC/Console"},
-        {"title": "God of War",            "genre": "Action Adventure",       "platform": "PC/Console"},
-        {"title": "Hollow Knight",         "genre": "Metroidvania",           "platform": "PC/Console"},
-        {"title": "Hades",                 "genre": "Roguelike",              "platform": "PC/Console"},
-        {"title": "Dead Cells",            "genre": "Roguelike",              "platform": "PC/Console"},
-        {"title": "Minecraft",             "genre": "Sandbox/Survival",       "platform": "PC/Console/Mobile"},
-        {"title": "Terraria",              "genre": "Sandbox/Survival",       "platform": "PC/Console"},
-        {"title": "Valheim",               "genre": "Survival/Co-op",         "platform": "PC"},
-        {"title": "Deep Rock Galactic",    "genre": "Co-op Shooter",          "platform": "PC/Console"},
-        {"title": "It Takes Two",          "genre": "Co-op Adventure",        "platform": "PC/Console"},
-        {"title": "Helldivers 2",          "genre": "Co-op Shooter",          "platform": "PC/Console"},
-        {"title": "Stardew Valley",        "genre": "Farming Sim",            "platform": "PC/Console/Mobile"},
-        {"title": "Monster Hunter: World", "genre": "Action RPG/Co-op",       "platform": "PC/Console"},
-        {"title": "Destiny 2",             "genre": "MMO Shooter",            "platform": "PC/Console"},
-        {"title": "Warframe",              "genre": "MMO Shooter",            "platform": "PC/Console"},
-        {"title": "Path of Exile",         "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Diablo IV",             "genre": "Action RPG",             "platform": "PC/Console"},
-        {"title": "Celeste",               "genre": "Platformer",             "platform": "PC/Console"},
-        {"title": "Cuphead",               "genre": "Run and Gun",            "platform": "PC/Console"},
-        {"title": "Slay the Spire",        "genre": "Roguelike Deck Builder", "platform": "PC/Console"},
-    ]
+    GAMES_CATALOG = _GAMES_CATALOG
 
     try:
         q = query.lower()
@@ -1847,7 +1850,6 @@ def _execute_update_user_profile(user_id, fields: dict):
 def _execute_add_game_to_profile(user_id, game_title: str, hours_played: int):
     """Añade un juego al perfil del usuario."""
     try:
-        from data.gamesCatalog import GAMES_CATALOG
         user = db.session.get(User, user_id)
         if not user or not user.profile:
             return {"error": "Perfil no encontrado"}
@@ -1868,7 +1870,7 @@ def _execute_add_game_to_profile(user_id, game_title: str, hours_played: int):
         # Buscar imagen en el catálogo
         game_image = "default.jpg"
         try:
-            catalog = GAMES_CATALOG
+            catalog = _GAMES_CATALOG
             for entry in catalog:
                 if entry.get("title", "").lower() == game_title.lower():
                     game_image = entry.get("image", "default.jpg")

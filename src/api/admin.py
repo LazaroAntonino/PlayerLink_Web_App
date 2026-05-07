@@ -1,11 +1,19 @@
   
 import os
+import warnings
 from flask_admin import Admin
 from .models import db, User, Profile, Review,Game,Match,Reject,Like
 from flask_admin.contrib.sqla import ModelView
 
 def setup_admin(app):
-    app.secret_key = os.environ.get('FLASK_APP_KEY', 'sample key')
+    flask_app_key = os.environ.get('FLASK_APP_KEY', 'sample key')
+    env = "development" if os.environ.get("FLASK_DEBUG") == "1" else "production"
+    if flask_app_key == 'sample key':
+        if env == "production":
+            raise RuntimeError("FLASK_APP_KEY must not be 'sample key' in production")
+        else:
+            warnings.warn("FLASK_APP_KEY is insecure default", RuntimeWarning)
+    app.secret_key = flask_app_key
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
     admin = Admin(app, name='4Geeks Admin', template_mode='bootstrap3')
 
