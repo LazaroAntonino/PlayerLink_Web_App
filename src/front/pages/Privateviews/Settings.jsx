@@ -35,6 +35,7 @@ const SettingsView = () => {
   const [sameEmail, setSameEmail] = useState("") // estado para mensaje de que el email sea el mismo
   const [emailChanged, setEmailChanged] = useState("") //estado para mensaje email cambiado correctamente
   const [errorEmailChange, setErrorEmailChange] = useState("") //estado mensaje error en el cambio de contraseña
+  const [deleteToast, setDeleteToast] = useState({ msg: "", ok: null });
 
   const { store, dispatch } = useGlobalReducer();
 
@@ -98,11 +99,11 @@ const SettingsView = () => {
     const resp = await userServices.deleteAccount(userId);
 
     if (!resp.ok) {
-      alert(resp.error || "Failed to delete account");
+      setDeleteToast({ msg: resp.error || "Failed to delete account", ok: false });
       return;
     }
 
-    alert("Account deleted successfully");
+    setDeleteToast({ msg: "Account deleted successfully", ok: true });
 
     setTimeout(() => {
       setShowDeleteModal(false);
@@ -137,7 +138,7 @@ const SettingsView = () => {
       );
 
       if (!resp.ok) {
-        setErrorPassword(data?.msg || "Error changing password");
+        setErrorPassword(resp.error || "Error changing password");
         return;
       }
 
@@ -331,6 +332,11 @@ const SettingsView = () => {
         <div className="modal-overlay">
           <div className="modal-box small">
             <h3>Are you sure?</h3>
+            {deleteToast.msg && (
+              <p className={deleteToast.ok ? "success-msg" : "error-msg"}>
+                {deleteToast.msg}
+              </p>
+            )}
             <div className="modal-actions">
               <button onClick={() => setShowDeleteModal(false)}>No</button>
               <button className="confirm-btn" onClick={() => deleteAccount(store.user?.id)}>Yes</button>
