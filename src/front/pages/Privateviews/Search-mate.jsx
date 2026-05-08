@@ -1,5 +1,5 @@
 import "../../pages/Privateviews/Search-mate.css";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { SearchMatchCard } from "../../components/SearchMatchCard/SearchMatchCard";
 import { SearchMatchCardSkeleton } from "../../components/SearchMatchCard/SearchMatchCardSkeleton";
@@ -28,6 +28,12 @@ export const SearchMate = () => {
   const { store, dispatch } = useGlobalReducer();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Ref para acceder a likesSent/matchesInfo actualizado sin añadirlos como deps reactivos
+  const likesSentRef = useRef(store.likesSent);
+  const matchesInfoRef = useRef(store.userMatchesInfo);
+  useEffect(() => { likesSentRef.current = store.likesSent; }, [store.likesSent]);
+  useEffect(() => { matchesInfoRef.current = store.userMatchesInfo; }, [store.userMatchesInfo]);
 
   const [currentUser, setCurrentUser] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -71,8 +77,8 @@ export const SearchMate = () => {
     try {
       const data = await searchMatchServices.getFilteredProfiles(store.user.id, activeFilters);
 
-    const matchedIds = store.userMatchesInfo?.map(m => m.user_id) || [];
-      const likedIds = store.likesSent?.map(l => l.user_id) || [];
+      const matchedIds = matchesInfoRef.current?.map(m => m.user_id) || [];
+      const likedIds = likesSentRef.current?.map(l => l.user_id) || [];
 
       let allProfiles = Array.isArray(data) ? data : (data.profiles ?? []);
 
@@ -86,11 +92,11 @@ export const SearchMate = () => {
     } finally {
       setLoading(false);
     }
-  }, [store.user, store.userMatchesInfo, store.likesSent, dispatch]);
+  }, [store.user, dispatch]);
 
   useEffect(() => {
     fetchProfiles(filters);
-  }, [store.user, store.userMatchesInfo, store.likesSent, filters]);
+  }, [store.user, store.userMatchesInfo, filters]);
 
   // ── Reset índice cuando cambie la lista ─────────────────────────────────
   useEffect(() => {
@@ -100,7 +106,6 @@ export const SearchMate = () => {
 
   // ── Avanzar al siguiente perfil ──────────────────────────────────────────
   const advanceToNextProfile = () => {
-    setCurrentUser((prev) => prev + 1);
     const remainingProfiles = store.searchMatchProfiles.filter(
       (_, index) => index !== currentUser
     );
