@@ -5,6 +5,69 @@ import userServices from '../../services/userServices';
 import { TermsText } from '../Terms/Terms';
 import './Register.css';
 
+// ─── Email-sent screen ───────────────────────────────────────────────────────
+const EmailSentScreen = ({ email, onSwitch }) => {
+    const [resendStatus, setResendStatus] = useState('idle'); // idle | sending | sent | error
+
+    const handleResend = async () => {
+        setResendStatus('sending');
+        try {
+            await userServices.resendVerification(email);
+            setResendStatus('sent');
+        } catch {
+            setResendStatus('error');
+        }
+    };
+
+    return (
+        <div className="d-flex justify-content-center">
+            <div className="card register-card mt-5">
+                <div className="card-body text-center px-4 py-5">
+                    <i className="fa-solid fa-envelope-circle-check fa-3x mb-3" style={{ color: 'var(--color-primary, #6c63ff)' }} />
+                    <h2 className="card-title mb-2">Check your inbox!</h2>
+                    <p className="text-muted mb-1">
+                        We've sent a verification link to:
+                    </p>
+                    <p className="fw-semibold mb-4">{email}</p>
+                    <p className="text-muted small mb-4">
+                        Click the link in the email to activate your account.
+                        The link expires in <strong>24 hours</strong>.
+                    </p>
+
+                    {resendStatus === 'sent' && (
+                        <p className="text-success small mb-3">
+                            <i className="fa-solid fa-circle-check me-1" />
+                            A new verification email has been sent.
+                        </p>
+                    )}
+                    {resendStatus === 'error' && (
+                        <p className="text-danger small mb-3">Something went wrong. Please try again.</p>
+                    )}
+
+                    <button
+                        type="button"
+                        className="btn btn-link text-muted small"
+                        onClick={handleResend}
+                        disabled={resendStatus === 'sending' || resendStatus === 'sent'}
+                    >
+                        {resendStatus === 'sending'
+                            ? <><i className="fa-solid fa-spinner fa-spin me-1" />Sending…</>
+                            : "Didn't receive it? Resend email"}
+                    </button>
+
+                    <hr className="my-4" />
+                    <p className="text-muted small mb-0">
+                        Already verified?{' '}
+                        <button type="button" onClick={onSwitch} className="btn btn-link p-0 small">
+                            Sign In
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ─── helpers ────────────────────────────────────────────────────────────────
 const validatePassword = (pwd) => {
     const errors = [];
@@ -29,6 +92,13 @@ export const Register = ({ onSwitch, onSuccess }) => {
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [errorTerms, setErrorTerms]       = useState('');
     const [loading, setLoading]             = useState(false);
+    const [emailSent, setEmailSent]         = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState('');
+
+    // ── early return: show email-sent screen ─────────────────────────────────
+    if (emailSent) {
+        return <EmailSentScreen email={registeredEmail} onSwitch={onSwitch} />;
+    }
 
     // ── handlers ────────────────────────────────────────────────────────────
     const handleChange = (e) => {
@@ -70,13 +140,23 @@ export const Register = ({ onSwitch, onSuccess }) => {
         setLoading(true);
         try {
             const data = await userServices.register(formData);
-            if (data.success) {
-                localStorage.setItem('token', data.token);
-                const userInfo = await userServices.getUserInfo();
-                const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'));
-                dispatch({ type: 'getUserInfo', payload: parsedUser });
-                if (onSuccess) onSuccess();
-                navigate('/onboarding');
+            if (data.success && data.email_sent) {
+                // Email verification required — show "check your inbox" screen
+                setRegisteredEmail(formData.email);
+                setEmailSent(true);
+            } else if (data.success) {
+                // Fallback: server returned a token (e.g. dev mode without mail)
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                    const userInfo = await userServices.getUserInfo();
+                    const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'));
+                    dispatch({ type: 'getUserInfo', payload: parsedUser });
+                    if (onSuccess) onSuccess();
+                    navigate('/onboarding');
+                } else {
+                    setRegisteredEmail(formData.email);
+                    setEmailSent(true);
+                }
             } else {
                 setErrorEmail(data?.error || 'Email already registered');
             }

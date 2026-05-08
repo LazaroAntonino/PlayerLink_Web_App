@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import userServices from '../../services/userServices';
 import useGlobalReducer from '../../hooks/useGlobalReducer';
 
-
 export const SignIn = ({ onSwitch, onSuccess }) => {
 
     const { store, dispatch } = useGlobalReducer()
@@ -18,15 +17,36 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
     const [errorLogin, setErrorLogin] = useState(""); //estado para el error de email/contraseña no válido
     const [showPassword, setShowPassword] = useState(false); // estado pra enseñar/esconder contraseña
     const [passwordErrors, setPasswordErrors] = useState([]); //estado para condiciones de la contraseña
+    const [unverifiedEmail, setUnverifiedEmail] = useState(null); // email pending verification
+    const [resendStatus, setResendStatus] = useState('idle'); // idle | sending | sent | error
+
+    const handleResendVerification = async () => {
+        if (!unverifiedEmail) return;
+        setResendStatus('sending');
+        try {
+            await userServices.resendVerification(unverifiedEmail);
+            setResendStatus('sent');
+        } catch {
+            setResendStatus('error');
+        }
+    };
 
     const handleSubmit = async e => {
         e.preventDefault()
         setErrorLogin(""); //quita errores previos
+        setUnverifiedEmail(null);
+        setResendStatus('idle');
 
         try {
             const data = await userServices.login(formData)
             if (!data || !data.success) {
-                setErrorLogin(data?.error || "Incorrect email or password")
+                // 403 = email not verified yet
+                if (data?.error === 'Email not verified' && data?.email) {
+                    setUnverifiedEmail(data.email);
+                    setErrorLogin("Please verify your email before signing in.");
+                } else {
+                    setErrorLogin(data?.error || "Incorrect email or password")
+                }
                 return
             }
             localStorage.setItem('token', data.token)
@@ -141,6 +161,30 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
                                     </div>
 
                                     {errorLogin && <h5 className="text-danger mt-2 sign-in-message-errors">{errorLogin}</h5>}
+
+                                    {unverifiedEmail && (
+                                        <div className="mt-2">
+                                            {resendStatus === 'sent' && (
+                                                <p className="text-success small mb-1">
+                                                    <i className="fa-solid fa-circle-check me-1" />
+                                                    Verification email resent!
+                                                </p>
+                                            )}
+                                            {resendStatus === 'error' && (
+                                                <p className="text-danger small mb-1">Failed to resend. Please try again.</p>
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="btn btn-link p-0 small text-muted"
+                                                onClick={handleResendVerification}
+                                                disabled={resendStatus === 'sending' || resendStatus === 'sent'}
+                                            >
+                                                {resendStatus === 'sending'
+                                                    ? <><i className="fa-solid fa-spinner fa-spin me-1" />Sending…</>
+                                                    : 'Resend verification email'}
+                                            </button>
+                                        </div>
+                                    )}
 
 
 

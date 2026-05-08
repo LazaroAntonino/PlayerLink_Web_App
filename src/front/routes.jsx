@@ -21,6 +21,7 @@ import { Reset } from "./pages/Reset.jsx"
 import Onboarding from "./pages/Onboarding.jsx"
 import Chats from "./pages/Chats.jsx"
 import Chat from "./pages/Chat.jsx"
+import { VerifyEmail } from "./pages/VerifyEmail.jsx"
 
 
 export const router = createBrowserRouter(
@@ -54,6 +55,7 @@ export const router = createBrowserRouter(
         <Route path="chat/:matchId" element={<Chat />} />
       </Route>
       <Route path="/reset" element={<Reset />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
       {/* Onboarding: fuera del PrivateLayout para tener pantalla completa propia */}
       <Route path="/onboarding" element={<Onboarding />} />
     </Route >

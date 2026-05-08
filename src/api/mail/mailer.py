@@ -30,3 +30,62 @@ def send_email(address, token):
         return {'success': True, 'msg': 'correo enviado exitosamente'}
     except Exception as e:
         return {'success': False, 'msg': 'error al enviar correo: ' + str(e)}
+
+
+def send_verification_email(address, token):
+    """Send an email-verification link to the newly registered user."""
+    try:
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        verify_url   = f"{frontend_url}/verify-email?token={token}"
+
+        msg = Message(
+            subject="Verifica tu cuenta en PlayerLink",
+            recipients=[address],
+        )
+        msg.html = f'''
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;
+              max-width: 520px; margin: 0 auto; padding: 24px;">
+
+    <div style="text-align: center; margin-bottom: 24px;">
+      <h1 style="font-size: 1.8rem; color: #00f0ff;
+                 text-shadow: 0 0 12px rgba(0,240,255,0.5);
+                 letter-spacing: 0.06em; margin: 0;">
+        PlayerLink
+      </h1>
+    </div>
+
+    <h2 style="color: #111; font-size: 1.25rem; margin-bottom: 8px;">
+      ¡Bienvenido/a! Verifica tu correo electrónico
+    </h2>
+    <p style="color: #555;">
+      Gracias por registrarte en PlayerLink. Para activar tu cuenta y empezar
+      a encontrar compañeros de juego, confirma tu dirección de email haciendo
+      clic en el botón:
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="{verify_url}"
+         style="display: inline-block; padding: 14px 32px;
+                background: linear-gradient(135deg, #00f0ff, #8f00ff);
+                color: #ffffff; text-decoration: none;
+                border-radius: 8px; font-weight: 700; font-size: 1rem;
+                letter-spacing: 0.03em;">
+        Verificar mi cuenta
+      </a>
+    </div>
+
+    <p style="color: #888; font-size: 0.85rem;">
+      El enlace es válido durante <strong>24 horas</strong>. Si no te
+      registraste en PlayerLink, puedes ignorar este correo.
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+    <p style="color: #aaa; font-size: 0.75rem; text-align: center;">
+      © PlayerLink — El matchmaking para gamers
+    </p>
+  </div>
+'''
+        mail.send(msg)
+        return {'success': True, 'msg': 'Verification email sent'}
+    except Exception as e:
+        return {'success': False, 'msg': f'Error sending verification email: {e}'}

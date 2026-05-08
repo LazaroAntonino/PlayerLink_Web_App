@@ -33,7 +33,7 @@ userServices.login = async (formData) => {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      return { success: false, error: data?.error || "Login failed" };
+      return { success: false, error: data?.error || "Login failed", email: data?.email ?? null };
     }
     return data;
   } catch (error) {
@@ -118,6 +118,43 @@ userServices.changeUserPassword = async (user_id, newPassword, actualPassword) =
     };
   } catch (error) {
     return { ok: false, data: null, error: error.message || "Error de red" };
+  }
+};
+
+/**
+ * Verify the user's email address using the one-time token from the
+ * verification link. Returns { success, token } on success.
+ */
+userServices.verifyEmail = async (token) => {
+  const url = import.meta.env.VITE_BACKEND_URL;
+  try {
+    const resp = await fetch(`${url}/api/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    const data = await resp.json();
+    return data; // { success, token } | { error }
+  } catch {
+    return { success: false, error: "Network error. Please try again." };
+  }
+};
+
+/**
+ * Request a new verification email for the given address.
+ * Always resolves (anti-enumeration: server always returns 200).
+ */
+userServices.resendVerification = async (email) => {
+  const url = import.meta.env.VITE_BACKEND_URL;
+  try {
+    const resp = await fetch(`${url}/api/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return resp.json();
+  } catch {
+    return { success: false };
   }
 };
 

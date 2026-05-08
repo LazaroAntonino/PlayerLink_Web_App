@@ -14,6 +14,8 @@ class User(db.Model):
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(250), nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default='false')
 
     # Relaciones
     profile: Mapped[Optional[Profile]] = relationship(
@@ -67,6 +69,7 @@ class User(db.Model):
             "id": self.id,
             "email": self.email,
             "is_admin": self.is_admin,
+            "email_verified": self.email_verified,
             # No serializar password por seguridad
             "profile": self.profile.serialize() if self.profile else None
         }
@@ -303,4 +306,20 @@ class PasswordResetToken(db.Model):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+
+class EmailVerificationToken(db.Model):
+    """One-time token sent to the user's email to confirm their address."""
+    __tablename__ = 'email_verification_tokens'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    token_hash: Mapped[str] = mapped_column(
+        String(128), nullable=False, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False)
+    used_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 

@@ -17,11 +17,11 @@ from flask_jwt_extended import (
 from werkzeug.security import check_password_hash
 from dotenv import load_dotenv
 
-from api.models import db, User, Profile, PasswordResetToken
+from api.models import db, User, Profile, PasswordResetToken, EmailVerificationToken
 from api.utils import admin_required, hash_password
 from api.extensions import limiter
 from flask_limiter.util import get_remote_address
-from api.mail.mailer import send_email
+from api.mail.mailer import send_email, send_verification_email
 
 load_dotenv()
 
@@ -44,7 +44,7 @@ def register():
             return jsonify({'error': 'Email already in use'}), 409
 
         hashed_password = hash_password(password)
-        new_user = User(email=email, password=hashed_password)
+        new_user = User(email=email, password=hashed_password, email_verified=False)
 
         new_user.profile = Profile(
             gender='',
@@ -61,13 +61,35 @@ def register():
             photo='photo1'
         )
 
+        # Build verification token BEFORE commit (so user.id is available via flush)
+        raw_token   = secrets.token_urlsafe(32)
+        token_hash  = hashlib.sha256(raw_token.encode()).hexdigest()
+        expires_at  = datetime.utcnow() + timedelta(hours=24)
+
         db.session.add(new_user)
+        db.session.flush()   # assigns new_user.id without committing
+
+        ver_token = EmailVerificationToken(
+            user_id=new_user.id,
+            token_hash=token_hash,
+            expires_at=expires_at
+        )
+        db.session.add(ver_token)
         db.session.commit()
 
-        token = create_access_token(identity=str(new_user.id))
-        return jsonify({'success': True, 'token': token}), 201
+        # Send verification email (best-effort: log on failure but don't abort)
+        email_result = send_verification_email(email, raw_token)
+        if not email_result.get('success'):
+            print(f"[WARN] Verification email failed for {email}: {email_result.get('msg')}")
+            if os.getenv("FLASK_DEBUG") == "1":
+                frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+                print(f"[DEV] Verify URL: {frontend_url}/verify-email?token={raw_token}")
+
+        return jsonify({'success': True, 'email_sent': True}), 201
 
     except Exception as e:
+        db.session.rollback()
+        print(f"[REGISTER ERROR] {type(e).__name__}: {e}")
         return jsonify({'error': 'Internal error during registration'}), 500
 
 
@@ -88,6 +110,13 @@ def login():
         if not check_password_hash(user.password, data['password']):
             return jsonify({'error': 'Invalid email or password'}), 401
 
+        # Block login until email is verified
+        if not user.email_verified:
+            return jsonify({
+                'error': 'Email not verified',
+                'email': user.email,
+            }), 403
+
         token = create_access_token(identity=str(user.id))
         return jsonify({'success': True, 'token': token}), 200
     except Exception as e:
@@ -99,6 +128,108 @@ def login():
 @auth_bp.route('/mailer/<address>', methods=['POST'])
 def handle_mail(address):
     return send_email(address)
+
+
+# ── VERIFY EMAIL ──────────────────────────────────────────────────────────────
+@auth_bp.route('/verify-email', methods=['POST'])
+def verify_email():
+    """
+    Consumes a one-time verification token and marks the user's email as
+    verified. Returns a JWT so the frontend can log the user in immediately.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        raw_token = data.get('token', '').strip()
+
+        if not raw_token:
+            return jsonify({'error': 'Token requerido'}), 400
+
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        ver_token  = db.session.query(EmailVerificationToken).filter_by(
+            token_hash=token_hash
+        ).first()
+
+        now = datetime.utcnow()
+        if not ver_token:
+            return jsonify({'error': 'Enlace de verificación inválido'}), 400
+        if ver_token.used_at is not None:
+            return jsonify({'error': 'Este enlace ya fue utilizado. Si necesitas otro, solicita el reenvío.'}), 400
+        if ver_token.expires_at.replace(tzinfo=None) < now:
+            return jsonify({'error': 'El enlace ha expirado. Por favor, solicita un nuevo correo de verificación.'}), 400
+
+        user = db.session.get(User, ver_token.user_id)
+        if not user:
+            return jsonify({'error': 'Usuario no encontrado'}), 404
+
+        # Mark token as used and user as verified
+        ver_token.used_at   = now
+        user.email_verified = True
+        db.session.commit()
+
+        # Issue JWT — user is now fully authenticated
+        jwt_token = create_access_token(identity=str(user.id))
+        return jsonify({'success': True, 'token': jwt_token}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"[VERIFY EMAIL ERROR] {type(e).__name__}: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+# ── RESEND VERIFICATION EMAIL ─────────────────────────────────────────────────
+@auth_bp.route('/resend-verification', methods=['POST'])
+@limiter.limit(
+    "3 per 15 minutes",
+    key_func=lambda: (request.get_json(silent=True) or {}).get('email') or get_remote_address()
+)
+def resend_verification():
+    """
+    Re-sends the email verification link. Always returns 200 (anti-enumeration).
+    Rate-limited to 3 requests per 15 minutes per email address.
+    """
+    try:
+        data  = request.get_json(silent=True) or {}
+        email = data.get('email', '').strip().lower()
+
+        if not email:
+            return jsonify({'success': True}), 200  # anti-enumeration
+
+        user = db.session.execute(
+            select(User).where(User.email == email)
+        ).scalar_one_or_none()
+
+        if user and not user.email_verified:
+            # Invalidate all previous unused tokens for this user
+            db.session.query(EmailVerificationToken).filter_by(
+                user_id=user.id
+            ).filter(
+                EmailVerificationToken.used_at.is_(None)
+            ).update({'used_at': datetime.utcnow()})
+
+            # Create a fresh token (24 h expiry)
+            raw_token  = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+            new_token  = EmailVerificationToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=datetime.utcnow() + timedelta(hours=24)
+            )
+            db.session.add(new_token)
+            db.session.commit()
+
+            email_result = send_verification_email(email, raw_token)
+            if not email_result.get('success'):
+                print(f"[WARN] Resend verification email failed for {email}: {email_result.get('msg')}")
+                if os.getenv("FLASK_DEBUG") == "1":
+                    frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
+                    print(f"[DEV] Verify URL: {frontend_url}/verify-email?token={raw_token}")
+
+        return jsonify({'success': True}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"[RESEND VERIFICATION ERROR] {type(e).__name__}: {e}")
+        return jsonify({'success': True}), 200  # always 200 (anti-enumeration)
 
 
 # ── TOKEN CHECK ───────────────────────────────────────────────────────────────
