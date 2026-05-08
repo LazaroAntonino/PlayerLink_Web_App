@@ -103,6 +103,8 @@ const Profile = () => {
   // ── Estado de UI ──
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showIncompleteToast, setShowIncompleteToast] = useState(false);
   const toastTimerRef = useRef(null);
@@ -110,13 +112,9 @@ const Profile = () => {
 
   // ── Estado de modales de preferencias/idiomas ──
   const [showGamingPreferencesModal, setShowGamingPreferencesModal] = useState(false);
-  const [selectedGamingPreferences, setSelectedGamingPreferences] = useState(
-    parsePreferences(profile.preferences)
-  );
+  const [selectedGamingPreferences, setSelectedGamingPreferences] = useState([]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const [selectedLanguages, setSelectedLanguages] = useState(
-    parsePreferences(profile.language)
-  );
+  const [selectedLanguages, setSelectedLanguages] = useState([]);
 
   // ── Estado de juegos ──
   const [game, setGame] = useState({ title: "", hours_played: "", image: "" });
@@ -165,6 +163,12 @@ const Profile = () => {
       getReviews();
     }
   }, [activeTab]);
+
+  // Sincronizar los arrays de preferencias/idiomas cuando el perfil se carga o recarga
+  useEffect(() => {
+    setSelectedGamingPreferences(parsePreferences(profile.preferences));
+    setSelectedLanguages(parsePreferences(profile.language));
+  }, [profile.preferences, profile.language]);
 
   // ── Lógica de negocio ────────────────────────────────────────────────────
 
@@ -246,13 +250,18 @@ const Profile = () => {
 
   const updateProfile = async () => {
     const method = store.user.profile ? "PUT" : "POST";
+    setIsSaving(true);
+    setSaveError("");
     try {
       await userServices.updateProfile(store.user.id, profile, method);
+      await loadProfile();
+      setIsEditing(false);
     } catch (err) {
       console.error("Error in updateProfile:", err);
+      setSaveError("Could not save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
-    await loadProfile();
-    setIsEditing(false);
   };
 
   const handleInputChange = (field, value) => {
@@ -263,6 +272,7 @@ const Profile = () => {
   const handleTabChange = (tab) => {
     if (isEditing) {
       setIsEditing(false);
+      setSaveError("");
       loadProfile(); // descarta cambios no guardados
     }
     setActiveTab(tab);
@@ -427,8 +437,10 @@ const Profile = () => {
         <div className="right-panel">
           {isEditing && (
             <ProfileEditBar
-              onCancel={() => { setIsEditing(false); loadProfile(); }}
+              onCancel={() => { setIsEditing(false); setSaveError(""); loadProfile(); }}
               onSave={updateProfile}
+              isSaving={isSaving}
+              saveError={saveError}
             />
           )}
 
