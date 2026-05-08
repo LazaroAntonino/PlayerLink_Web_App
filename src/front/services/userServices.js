@@ -141,19 +141,17 @@ userServices.verifyEmail = async (token) => {
 
 /**
  * Request a new verification email for the given address.
- * Always resolves (anti-enumeration: server always returns 200).
+ * Network errors are intentionally NOT caught here so that callers
+ * can display an error state via their own try/catch.
+ * The server always returns 200 regardless of email existence (anti-enumeration).
  */
 userServices.resendVerification = async (email) => {
-  try {
-    const resp = await fetch(`${url}/api/resend-verification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    return resp.json();
-  } catch {
-    return { success: false };
-  }
+  const resp = await fetch(`${url}/api/resend-verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  return resp.json();
 };
 
 export default userServices;
