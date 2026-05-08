@@ -20,7 +20,6 @@ from flask_jwt_extended import JWTManager
 from api.mail.mail_config import mail
 from datetime import timedelta
 from flask_cors import CORS
-from api.extensions import limiter
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
