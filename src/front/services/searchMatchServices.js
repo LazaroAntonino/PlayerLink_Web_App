@@ -1,6 +1,5 @@
 import apiFetch from "./apiFetch";
 
-const url = import.meta.env.VITE_BACKEND_URL;
 const searchMatchServices = {};
 
 // Trae la información del usuario logeado
@@ -71,30 +70,6 @@ searchMatchServices.addDislikeSent = async (rejector_id, rejected_id) => {
       body: JSON.stringify({ rejector_id, rejected_id }),
     });
     if (!resp.ok) throw new Error("Failed to send a dislike");
-    return resp.json();
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-// Trae los likes recibidos por el usuario logeado
-searchMatchServices.getLikesReceived = async (userId) => {
-  try {
-    const resp = await apiFetch(`/api/likes_received/${userId}`);
-    if (!resp.ok) throw new Error("Failed to get likes received");
-    return resp.json();
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
-};
-
-// Trae los dislikes recibidos por el usuario logeado
-searchMatchServices.getDislikesReceived = async (userId) => {
-  try {
-    const resp = await apiFetch(`/api/rejects_received/${userId}`);
-    if (!resp.ok) throw new Error("Failed to get dislikes received");
     return resp.json();
   } catch (error) {
     console.error(error);

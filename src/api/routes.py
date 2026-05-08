@@ -639,7 +639,7 @@ def get_user_reviews(user_id):
 def delete_review(review_id):
     review = db.session.get(Review, review_id)
     if review is None:
-        return jsonify({'error': 'that review does not exist'}), 400
+        return jsonify({'error': 'that review does not exist'}), 404
     requesting_id = int(get_jwt_identity())
     if review.author_id != requesting_id:
         return jsonify({'error': 'Unauthorized'}), 403
@@ -696,7 +696,7 @@ def post_review(author_id, receiver_id):
 def put_review(review_id):
     review = db.session.get(Review, review_id)
     if review is None:
-        return jsonify({'error': 'that review does not exist'}), 400
+        return jsonify({'error': 'that review does not exist'}), 404
     requesting_id = int(get_jwt_identity())
     if review.author_id != requesting_id:
         return jsonify({'error': 'Unauthorized'}), 403
@@ -812,49 +812,34 @@ def get_all_rejects():
 
 
 # GET REJECT BY ID
-@api.route('/rejects/<reject_id>', methods=['GET'])
+@api.route('/rejects/<int:reject_id>', methods=['GET'])
 def get_single_reject(reject_id):
     stmt = select(Reject).where(Reject.id == reject_id)
-    match = db.session.execute(stmt).scalar_one_or_none()
-    if match is None:
-        return jsonify({'error': f'match with id: {reject_id} not found'}), 400
-
-    return jsonify(match.serialize())
+    reject = db.session.execute(stmt).scalar_one_or_none()
+    if reject is None:
+        return jsonify({'error': f'reject with id: {reject_id} not found'}), 404
+    return jsonify(reject.serialize()), 200
 
 # GET REJECTS SENT
 
 
-@api.route('/rejects_sent/<user_id>', methods=['GET'])
+@api.route('/rejects_sent/<int:user_id>', methods=['GET'])
 def get_rejects_sent(user_id):
-    # 1. Buscamos al usuario; si no existe devolvemos 404
     user = db.session.get(User, user_id)
     if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos las reseñas que ha escrito
-    rejects = user.rejects_given
-
-    # Serializamos cada review usando el método de instancia
-    serialized = [reject.serialize() for reject in rejects]
-
+        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
+    serialized = [reject.serialize() for reject in user.rejects_given]
     return jsonify({"rejects_authored": serialized}), 200
 
 # GET REJECTS RECEIVED
 
 
-@api.route('/rejects_received/<user_id>', methods=['GET'])
+@api.route('/rejects_received/<int:user_id>', methods=['GET'])
 def get_rejects_received(user_id):
-    # 1. Buscamos al usuario; si no existe devolvemos 404
     user = db.session.get(User, user_id)
     if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
-
-    # 2. Sacamos las reseñas que ha escrito
-    rejects = user.rejects_received
-
-    # Serializamos cada review usando el método de instancia
-    serialized = [reject.serialize() for reject in rejects]
-
+        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
+    serialized = [reject.serialize() for reject in user.rejects_received]
     return jsonify({"rejects_received": serialized}), 200
 
 # DELETE REJECT
@@ -1011,7 +996,7 @@ def delete_game(game_id):
     stmt = select(Game).where(Game.id == game_id)
     game = db.session.execute(stmt).scalar_one_or_none()
     if game is None:
-        return jsonify({'error': f'game with id: {game_id} not found'}), 400
+        return jsonify({'error': f'game with id: {game_id} not found'}), 404
     requesting_id = int(get_jwt_identity())
     if game.profile.user_id != requesting_id:
         return jsonify({'error': 'Unauthorized'}), 403

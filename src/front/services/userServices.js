@@ -55,6 +55,15 @@ userServices.getUserInfoById = async (user_id) => {
   return resp.json();
 };
 
+userServices.updateProfile = async (user_id, profileData, method = "PUT") => {
+  const resp = await apiFetch(`/api/profiles/${user_id}`, {
+    method,
+    body: JSON.stringify(profileData),
+  });
+  if (!resp.ok) throw new Error("Error saving profile");
+  return resp.json();
+};
+
 userServices.changeUserPhoto = async (user_id, photo) => {
   try {
     const resp = await apiFetch(`/api/profiles/photo/${user_id}`, {

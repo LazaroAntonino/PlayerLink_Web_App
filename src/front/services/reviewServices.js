@@ -1,6 +1,5 @@
 import apiFetch from "./apiFetch";
 
-const url = import.meta.env.VITE_BACKEND_URL;
 const reviewServices = {};
 
 reviewServices.getAllReviewsReceived = async (user_id) => {

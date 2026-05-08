@@ -246,15 +246,7 @@ const Profile = () => {
   const updateProfile = async () => {
     const method = store.user.profile ? "PUT" : "POST";
     try {
-      const resp = await fetch(`${url}/api/profiles/${store.user.id}`, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(profile),
-      });
-      if (!resp.ok) throw new Error("Error saving profile");
+      await userServices.updateProfile(store.user.id, profile, method);
     } catch (err) {
       console.error("Error in updateProfile:", err);
     }
