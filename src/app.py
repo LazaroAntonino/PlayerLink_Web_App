@@ -8,7 +8,11 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
 from api.models import db
-from api.routes import api
+from api.auth import auth_bp
+from api.profiles import profiles_bp
+from api.matches import matches_bp
+from api.chat import chat_bp
+from api.ai import ai_bp
 from api.extensions import limiter
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -52,7 +56,7 @@ db.init_app(app)
 # Set CORS_ORIGINS in .env as a comma-separated list of allowed origins.
 # Example: CORS_ORIGINS=https://app.example.com,https://www.example.com
 allowed_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-CORS(api, origins=allowed_origins, supports_credentials=False)
+CORS(app, origins=allowed_origins, supports_credentials=False)
 
 # ── Rate Limiting ─────────────────────────────────────────────────────────────
 # NOTE: For production, replace the default in-memory storage with Redis:
@@ -70,8 +74,12 @@ setup_admin(app)
 # add the commands
 setup_commands(app)
 
-# Add all endpoints from the API with a "api" prefix
-app.register_blueprint(api, url_prefix='/api')
+# Add all endpoints from the API with a "/api" prefix
+app.register_blueprint(auth_bp,     url_prefix='/api')
+app.register_blueprint(profiles_bp, url_prefix='/api')
+app.register_blueprint(matches_bp,  url_prefix='/api')
+app.register_blueprint(chat_bp,     url_prefix='/api')
+app.register_blueprint(ai_bp,       url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
