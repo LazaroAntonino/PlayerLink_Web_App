@@ -266,7 +266,7 @@ export const ProfileGamesTab = ({
                                         type="number"
                                         name="hours_played"
                                         value={game.hours_played}
-                                        onChange={(e) => setGame({ ...game, hours_played: e.target.value })}
+                                        onChange={(e) => setGame({ ...game, hours_played: Number(e.target.value) })}
                                         placeholder="Hours"
                                         aria-label="Hours played"
                                     />
@@ -276,7 +276,10 @@ export const ProfileGamesTab = ({
                                     <button
                                         type="button"
                                         className="game-action-btn game-action-cancel"
-                                        onClick={() => setIdOfGameBeingEdited(0)}
+                                        onClick={() => {
+                                            setIdOfGameBeingEdited(0);
+                                            setGame({ title: "", hours_played: "", image: "" });
+                                        }}
                                         aria-label="Cancel"
                                     >
                                         <i className="fa-solid fa-xmark"></i>
@@ -292,7 +295,10 @@ export const ProfileGamesTab = ({
                                     </span>
                                     <button
                                         className="game-action-btn game-action-edit"
-                                        onClick={() => setIdOfGameBeingEdited(el.id)}
+                                        onClick={() => {
+                                            setIdOfGameBeingEdited(el.id);
+                                            setGame((prev) => ({ ...prev, hours_played: el.gameHoursPlayed ?? "" }));
+                                        }}
                                         aria-label={`Edit ${el.gameTitle}`}
                                     >
                                         <i className="fa-solid fa-pencil"></i>
