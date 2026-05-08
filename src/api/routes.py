@@ -432,18 +432,18 @@ def post_profile(user_id):
     if user.profile:
         return jsonify({'error': 'this profile already exist, please try to modify it insted of create a new one'}), 400
     new_profile = Profile(
-        gender=data.get('gender') or 'Undefinied',
+        gender=data.get('gender') or None,
         age=data.get('age') or 0,
-        discord=data.get('discord') or 'Undefinied',
-        name=data.get('name') or 'Undefinied',
-        preferences=data.get('preferences') or 'Undefinied',
-        zodiac=data.get('zodiac') or 'Undefinied',
-        location=data.get('location') or 'Undefinied',
-        nick_name=data.get('nick_name') or 'Undefinied',
-        bio=data.get('bio') or 'Undefinied',
-        language=data.get('language') or 'Undefinied',
-        steam_id=data.get('steam_id') or 'Undefinied',
-        photo=data.get('photo') or 'Undefinied'
+        discord=data.get('discord') or None,
+        name=data.get('name') or None,
+        preferences=data.get('preferences') or None,
+        zodiac=data.get('zodiac') or None,
+        location=data.get('location') or None,
+        nick_name=data.get('nick_name') or None,
+        bio=data.get('bio') or None,
+        language=data.get('language') or None,
+        steam_id=data.get('steam_id') or None,
+        photo=data.get('photo') or 'photo1'
     )
     user.profile = new_profile
     db.session.commit()
@@ -463,23 +463,31 @@ def put_profile(user_id):
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
+        return jsonify({'error': f'can not find user with id: {user_id}'}), 404
     if not user.profile:
-        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 400
+        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 404
 
-    user.profile.gender = data.get('gender', user.profile.gender)
-    user.profile.preferences = data.get(
-        'preferences', user.profile.preferences)
-    user.profile.zodiac = data.get('zodiac', user.profile.zodiac)
-    user.profile.discord = data.get('discord', user.profile.discord)
-    user.profile.age = data.get('age', user.profile.age)
-    user.profile.name = data.get('name', user.profile.name)
-    user.profile.location = data.get('location', user.profile.location)
-    user.profile.nick_name = data.get('nick_name', user.profile.nick_name)
-    user.profile.bio = data.get('bio', user.profile.bio)
-    user.profile.language = data.get('language', user.profile.language)
-    user.profile.steam_id = data.get('steam_id', user.profile.steam_id)
-    user.profile.photo = data.get('photo', user.profile.photo)
+    def _val(key, current):
+        """Returns None if key was explicitly sent as empty string, else uses sent value or keeps current."""
+        if key not in data:
+            return current
+        v = data[key]
+        if v == "" or v is None:
+            return None
+        return v
+
+    user.profile.gender     = _val('gender',      user.profile.gender)
+    user.profile.preferences = _val('preferences', user.profile.preferences)
+    user.profile.zodiac     = _val('zodiac',       user.profile.zodiac)
+    user.profile.discord    = _val('discord',      user.profile.discord)
+    user.profile.age        = data.get('age',      user.profile.age)
+    user.profile.name       = _val('name',         user.profile.name)
+    user.profile.location   = _val('location',     user.profile.location)
+    user.profile.nick_name  = _val('nick_name',    user.profile.nick_name)
+    user.profile.bio        = _val('bio',          user.profile.bio)
+    user.profile.language   = _val('language',     user.profile.language)
+    user.profile.steam_id   = _val('steam_id',     user.profile.steam_id)
+    user.profile.photo      = data.get('photo',    user.profile.photo) or 'photo1'
 
     db.session.commit()
     return jsonify(user.profile.serialize()), 200

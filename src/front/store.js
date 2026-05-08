@@ -131,7 +131,7 @@ export default function storeReducer(store, action = {}) {
           ? safeJSONParse("user", action.payload)
           : action.payload;
       localStorage.setItem("user", JSON.stringify(userPayload));
-      // Clear stale session data so each login starts fresh
+      // Clear stale session data so each LOGIN starts fresh
       localStorage.removeItem("likesSent");
       localStorage.removeItem("dislikesSent");
       localStorage.removeItem("searchMatchProfiles");
@@ -141,6 +141,19 @@ export default function storeReducer(store, action = {}) {
         likesSent: [],
         dislikesSent: [],
         searchMatchProfiles: [],
+      };
+    }
+
+    // Refresca solo store.user (usada en loadProfile) sin tocar el estado de sesión
+    case "refreshUser": {
+      const userPayload =
+        typeof action.payload === "string"
+          ? safeJSONParse("user", action.payload)
+          : action.payload;
+      localStorage.setItem("user", JSON.stringify(userPayload));
+      return {
+        ...store,
+        user: userPayload,
       };
     }
     default:

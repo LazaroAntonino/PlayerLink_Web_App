@@ -182,42 +182,44 @@ const Profile = () => {
   const loadProfile = async () => {
     try {
       const data = await userServices.getUserInfo();
-      dispatch({ type: "getUserInfo", payload: data.user });
+      // "refreshUser" actualiza store.user sin borrar likes/dislikes/searchMatchProfiles
+      dispatch({ type: "refreshUser", payload: data.user });
 
       const p = data.user?.profile;
       if (!p) return;
 
       setProfile({
-        name: p.name,
-        nick_name: p.nick_name,
-        age: p.age,
-        gender: p.gender,
-        location: p.location,
-        zodiac: p.zodiac,
-        discord: p.discord,
-        steam_id: p.steam,
-        language: p.language,
-        preferences: p.preferences,
-        bio: p.bio,
-        photo: p.photo || "photo1",
+        name:        p.name        ?? "",
+        nick_name:   p.nick_name   ?? "",
+        age:         p.age         ?? 0,
+        gender:      p.gender      ?? "",
+        location:    p.location    ?? "",
+        zodiac:      p.zodiac      ?? "",
+        discord:     p.discord     ?? "",
+        steam_id:    p.steam       ?? "",
+        language:    p.language    ?? "",
+        preferences: p.preferences ?? "",
+        bio:         p.bio         ?? "",
+        photo:       p.photo       || "photo1",
       });
 
       const isIncomplete =
-        !p.name || p.name.length < 2 ||
-        !p.nick_name || p.nick_name.length < 2 ||
-        !p.age || p.age <= 0 ||
-        !p.gender || p.gender.length < 2 ||
-        !p.location || p.location.length < 2 ||
-        !p.zodiac || p.zodiac.length < 2 ||
-        !p.discord || p.discord.length < 2 ||
-        !p.steam || p.steam.length < 2 ||
-        !p.language || p.language.length < 2 ||
-        !p.preferences || p.preferences.length < 2 ||
-        !p.bio || p.bio.length < 2 ||
-        !p.photo || p.photo.length < 2;
+        !p.name        || p.name.length        < 2 ||
+        !p.nick_name   || p.nick_name.length   < 2 ||
+        !p.age         || p.age                <= 0 ||
+        !p.gender      || p.gender.length      < 2  ||
+        !p.location    || p.location.length    < 2  ||
+        !p.zodiac      || p.zodiac.length      < 2  ||
+        !p.discord     || p.discord.length     < 2  ||
+        !p.steam       || p.steam.length       < 2  ||
+        !p.language    || p.language.length    < 2  ||
+        !p.preferences || p.preferences.length < 2  ||
+        !p.bio         || p.bio.length         < 2  ||
+        !p.photo       || p.photo.length       < 2;
 
       if (isIncomplete) {
-        // Pequeño delay para que la animación de entrada sea visible
+        // Limpiar timers anteriores para evitar toasts duplicadas
+        clearTimeout(toastTimerRef.current);
         setTimeout(() => setShowIncompleteToast(true), 400);
         toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10400);
       }
