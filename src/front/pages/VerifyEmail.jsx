@@ -20,6 +20,7 @@ export const VerifyEmail = () => {
 
     useEffect(() => {
         const token = searchParams.get("token");
+        let navTimer = null;
 
         if (!token) {
             setErrorMsg("No verification token found in the URL.");
@@ -37,8 +38,8 @@ export const VerifyEmail = () => {
                         userInfo?.user ?? JSON.parse(localStorage.getItem("user"));
                     dispatch({ type: "getUserInfo", payload: parsedUser });
                     setStatus("success");
-                    // Navigate after a brief success flash
-                    setTimeout(() => navigate("/onboarding"), 1800);
+                    // Navigate after a brief success flash; timer is cleared on unmount
+                    navTimer = setTimeout(() => navigate("/onboarding"), 1800);
                 } else {
                     setErrorMsg(data?.error || "Invalid or expired verification link.");
                     setStatus("error");
@@ -48,6 +49,9 @@ export const VerifyEmail = () => {
                 setStatus("error");
             }
         })();
+
+        // Cleanup: cancel pending navigation if component unmounts before timer fires
+        return () => { if (navTimer) clearTimeout(navTimer); };
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleResend = async () => {
