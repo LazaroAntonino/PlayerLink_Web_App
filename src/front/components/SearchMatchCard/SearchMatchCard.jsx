@@ -30,8 +30,8 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   const dragRef = useRef({ active: false, startX: 0, currentX: 0 });
   const cardRef = useRef(null);
 
-  const selectPhoto = () => PHOTO_MAP[profile.photo] || null;
-  const hasPhoto = Boolean(PHOTO_MAP[profile.photo]);
+  const photo = PHOTO_MAP[profile?.photo] ?? null;
+  const hasPhoto = Boolean(photo);
   const initials = (profile?.nick_name || "??").slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
               <div className='d-flex justify-content-center'>
                 <div className='d-flex justify-content-center rounded-circle'>
                   {hasPhoto
-                    ? <img src={selectPhoto()} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
+                    ? <img src={photo} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
                     : (
                       <div
                         className="search-match-profile-pic search-match-avatar-initials border border-3"

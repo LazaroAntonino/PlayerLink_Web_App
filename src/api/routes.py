@@ -605,47 +605,31 @@ def get_reviews(review_id):
     stmt = select(Review).where(Review.id == review_id)
     review = db.session.execute(stmt).scalar_one_or_none()
     if review is None:
-        return jsonify({'error': f'review with id: {review_id} does not exist'})
+        return jsonify({'error': f'review with id: {review_id} does not exist'}), 404
     return jsonify(review.serialize()), 200
 
 
 # GET REVIEWS AUTHORED
 @api.route('/reviews_authored/<int:user_id>', methods=['GET'])
 def get_reviews_authored(user_id):
-    # 1. Buscamos al usuario; si no existe devolvemos 404
     user = db.session.get(User, user_id)
     if not user:
-        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 400
+        return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
 
-    # 2. Sacamos las reseñas que ha escrito
-    reviews = user.reviews_authored
-
-    # Serializamos cada review usando el método de instancia
-    serialized = [rev.serialize() | {
-        "stars": rev.stars,
-        "comment": rev.comment
-    } for rev in reviews]
-
+    serialized = [rev.serialize() | {"stars": rev.stars, "comment": rev.comment}
+                  for rev in user.reviews_authored]
     return jsonify({"reviews_authored": serialized}), 200
 
 
 # GET USER REVIEWS
 @api.route('/reviews_received/<int:user_id>', methods=['GET'])
 def get_user_reviews(user_id):
-    # 1. Buscamos al usuario; si no existe devolvemos 404
     user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': f'Usuario con id={user_id} no encontrado'}), 404
 
-    # 2. Sacamos las reseñas que ha escrito
-    reviews = user.reviews_received
-
-    # Serializamos cada review usando el método de instancia
-    serialized = [rev.serialize() | {
-        "stars": rev.stars,
-        "comment": rev.comment
-    } for rev in reviews]
-
+    serialized = [rev.serialize() | {"stars": rev.stars, "comment": rev.comment}
+                  for rev in user.reviews_received]
     return jsonify({"reviews_received": serialized}), 200
 
 
@@ -774,12 +758,13 @@ def get_matches_for_user(user_id):
         # Si el User tiene Profile, devolvemos un dict similar al de Match.serialize() pero solo con ese user
         if u.profile:
             other_users.append({
-                "user_id":   u.id,
-                "nickname":  u.profile.name if u.profile.name else "undefined",
-                "games":     [g.serialize() for g in u.profile.games] if u.profile.games else [],
-                "gender":    u.profile.gender if u.profile.gender else "undefined",
-                "age": u.profile.age if u.profile.age else "undefined",
-                "location": u.profile.location if u.profile.location else "undefined"
+                "user_id":  u.id,
+                "nickname": u.profile.nick_name if u.profile.nick_name else "undefined",
+                "photo":    u.profile.photo    if u.profile.photo    else "photo1",
+                "games":    [g.serialize() for g in u.profile.games] if u.profile.games else [],
+                "gender":   u.profile.gender   if u.profile.gender   else "undefined",
+                "age":      u.profile.age      if u.profile.age      else "undefined",
+                "location": u.profile.location if u.profile.location else "undefined",
             })
         else:
             other_users.append(f" user with id {u.id} has no data")
@@ -930,16 +915,14 @@ def get_all_games():
     games = db.session.execute(stmt).scalars().all()
     return jsonify([game.serialize() for game in games]), 200
 
-# GET SINGLE GAMES
-
-
+# GET SINGLE GAME
 @api.route('/games/<int:game_id>', methods=['GET'])
 def get_single_game(game_id):
     stmt = select(Game).where(Game.id == game_id)
-    games = db.session.execute(stmt).scalar_one_or_none()
-    if games is None:
-        return jsonify({'error': 'this game does not exist'})
-    return jsonify(games.serialize()), 200
+    game = db.session.execute(stmt).scalar_one_or_none()
+    if game is None:
+        return jsonify({'error': f'game with id {game_id} not found'}), 404
+    return jsonify(game.serialize()), 200
 
 
 # GET GAMES BY PROFILE ID
@@ -980,7 +963,7 @@ def put_game_hours(game_id):
         return jsonify({'error': 'Unauthorized'}), 403
 
     # Actualizar los valores
-    game.game_hoursPlayed = data.get("hours_played") or 'undefined'
+    game.game_hoursPlayed = int(data.get("hours_played") or 0)
 
     # Guardar cambios
     db.session.commit()
@@ -1009,12 +992,11 @@ def post_game(profile_id):
     if not data:
         return jsonify({'error': 'Falta el campo "game" en el JSON'}), 400
 
-    # 4) Crear y persistir la nueva partida
     new_game = Game(
         profile_id=profile_id,
-        game_hoursPlayed=data['hours_played'] or 'undefined',
-        game_image=data['image'] or 'undefined',
-        game_title=data['title'] or 'undefined'
+        game_hoursPlayed=int(data.get('hours_played') or 0),
+        game_image=data.get('image') or 'default.jpg',
+        game_title=data.get('title') or 'Unknown',
     )
     db.session.add(new_game)
     db.session.commit()
@@ -1056,11 +1038,13 @@ def get_single_like(like_id):
         return jsonify({'error': f'Like with id {like_id} not found'}), 404
     return jsonify(like.serialize()), 200
 
-# POST LIKE (ESTÁ LA LÓGICA PARA QUE SE CREE EL MATCH SI ES NECESARIO)
-
-
+# POST LIKE (crea el Match automáticamente si hay like mutuo)
 @api.route('/likes/<int:liker_id>/<int:liked_id>', methods=['POST'])
+@jwt_required()
 def post_like(liker_id, liked_id):
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != liker_id:
+        return jsonify({'error': 'Unauthorized'}), 403
     # No se permite que un usuario se de like a sí mismo
     if liker_id == liked_id:
         return jsonify({'error': 'Cannot like yourself'}), 400
@@ -1676,7 +1660,7 @@ def _execute_get_game_community_stats(game_title):
                 "message": "Este juego aún no tiene jugadores registrados en PlayerLink"
             }
 
-        total_hours = sum(g.game_hoursPlayed or 0 for g in games)
+        total_hours = sum(int(g.game_hoursPlayed or 0) for g in games)
         avg_hours = total_hours / len(games) if games else 0
 
         top_players = sorted(games, key=lambda g: g.game_hoursPlayed or 0, reverse=True)[:3]

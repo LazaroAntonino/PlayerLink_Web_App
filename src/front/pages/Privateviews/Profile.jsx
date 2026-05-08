@@ -84,8 +84,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const { store, dispatch } = useGlobalReducer();
 
-  const url = import.meta.env.VITE_BACKEND_URL;
-
   // ── Estado del perfil ──
   const [profile, setProfile] = useState({
     name: " ",
