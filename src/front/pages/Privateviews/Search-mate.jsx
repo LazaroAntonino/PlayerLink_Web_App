@@ -98,12 +98,6 @@ export const SearchMate = () => {
     fetchProfiles(filters);
   }, [store.user, store.userMatchesInfo, filters]);
 
-  // ── Reset índice cuando cambie la lista ─────────────────────────────────
-  useEffect(() => {
-    setCurrentUser(0);
-  }, [store.searchMatchProfiles]);
-
-
   // ── Avanzar al siguiente perfil ──────────────────────────────────────────
   const advanceToNextProfile = () => {
     const remainingProfiles = store.searchMatchProfiles.filter(
@@ -131,9 +125,11 @@ export const SearchMate = () => {
       const result = await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
 
       if (result?.is_match && result?.match_profile) {
-        // Match detectado — guardar like en store igual que en el caso normal
+        // Match detectado — guardar like, cerrar el panel de filtros si estaba abierto
+        // y mostrar el modal ItsMatch
         dispatch({ type: "saveLike", payload: likedProfile });
         dispatch({ type: "addMatch", payload: result.match_profile });
+        setFilterPanelOpen(false);   // evita que el backdrop del panel tape el modal
         setMatchProfile(result.match_profile);
         setMatchId(result.match_id ?? null);
         setShowMatchModal(true);
