@@ -197,7 +197,13 @@ export const AvatarPickerModal = ({
                             ].filter(Boolean).join(" ")}
                             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                             onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
-                            onDragLeave={() => setDragOver(false)}
+                            onDragLeave={(e) => {
+                                // Only clear drag-over when leaving the dropzone entirely,
+                                // not when moving between its child elements.
+                                if (!e.currentTarget.contains(e.relatedTarget)) {
+                                    setDragOver(false);
+                                }
+                            }}
                             onDrop={handleDrop}
                             onClick={() => fileInputRef.current?.click()}
                             role="button"
