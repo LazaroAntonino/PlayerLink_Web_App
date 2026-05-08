@@ -1,12 +1,12 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './SignIn.css';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import userServices from '../../services/userServices';
 import useGlobalReducer from '../../hooks/useGlobalReducer';
 
 export const SignIn = ({ onSwitch, onSuccess }) => {
 
-    const { store, dispatch } = useGlobalReducer()
+    const { dispatch } = useGlobalReducer()
     const navigate = useNavigate()
 
     const [formData, setFormData] = useState({
@@ -102,9 +102,10 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
                                 onClick={() => {
                                     setErrorLogin("");
                                     setPasswordErrors([]);
-                                    setFormData({ password: "" });
+                                    setFormData({ email: "", password: "" });
                                     setShowPassword(false);
-
+                                    setUnverifiedEmail(null);
+                                    setResendStatus('idle');
                                 }}
                             ></button>
                         </div>

@@ -189,7 +189,7 @@ def resend_verification():
     """
     try:
         data  = request.get_json(silent=True) or {}
-        email = data.get('email', '').strip().lower()
+        email = data.get('email', '').strip()
 
         if not email:
             return jsonify({'success': True}), 200  # anti-enumeration

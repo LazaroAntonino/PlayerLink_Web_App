@@ -9,12 +9,12 @@ import "./verifyEmail.css";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const VerifyEmail = () => {
-    const [searchParams]                = useSearchParams();
-    const navigate                      = useNavigate();
-    const { dispatch }                  = useGlobalReducer();
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const { dispatch } = useGlobalReducer();
 
-    const [status, setStatus]           = useState("loading"); // loading | success | error
-    const [errorMsg, setErrorMsg]       = useState("");
+    const [status, setStatus] = useState("loading"); // loading | success | error
+    const [errorMsg, setErrorMsg] = useState("");
     const [resendEmail, setResendEmail] = useState("");
     const [resendStatus, setResendStatus] = useState("idle"); // idle | sending | sent | error
 

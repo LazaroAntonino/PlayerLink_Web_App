@@ -71,9 +71,9 @@ const EmailSentScreen = ({ email, onSwitch }) => {
 // ─── helpers ────────────────────────────────────────────────────────────────
 const validatePassword = (pwd) => {
     const errors = [];
-    if (pwd.length < 8)          errors.push('at least 8 characters');
-    if (!/[A-Z]/.test(pwd))      errors.push('an uppercase letter');
-    if (!/[0-9]/.test(pwd))      errors.push('a number');
+    if (pwd.length < 8) errors.push('at least 8 characters');
+    if (!/[A-Z]/.test(pwd)) errors.push('an uppercase letter');
+    if (!/[0-9]/.test(pwd)) errors.push('a number');
     if (!/[@$!%*?&.]/.test(pwd)) errors.push('a special character (@$!%*?&.)');
     return errors;
 };
@@ -83,16 +83,16 @@ export const Register = ({ onSwitch, onSuccess }) => {
     const navigate = useNavigate();
     const { dispatch } = useGlobalReducer();
 
-    const [formData, setFormData]           = useState({ email: '', password: '', repeatPassword: '' });
-    const [showPassword, setShowPassword]   = useState(false);
+    const [formData, setFormData] = useState({ email: '', password: '', repeatPassword: '' });
+    const [showPassword, setShowPassword] = useState(false);
     const [passwordErrors, setPasswordErrors] = useState([]);
     const [errorPassword, setErrorPassword] = useState('');
-    const [errorEmail, setErrorEmail]       = useState('');
-    const [termsOpen, setTermsOpen]         = useState(false);
+    const [errorEmail, setErrorEmail] = useState('');
+    const [termsOpen, setTermsOpen] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
-    const [errorTerms, setErrorTerms]       = useState('');
-    const [loading, setLoading]             = useState(false);
-    const [emailSent, setEmailSent]         = useState(false);
+    const [errorTerms, setErrorTerms] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [emailSent, setEmailSent] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState('');
 
     // ── early return: show email-sent screen ─────────────────────────────────

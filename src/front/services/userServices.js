@@ -126,7 +126,6 @@ userServices.changeUserPassword = async (user_id, newPassword, actualPassword) =
  * verification link. Returns { success, token } on success.
  */
 userServices.verifyEmail = async (token) => {
-  const url = import.meta.env.VITE_BACKEND_URL;
   try {
     const resp = await fetch(`${url}/api/verify-email`, {
       method: "POST",
@@ -145,7 +144,6 @@ userServices.verifyEmail = async (token) => {
  * Always resolves (anti-enumeration: server always returns 200).
  */
 userServices.resendVerification = async (email) => {
-  const url = import.meta.env.VITE_BACKEND_URL;
   try {
     const resp = await fetch(`${url}/api/resend-verification`, {
       method: "POST",
