@@ -92,10 +92,11 @@ export const ProfileInfoTab = ({
                     {isEditing ? (
                         <input
                             type="number"
-                            value={profile.age}
+                            value={profile.age || ""}
                             onChange={(e) => onInputChange("age", +e.target.value)}
                             max={120}
                             min={1}
+                            placeholder="Your age"
                             aria-label="Age"
                         />
                     ) : (

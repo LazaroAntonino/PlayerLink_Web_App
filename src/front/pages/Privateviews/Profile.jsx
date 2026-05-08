@@ -108,7 +108,6 @@ const Profile = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showIncompleteToast, setShowIncompleteToast] = useState(false);
   const toastTimerRef = useRef(null);
-  const clearNoticeTimerRef = useRef(null);
 
   // ── Estado de modales de preferencias/idiomas ──
   const [showGamingPreferencesModal, setShowGamingPreferencesModal] = useState(false);
@@ -141,7 +140,6 @@ const Profile = () => {
     }
     loadProfile();
     return () => {
-      clearTimeout(clearNoticeTimerRef.current);
       clearTimeout(toastTimerRef.current);
     };
   }, []);
@@ -189,39 +187,43 @@ const Profile = () => {
       if (!p) return;
 
       setProfile({
-        name:        p.name        ?? "",
-        nick_name:   p.nick_name   ?? "",
-        age:         p.age         ?? 0,
-        gender:      p.gender      ?? "",
-        location:    p.location    ?? "",
-        zodiac:      p.zodiac      ?? "",
-        discord:     p.discord     ?? "",
-        steam_id:    p.steam       ?? "",
-        language:    p.language    ?? "",
+        name: p.name ?? "",
+        nick_name: p.nick_name ?? "",
+        age: p.age ?? 0,
+        gender: p.gender ?? "",
+        location: p.location ?? "",
+        zodiac: p.zodiac ?? "",
+        discord: p.discord ?? "",
+        steam_id: p.steam ?? "",
+        language: p.language ?? "",
         preferences: p.preferences ?? "",
-        bio:         p.bio         ?? "",
-        photo:       p.photo       || "photo1",
+        bio: p.bio ?? "",
+        photo: p.photo || "photo1",
       });
 
       const isIncomplete =
-        !p.name        || p.name.length        < 2 ||
-        !p.nick_name   || p.nick_name.length   < 2 ||
-        !p.age         || p.age                <= 0 ||
-        !p.gender      || p.gender.length      < 2  ||
-        !p.location    || p.location.length    < 2  ||
-        !p.zodiac      || p.zodiac.length      < 2  ||
-        !p.discord     || p.discord.length     < 2  ||
-        !p.steam       || p.steam.length       < 2  ||
-        !p.language    || p.language.length    < 2  ||
-        !p.preferences || p.preferences.length < 2  ||
-        !p.bio         || p.bio.length         < 2  ||
-        !p.photo       || p.photo.length       < 2;
+        !p.name || p.name.length < 2 ||
+        !p.nick_name || p.nick_name.length < 2 ||
+        !p.age || p.age <= 0 ||
+        !p.gender || p.gender.length < 2 ||
+        !p.location || p.location.length < 2 ||
+        !p.zodiac || p.zodiac.length < 2 ||
+        !p.discord || p.discord.length < 2 ||
+        !p.steam || p.steam.length < 2 ||
+        !p.language || p.language.length < 2 ||
+        !p.preferences || p.preferences.length < 2 ||
+        !p.bio || p.bio.length < 2 ||
+        !p.photo || p.photo.length < 2;
 
       if (isIncomplete) {
         // Limpiar timers anteriores para evitar toasts duplicadas
         clearTimeout(toastTimerRef.current);
         setTimeout(() => setShowIncompleteToast(true), 400);
         toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10400);
+      } else {
+        // Perfil completo: asegurarse de que la toast se oculta si estaba visible
+        clearTimeout(toastTimerRef.current);
+        setShowIncompleteToast(false);
       }
     } catch (error) {
       console.error("Error in loadProfile:", error);
