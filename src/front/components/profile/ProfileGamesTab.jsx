@@ -71,7 +71,7 @@ const SELECT_STYLES = {
         transition: "background 0.12s ease",
     }),
     input: (base) => ({ ...base, color: "#fff" }),
-    placeholder: (base) => ({ ...base, color: "rgba(255,255,255,0.3)" }),
+    placeholder: (base) => ({ ...base, color: "var(--color-text-muted, #8888aa)" }),
     singleValue: (base) => ({ ...base, color: "#fff" }),
     noOptionsMessage: (base) => ({
         ...base,
@@ -287,7 +287,7 @@ export const ProfileGamesTab = ({
                                     <span className="game-row-hours">
                                         {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
                                             ? `${el.gameHoursPlayed.toLocaleString()} h`
-                                            : <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>No hours set</span>
+                                            : <span style={{ color: 'var(--color-text-muted, #8888aa)', fontStyle: 'italic' }}>No hours set</span>
                                         }
                                     </span>
                                     <button

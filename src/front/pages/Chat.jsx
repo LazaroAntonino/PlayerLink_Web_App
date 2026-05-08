@@ -268,7 +268,7 @@ const Chat = () => {
                     {text.length > 0 && (
                         <div
                             className="chat-char-counter"
-                            style={{ color: text.length > 450 ? "var(--color-danger, #ff4d6d)" : "rgba(255,255,255,0.3)" }}
+                            style={{ color: text.length > 450 ? "var(--color-danger, #ff4d6d)" : "var(--color-text-muted, #8888aa)" }}
                         >
                             {text.length}/{MAX_CHARS}
                         </div>

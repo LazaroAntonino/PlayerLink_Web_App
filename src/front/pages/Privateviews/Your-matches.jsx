@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
-import userServices from "../../services/userServices";
 import matchServices from "../../services/matchServices";
 import { MatchMiniCard } from "../../components/matchMiniCard.jsx"
 import "./Your-matches.css"
+
+/** Skeleton card que imita MatchMiniCard durante la carga */
+const MatchMiniCardSkeleton = () => (
+  <div className="match-skeleton-card" aria-busy="true" aria-label="Cargando match...">
+    <div className="match-sk-avatar skeleton-shimmer" />
+    <div className="match-sk-lines">
+      <div className="match-sk-line match-sk-line--title skeleton-shimmer" />
+      <div className="match-sk-line match-sk-line--sub skeleton-shimmer" />
+      <div className="match-sk-line match-sk-line--sub skeleton-shimmer" style={{ width: "50%" }} />
+    </div>
+  </div>
+);
 
 
 export const YourMatches = () => {
@@ -41,9 +52,8 @@ export const YourMatches = () => {
       </div>
 
       {loading ? (
-        <div className="matches-loading">
-          <i className="fa-solid fa-spinner fa-spin fa-2x"></i>
-          <span>Cargando matches...</span>
+        <div className="matches-grid">
+          {[...Array(6)].map((_, i) => <MatchMiniCardSkeleton key={i} />)}
         </div>
       ) : Array.isArray(store.userMatchesInfo) && store.userMatchesInfo.length > 0 ? (
         <div className="matches-grid">

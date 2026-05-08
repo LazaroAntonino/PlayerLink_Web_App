@@ -13,6 +13,13 @@ import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
 
 const PHOTO_MAP = { photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9 };
 
+/** Color HSL determinístico basado en el nickname */
+const nickToHSL = (str = "") => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return `hsl(${Math.abs(hash) % 360}, 60%, 50%)`;
+};
+
 export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
   const [animationClass, setAnimationClass] = useState('');
@@ -23,7 +30,9 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   const dragRef = useRef({ active: false, startX: 0, currentX: 0 });
   const cardRef = useRef(null);
 
-  const selectPhoto = () => PHOTO_MAP[profile.photo] || photo1;
+  const selectPhoto = () => PHOTO_MAP[profile.photo] || null;
+  const hasPhoto = Boolean(PHOTO_MAP[profile.photo]);
+  const initials = (profile?.nick_name || "??").slice(0, 2).toUpperCase();
 
   useEffect(() => {
     if (!profile?.user_id) return;
@@ -143,7 +152,18 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
             <div className="card-body">
               <div className='d-flex justify-content-center'>
                 <div className='d-flex justify-content-center rounded-circle'>
-                  <img src={selectPhoto()} alt="App Logo" className='search-match-profile-pic border border-3'></img>
+                  {hasPhoto
+                    ? <img src={selectPhoto()} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
+                    : (
+                      <div
+                        className="search-match-profile-pic search-match-avatar-initials border border-3"
+                        style={{ background: nickToHSL(profile?.nick_name) }}
+                        aria-label={`Avatar de ${profile?.nick_name}`}
+                      >
+                        {initials}
+                      </div>
+                    )
+                  }
                 </div>
               </div>
 
@@ -188,31 +208,39 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
               )}
               <hr className="search-match-line" />
 
-              {/* Preferences */}
-              <div className="col">
+              {/* Preferences — chips coloreados */}
+              <div className="smc-chips-section">
                 {formattedPreferences && formattedPreferences !== '-' ? (
-                  <div className='d-flex ms-4 flex-wrap preferences-container-mobile align-items-center'>
-                    <h5 className='search-match-text-sm me-2 preferences-full'>Preferences:</h5>
-                    <i className="fa-solid fa-thumbs-up preferences-small mb-2"></i>
-                    <h5 className='search-match-text-sm me-2 text-end'>{formattedPreferences}</h5>
+                  <div className="smc-chips-row">
+                    <i className="fa-solid fa-gamepad smc-chips-icon" aria-hidden="true" />
+                    {formattedPreferences.split(', ').map((p, i) => (
+                      <span key={i} className="smc-chip smc-chip--pref">{p}</span>
+                    ))}
                   </div>
                 ) : (
-                  <div className='d-flex justify-content-center'>
-                    <h5 className='search-match-text-sm'>No preferences </h5>
+                  <div className="smc-chips-row">
+                    <span className="search-match-text-sm" style={{ color: 'var(--color-text-muted)' }}>No preferences</span>
                   </div>
                 )}
               </div>
 
               <hr className="search-match-line" />
 
-              {/* Language */}
-              <div className="col">
-                <div className='d-flex justify-content-center'>
-                  <div className='d-flex ms-4'>
-                    <i className="fa-solid fa-language me-2 ms-4"></i>
-                    <h5 className='search-match-text-sm me-4'>{formattedLanguages && formattedLanguages !== '-' ? formattedLanguages : 'No languages'}</h5>
+              {/* Language — chips coloreados */}
+              <div className="smc-chips-section">
+                {formattedLanguages && formattedLanguages !== '-' ? (
+                  <div className="smc-chips-row">
+                    <i className="fa-solid fa-language smc-chips-icon" aria-hidden="true" />
+                    {formattedLanguages.split(', ').map((lang, i) => (
+                      <span key={i} className="smc-chip smc-chip--lang">{lang}</span>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="smc-chips-row">
+                    <i className="fa-solid fa-language smc-chips-icon" aria-hidden="true" />
+                    <span className="search-match-text-sm" style={{ color: 'var(--color-text-muted)' }}>No languages</span>
+                  </div>
+                )}
               </div>
 
               <hr className="search-match-line" />

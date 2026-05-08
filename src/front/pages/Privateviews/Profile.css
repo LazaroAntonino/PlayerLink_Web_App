@@ -1540,3 +1540,195 @@
   color: rgba(255, 255, 255, 0.28);
   font-style: italic;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Stars Distribution (ProfileCommentsTab)
+   ══════════════════════════════════════════════════════════════ */
+.stars-distribution {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  background: rgba(0, 229, 255, 0.04);
+  border: 1px solid rgba(0, 229, 255, 0.12);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.stars-dist-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+}
+
+.stars-dist-avg {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #ffd700;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.45);
+}
+
+.stars-dist-avg-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.stars-dist-total {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #8888aa);
+  white-space: nowrap;
+}
+
+.stars-dist-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stars-dist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars-dist-label {
+  font-size: 0.72rem;
+  color: var(--color-text-muted, #8888aa);
+  min-width: 28px;
+  text-align: right;
+}
+
+.stars-dist-track {
+  flex: 1;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.stars-dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffaa00);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stars-dist-count {
+  font-size: 0.7rem;
+  color: var(--color-text-muted, #8888aa);
+  min-width: 16px;
+  text-align: right;
+}
+
+/* ── Review avatar with initials ── */
+.review-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Update comment-header to accommodate avatar */
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .stars-distribution {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .stars-dist-summary {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    min-width: unset;
+  }
+}
+
+/* ── Profile skeleton ── */
+@keyframes profile-shimmer {
+  from { background-position: -600px 0; }
+  to   { background-position:  600px 0; }
+}
+
+.profile-skeleton-wrap .skeleton-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 600px 100%;
+  animation: profile-shimmer 1.4s infinite linear;
+  border-radius: 8px;
+}
+
+.profile-skeleton-wrap {
+  padding: 24px 20px;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.profile-sk-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-sk-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.profile-sk-header-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-sk-tabs {
+  height: 38px;
+  border-radius: 10px;
+}
+
+.profile-sk-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-sk-line {
+  height: 14px;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.profile-sk-line--name {
+  height: 22px;
+  width: 45%;
+}
+
+.profile-sk-line--sub {
+  height: 13px;
+  width: 70%;
+}

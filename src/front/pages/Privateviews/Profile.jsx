@@ -220,6 +220,8 @@ const Profile = () => {
       }
     } catch (error) {
       console.error("Error in loadProfile:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -319,6 +321,27 @@ const Profile = () => {
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="profile-skeleton-wrap">
+        <div className="profile-sk-header">
+          <div className="profile-sk-avatar skeleton-shimmer" />
+          <div className="profile-sk-header-lines">
+            <div className="profile-sk-line profile-sk-line--name skeleton-shimmer" />
+            <div className="profile-sk-line profile-sk-line--sub skeleton-shimmer" />
+            <div className="profile-sk-line profile-sk-line--sub skeleton-shimmer" style={{ width: "55%" }} />
+          </div>
+        </div>
+        <div className="profile-sk-tabs skeleton-shimmer" />
+        <div className="profile-sk-body">
+          {[80, 65, 90, 50].map((w, i) => (
+            <div key={i} className="profile-sk-line skeleton-shimmer" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

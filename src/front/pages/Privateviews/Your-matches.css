@@ -78,3 +78,65 @@
   max-width: 340px;
   line-height: 1.6;
 }
+
+/* ══════════════════════════════════════════════════
+   Skeleton shimmer (shared keyframe)
+   ══════════════════════════════════════════════════ */
+@keyframes skeleton-shimmer-anim {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.12) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer-anim 1.4s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════════════
+   MatchMiniCard Skeleton
+   ══════════════════════════════════════════════════ */
+.match-skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(10, 15, 26, 0.82);
+  border: 1px solid rgba(0, 229, 255, 0.1);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.match-sk-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+}
+
+.match-sk-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-sk-line {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+}
+
+.match-sk-line--title {
+  width: 60%;
+  height: 13px;
+}
+
+.match-sk-line--sub {
+  width: 80%;
+}
