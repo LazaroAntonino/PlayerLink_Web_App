@@ -213,9 +213,10 @@ export const SearchMate = () => {
         {activeFilterCount > 0 ? (
           <div className="filter-no-results">
             <span className="filter-no-results-icon">🔍</span>
-            <p>No hay perfiles con estos filtros</p>
+            <p className="filter-no-results-title">No hay perfiles con estos filtros</p>
+            <p className="filter-no-results-sub">Prueba ajustando o eliminando los filtros activos</p>
             <button
-              className="filter-clear-btn"
+              className="filter-clear-results-btn"
               onClick={() => setFilters({})}
             >
               Quitar filtros
