@@ -320,8 +320,12 @@ const Profile = () => {
   };
 
   const handleDeleteGame = async (game_id) => {
-    await gameServices.deleteGameById(game_id);
-    await loadProfile();
+    try {
+      await gameServices.deleteGameById(game_id);
+      await loadProfile();
+    } catch (err) {
+      console.error("Error deleting game:", err);
+    }
   };
 
   const handleUpdateHours = async (e, gameId) => {
@@ -330,11 +334,16 @@ const Profile = () => {
       setErrorCeroHours("Hours must be more than 0");
       return;
     }
-    await gameServices.updateGameInfo(gameId, game.hours_played);
-    await loadProfile();
-    setIdOfGameBeingEdited(0);
-    setGame({ title: "", hours_played: "", image: "" });
-    setErrorCeroHours("");
+    try {
+      await gameServices.updateGameInfo(gameId, game.hours_played);
+      await loadProfile();
+      setIdOfGameBeingEdited(0);
+      setGame({ title: "", hours_played: "", image: "" });
+      setErrorCeroHours("");
+    } catch (err) {
+      console.error("Error updating game hours:", err);
+      setErrorCeroHours("Could not update hours. Please try again.");
+    }
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
