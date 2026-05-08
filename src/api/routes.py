@@ -428,9 +428,9 @@ def post_profile(user_id):
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
+        return jsonify({'error': f'can not find user with id: {user_id}'}), 404
     if user.profile:
-        return jsonify({'error': 'this profile already exist, please try to modify it insted of create a new one'}), 400
+        return jsonify({'error': 'this profile already exist, please try to modify it insted of create a new one'}), 409
     new_profile = Profile(
         gender=data.get('gender') or None,
         age=data.get('age') or 0,

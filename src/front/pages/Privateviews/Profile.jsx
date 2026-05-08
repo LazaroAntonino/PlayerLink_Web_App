@@ -298,7 +298,8 @@ const Profile = () => {
       setErrorHoursPlayed("You must complete all the information");
       return;
     }
-    if (store.user.profile.games.some((g) => g.gameTitle === game.title)) {
+    const existingGames = store.user?.profile?.games ?? [];
+    if (existingGames.some((g) => g.gameTitle === game.title)) {
       setErrorRepeatedGame("This game is already on the list");
       return;
     }
@@ -330,7 +331,7 @@ const Profile = () => {
     await gameServices.updateGameInfo(gameId, game.hours_played);
     await loadProfile();
     setIdOfGameBeingEdited(0);
-    setGame({ hours_played: 0 });
+    setGame({ title: "", hours_played: "", image: "" });
     setErrorCeroHours("");
   };
 

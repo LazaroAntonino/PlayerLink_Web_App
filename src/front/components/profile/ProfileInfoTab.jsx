@@ -312,7 +312,7 @@ ProfileInfoTab.propTypes = {
         zodiac: PropTypes.string,
         discord: PropTypes.string,
         steam_id: PropTypes.string,
-        languages: PropTypes.string,
+        language: PropTypes.string,
         preferences: PropTypes.string,
         bio: PropTypes.string,
     }).isRequired,
