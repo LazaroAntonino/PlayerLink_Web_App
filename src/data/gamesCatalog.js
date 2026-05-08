@@ -147,6 +147,8 @@ export const GAMES_CATALOG = [
   { title: "Cities: Skylines",            image: "https://cdn.akamai.steamstatic.com/steam/apps/255710/header.jpg" },
   { title: "The Sims 4",                  image: "https://cdn.akamai.steamstatic.com/steam/apps/1222670/header.jpg" },
   { title: "Two Point Hospital",          image: "https://cdn.akamai.steamstatic.com/steam/apps/535930/header.jpg" },
+  { title: "Tabletop Simulator",          image: "https://cdn.akamai.steamstatic.com/steam/apps/286160/header.jpg" },
+
 
   // ══ FIGHTING ══
   { title: "Street Fighter 6",            image: "https://cdn.akamai.steamstatic.com/steam/apps/1794960/header.jpg" },
