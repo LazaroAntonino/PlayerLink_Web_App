@@ -588,9 +588,9 @@ def put_profilephoto(user_id):
     stmt = select(User).where(User.id == user_id)
     user = db.session.execute(stmt).scalar_one_or_none()
     if user is None:
-        return jsonify({'error': f'can not find user with id: {user_id}'}), 400
+        return jsonify({'error': f'can not find user with id: {user_id}'}), 404
     if not user.profile:
-        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 400
+        return jsonify({'error': 'this profile do not  exist, please try to create it insted of modify one'}), 404
 
     user.profile.photo = data.get('photo', user.profile.photo)
 

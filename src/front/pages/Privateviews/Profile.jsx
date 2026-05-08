@@ -216,10 +216,13 @@ const Profile = () => {
         !p.photo || p.photo.length < 2;
 
       if (isIncomplete) {
-        // Limpiar timers anteriores para evitar toasts duplicadas
+        // Limpiar timers anteriores para evitar toasts duplicadas.
+        // Ambos timers se encadenan bajo el mismo ref para que clearTimeout los cancele en conjunto.
         clearTimeout(toastTimerRef.current);
-        setTimeout(() => setShowIncompleteToast(true), 400);
-        toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10400);
+        toastTimerRef.current = setTimeout(() => {
+          setShowIncompleteToast(true);
+          toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10000);
+        }, 400);
       } else {
         // Perfil completo: asegurarse de que la toast se oculta si estaba visible
         clearTimeout(toastTimerRef.current);
