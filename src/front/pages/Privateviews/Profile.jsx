@@ -86,17 +86,17 @@ const Profile = () => {
 
   // ── Estado del perfil ──
   const [profile, setProfile] = useState({
-    name: " ",
+    name: "",
     nick_name: "",
     age: 0,
-    gender: "Undefined",
-    location: " ",
-    zodiac: "Aries",
-    discord: " ",
-    steam_id: " ",
-    language: " ",
-    preferences: " ",
-    bio: " ",
+    gender: "",
+    location: "",
+    zodiac: "",
+    discord: "",
+    steam_id: "",
+    language: "",
+    preferences: "",
+    bio: "",
     photo: "photo1",
   });
 

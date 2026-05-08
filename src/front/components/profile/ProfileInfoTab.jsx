@@ -111,12 +111,16 @@ export const ProfileInfoTab = ({
                             onChange={(e) => onInputChange("gender", e.target.value)}
                             aria-label="Gender"
                         >
+                            <option value="">— Not set —</option>
                             {GENDERS.map((g) => (
-                                <option key={g}>{g}</option>
+                                <option key={g} value={g}>{g}</option>
                             ))}
                         </select>
                     ) : (
-                        <FieldValue value={profile.gender !== "Undefined" ? profile.gender : null} emptyText="Not set" />
+                        <FieldValue
+                            value={profile.gender && profile.gender !== "Undefined" ? profile.gender : null}
+                            emptyText="Not set"
+                        />
                     )}
                 </div>
 
@@ -128,12 +132,16 @@ export const ProfileInfoTab = ({
                             onChange={(e) => onInputChange("zodiac", e.target.value)}
                             aria-label="Zodiac sign"
                         >
+                            <option value="">— Not set —</option>
                             {ZODIAC_SIGNS.map((z) => (
-                                <option key={z}>{z}</option>
+                                <option key={z} value={z}>{z}</option>
                             ))}
                         </select>
                     ) : (
-                        <FieldValue value={profile.zodiac} emptyText="Not set" />
+                        <FieldValue
+                            value={profile.zodiac && profile.zodiac !== "Undefinied" ? profile.zodiac : null}
+                            emptyText="Not set"
+                        />
                     )}
                 </div>
             </div>
