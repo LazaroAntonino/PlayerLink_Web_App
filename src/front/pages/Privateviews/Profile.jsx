@@ -272,8 +272,10 @@ const Profile = () => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
-  /** Cambia de pestaña y cierra el modo edición (descartando cambios sin guardar) */
+  /** Cambia de pestaña y cierra el modo edición (descartando cambios sin guardar).
+   *  Si hay un guardado en curso se ignora el cambio de tab para no crear race conditions. */
   const handleTabChange = (tab) => {
+    if (isSaving) return; // save en progreso — no interrumpir
     if (isEditing) {
       setIsEditing(false);
       setSaveError("");
