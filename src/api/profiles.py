@@ -1,10 +1,12 @@
 """
 Profiles, Games & Reviews blueprint.
 Routes: /profiles (CRUD), /games (CRUD), /reviews (CRUD),
-        /profiles/profiles_to_explore
+        /profiles/profiles_to_explore,
+        /profiles/avatar/<user_id>  (Cloudinary upload)
 """
 from flask import Blueprint, request, jsonify
 from sqlalchemy import select
+import cloudinary.uploader
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -241,6 +243,88 @@ def put_profilephoto(user_id):
     user.profile.photo = data.get('photo', user.profile.photo)
     db.session.commit()
     return jsonify(user.profile.serialize()), 200
+
+
+# ── AVATAR UPLOAD (Cloudinary) ────────────────────────────────────────────────
+
+_ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+_MAX_FILE_SIZE      = 5 * 1024 * 1024  # 5 MB
+
+
+@profiles_bp.route('/profiles/avatar/<int:user_id>', methods=['POST'])
+@jwt_required()
+def upload_avatar(user_id):
+    """
+    Accept a multipart/form-data upload with field 'file'.
+    Validates type (JPEG/PNG/WebP/GIF) and size (≤ 5 MB).
+    Uploads to Cloudinary under a fixed public_id per user so that
+    re-uploading automatically overwrites the previous asset (no orphans).
+    Saves the secure URL to Profile.photo and returns the updated profile.
+    """
+    requesting_id = int(get_jwt_identity())
+    if requesting_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if not file or file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    # ── MIME-type validation ──────────────────────────────────────────────
+    if file.content_type not in _ALLOWED_MIME_TYPES:
+        return jsonify({
+            'error': 'Invalid file type. Only JPEG, PNG, WebP and GIF are allowed.'
+        }), 415
+
+    # ── Size validation (read-and-rewind) ─────────────────────────────────
+    file.seek(0, 2)          # seek to end
+    file_size = file.tell()
+    file.seek(0)             # rewind before passing to Cloudinary
+    if file_size > _MAX_FILE_SIZE:
+        return jsonify({'error': 'File too large. Maximum size is 5 MB.'}), 413
+
+    # ── Fetch user + profile ──────────────────────────────────────────────
+    user = db.session.execute(
+        select(User).where(User.id == user_id)
+    ).scalar_one_or_none()
+    if user is None:
+        return jsonify({'error': f'User with id {user_id} not found'}), 404
+    if not user.profile:
+        return jsonify({'error': 'Profile not found. Create a profile first.'}), 404
+
+    # ── Upload to Cloudinary ──────────────────────────────────────────────
+    # Using a fixed public_id per user means re-upload always overwrites the
+    # previous asset — no orphaned images accumulate in the media library.
+    try:
+        result = cloudinary.uploader.upload(
+            file,
+            public_id=f"playerlink/avatars/user_{user_id}",
+            overwrite=True,
+            invalidate=True,          # purge CDN cache of previous version
+            transformation=[
+                {
+                    "width": 400, "height": 400,
+                    "crop": "fill", "gravity": "face",
+                    "fetch_format": "auto", "quality": "auto",
+                }
+            ],
+            resource_type="image",
+        )
+    except Exception as exc:
+        return jsonify({'error': f'Cloudinary upload failed: {str(exc)}'}), 502
+
+    secure_url = result["secure_url"]
+
+    # ── Persist URL and return ────────────────────────────────────────────
+    user.profile.photo = secure_url
+    db.session.commit()
+
+    return jsonify({
+        'photo':   secure_url,
+        'profile': user.profile.serialize(),
+    }), 200
 
 
 # ── REVIEWS CRUD ──────────────────────────────────────────────────────────────

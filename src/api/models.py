@@ -90,7 +90,7 @@ class Profile(db.Model):
     nick_name: Mapped[str] = mapped_column(
         String(21), nullable=True)
     bio: Mapped[str] = mapped_column(String(500),nullable=True)
-    photo: Mapped[str] = mapped_column(String(20), nullable=True)
+    photo: Mapped[str] = mapped_column(String(500), nullable=True)
     language: Mapped[str] = mapped_column(String(100), nullable=True)
     steam_id: Mapped[str] = mapped_column(
         String(200),nullable=True)

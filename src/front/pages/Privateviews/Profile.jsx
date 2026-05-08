@@ -246,7 +246,31 @@ const Profile = () => {
     }
   };
 
-  const selectPhoto = () => PHOTO_ASSETS[profile.photo] || photo1;
+  /**
+   * Upload a real photo to Cloudinary.
+   * Called by AvatarPickerModal with the selected File.
+   * Throws on failure so the modal can display the error state.
+   */
+  const handleAvatarUpload = async (file) => {
+    // userServices.uploadAvatar throws on any error — let it propagate to modal
+    const data = await userServices.uploadAvatar(store.user.id, file);
+    // Success: update local state immediately (optimistic) and close modal
+    setProfile((prev) => ({ ...prev, photo: data.photo }));
+    setShowAvatarModal(false);
+    // Then refresh the full user in the store
+    await loadProfile();
+  };
+
+  /**
+   * Resolve the image src for the avatar.
+   * Handles two cases:
+   *   1. Cloudinary / external URL  → use as-is
+   *   2. Preset key ("photo1"…"photo9") → map to imported asset
+   */
+  const selectPhoto = () => {
+    if (profile.photo && profile.photo.startsWith("http")) return profile.photo;
+    return PHOTO_ASSETS[profile.photo] || photo1;
+  };
 
   const selectMedal = (hours) => {
     const h = parseInt(hours, 10) || 0;
@@ -528,6 +552,7 @@ const Profile = () => {
           photoArray={PHOTO_ARRAY}
           selectedPhotoKey={profile.photo}
           onSelect={handlePicChange}
+          onUpload={handleAvatarUpload}
           onClose={() => setShowAvatarModal(false)}
         />
       </div>

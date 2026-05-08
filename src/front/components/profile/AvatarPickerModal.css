@@ -1,0 +1,319 @@
+/* ─── AvatarPickerModal ──────────────────────────────────────────────────────
+   Self-contained styles for the avatar-picker modal (preset + upload tabs).
+   Design system: dark cyberpunk — rgba(10,15,26) base, #00e5ff accent.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Overlay ── */
+.avatar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  animation: apm-fade-in 0.2s ease;
+}
+
+@keyframes apm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes apm-enter {
+  from { opacity: 0; transform: scale(0.92) translateY(14px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+/* ── Modal card ── */
+.avatar-modal {
+  background: rgba(10, 15, 26, 0.97);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 20px;
+  padding: 24px 24px 28px;
+  width: 540px;
+  max-width: 94vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 0 48px rgba(0, 229, 255, 0.12);
+  animation: apm-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Header row ── */
+.avatar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.avatar-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.avatar-modal-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
+  line-height: 1;
+}
+.avatar-modal-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Tab switcher ── */
+.avatar-modal-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.avatar-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.avatar-tab-btn:hover {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+}
+.avatar-tab-btn.active {
+  background: rgba(0, 229, 255, 0.12);
+  color: #00e5ff;
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.3);
+}
+
+/* ── Preset grid ── */
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.avatar-grid-item {
+  position: relative;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  opacity: 0.75;
+}
+.avatar-grid-item img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+}
+.avatar-grid-item:hover {
+  opacity: 1;
+  border-color: rgba(0, 229, 255, 0.5);
+  transform: scale(1.03);
+}
+.avatar-grid-item.selected {
+  border-color: #00e5ff;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.4);
+  opacity: 1;
+}
+
+/* Checkmark badge on selected preset */
+.avatar-check {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  background: #00e5ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #000;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Upload tab ── */
+.avatar-upload-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Drop zone */
+.avatar-dropzone {
+  border: 2px dashed rgba(0, 229, 255, 0.3);
+  border-radius: 14px;
+  background: rgba(0, 229, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.avatar-dropzone:hover,
+.avatar-dropzone:focus-within {
+  border-color: rgba(0, 229, 255, 0.55);
+  background: rgba(0, 229, 255, 0.06);
+}
+.avatar-dropzone.drag-over {
+  border-color: #00e5ff;
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+}
+.avatar-dropzone.has-preview {
+  min-height: 260px;
+  border-style: solid;
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+/* Hidden native file input */
+.avatar-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Placeholder (no file selected) */
+.avatar-dropzone-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 24px;
+  pointer-events: none;
+  user-select: none;
+}
+.avatar-dropzone-placeholder i {
+  font-size: 2.2rem;
+  color: rgba(0, 229, 255, 0.4);
+}
+.avatar-dropzone-placeholder p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+}
+.avatar-dropzone-placeholder span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Image preview inside drop zone */
+.avatar-preview-img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+}
+
+/* "Choose a different photo" link */
+.avatar-change-file-btn {
+  background: transparent;
+  border: none;
+  color: rgba(0, 229, 255, 0.7);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s;
+}
+.avatar-change-file-btn:hover {
+  color: #00e5ff;
+  text-decoration: underline;
+}
+
+/* Validation / upload error */
+.avatar-upload-error {
+  color: #ff6b6b;
+  font-size: 0.82rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Upload button */
+.avatar-upload-btn {
+  width: 100%;
+  padding: 11px 0;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1.5px solid rgba(0, 229, 255, 0.4);
+  border-radius: 10px;
+  color: #00e5ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.avatar-upload-btn:hover:not(:disabled) {
+  background: rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.2);
+}
+.avatar-upload-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .avatar-modal {
+    padding: 18px 16px 22px;
+    border-radius: 16px;
+  }
+
+  .avatar-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .avatar-dropzone.has-preview {
+    min-height: 200px;
+  }
+
+  .avatar-preview-img {
+    height: 200px;
+  }
+}

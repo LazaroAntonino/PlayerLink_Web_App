@@ -122,6 +122,33 @@ userServices.changeUserPassword = async (user_id, newPassword, actualPassword) =
 };
 
 /**
+ * Upload a user photo to Cloudinary via the backend.
+ * Sends a multipart/form-data POST — no Content-Type header so the browser
+ * sets the correct boundary automatically.
+ * Throws an Error with a user-facing message on any failure so callers
+ * (e.g. AvatarPickerModal) can display the error state directly.
+ */
+userServices.uploadAvatar = async (user_id, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const token = localStorage.getItem("token");
+  // Do NOT set Content-Type — browser must set multipart/form-data + boundary
+  const resp = await fetch(`${url}/api/profiles/avatar/${user_id}`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+
+  if (!resp.ok) {
+    const data = await resp.json().catch(() => ({}));
+    throw new Error(data?.error || "Upload failed. Please try again.");
+  }
+
+  return resp.json(); // { photo: "https://res.cloudinary.com/...", profile: {...} }
+};
+
+/**
  * Verify the user's email address using the one-time token from the
  * verification link. Returns { success, token } on success.
  */

@@ -20,6 +20,7 @@ from flask_jwt_extended import JWTManager
 from api.mail.mail_config import mail
 from datetime import timedelta
 from flask_cors import CORS
+import cloudinary
 ENV = "development" if os.getenv("FLASK_DEBUG") == "1" else "production"
 static_file_dir = os.path.join(os.path.dirname(
     os.path.realpath(__file__)), '../public/')
@@ -85,14 +86,23 @@ app.register_blueprint(ai_bp,       url_prefix='/api')
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_SERVER']         = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+app.config['MAIL_PORT']           = int(os.getenv("MAIL_PORT", 465))
+app.config['MAIL_USE_SSL']        = os.getenv("MAIL_USE_SSL",  "true").lower() == "true"
+app.config['MAIL_USE_TLS']        = os.getenv("MAIL_USE_TLS",  "false").lower() == "true"
+app.config['MAIL_USERNAME']       = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD']       = os.getenv("MAIL_PASSWORD")
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
 
 mail.init_app(app)
+
+# ── Cloudinary ────────────────────────────────────────────────────────────────
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
 
 @app.route('/')
 def sitemap():
