@@ -80,7 +80,7 @@ const StarsDistribution = ({ reviews }) => {
     );
 };
 
-export const ProfileCommentsTab = ({ reviews }) => {
+export const ProfileCommentsTab = ({ reviews = [] }) => {
     return (
         <div className="info-section">
             <h3 className="comments-title">Comments</h3>
@@ -99,7 +99,7 @@ export const ProfileCommentsTab = ({ reviews }) => {
                                             <i
                                                 key={i}
                                                 className={`fa-${i < el.stars ? "solid" : "regular"} fa-star`}
-                                                style={{ color: i < el.stars ? "#ffd700" : "rgba(255,255,255,0.3)" }}
+                                                style={{ color: i < el.stars ? "#ffd700" : "rgba(255,255,255,0.25)" }}
                                                 aria-hidden="true"
                                             />
                                         ))}
@@ -134,10 +134,6 @@ ProfileCommentsTab.propTypes = {
             comment: PropTypes.string,
         })
     ),
-};
-
-ProfileCommentsTab.defaultProps = {
-    reviews: [],
 };
 
 ReviewAvatar.propTypes = { nickname: PropTypes.string };

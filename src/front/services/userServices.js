@@ -65,16 +65,12 @@ userServices.updateProfile = async (user_id, profileData, method = "PUT") => {
 };
 
 userServices.changeUserPhoto = async (user_id, photo) => {
-  try {
-    const resp = await apiFetch(`/api/profiles/photo/${user_id}`, {
-      method: "PUT",
-      body: JSON.stringify(photo),
-    });
-    if (!resp.ok) throw Error("Something went wrong");
-    return resp.json();
-  } catch (error) {
-    throw error;
-  }
+  const resp = await apiFetch(`/api/profiles/photo/${user_id}`, {
+    method: "PUT",
+    body: JSON.stringify(photo),
+  });
+  if (!resp.ok) throw new Error("Something went wrong changing photo");
+  return resp.json();
 };
 
 userServices.changeUserEmail = async (user_id, newEmail) => {

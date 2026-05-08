@@ -15,7 +15,6 @@ import userServices from "../services/userServices.js";
 
 const LS_KEY = "playerlink_onboarding";
 const TOTAL = 5;
-const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 const DEFAULT_DATA = {
     nick_name: "",
@@ -98,8 +97,6 @@ const Onboarding = () => {
             return;
         }
 
-        const token = localStorage.getItem("token");
-
         // Construir el campo `preferences` concatenando plataformas + estilo
         const preferences = [
             ...onboardingData.platforms,
@@ -113,26 +110,9 @@ const Onboarding = () => {
         };
 
         try {
-            // POST si el usuario no tiene perfil; PUT si ya existe (perfil incompleto)
-            const hasProfile = Boolean(user.profile);
-            const method = hasProfile ? "PUT" : "POST";
-            const headers = {
-                "Content-Type": "application/json",
-                ...(hasProfile ? { Authorization: `Bearer ${token}` } : {}),
-            };
-
-            const profileRes = await fetch(`${API_URL}/api/profiles/${user.id}`, {
-                method,
-                headers,
-                body: JSON.stringify(profilePayload),
-            });
-
-            if (!profileRes.ok) {
-                const err = await profileRes.json().catch(() => ({}));
-                throw new Error(err?.error || `Error al guardar perfil (${profileRes.status})`);
-            }
-
-            const savedProfile = await profileRes.json();
+            // PUT si el usuario ya tiene perfil (siempre tras el registro); POST como fallback
+            const method = user.profile ? "PUT" : "POST";
+            const savedProfile = await userServices.updateProfile(user.id, profilePayload, method);
 
             // Guardar juegos uno a uno
             for (const game of onboardingData.games) {

@@ -2,36 +2,6 @@ import apiFetch from "./apiFetch";
 
 const searchMatchServices = {};
 
-// Trae la información del usuario logeado
-searchMatchServices.getUserInfo = async () => {
-  const resp = await apiFetch("/api/private");
-  if (!resp.ok) throw Error("Something went wrong getting user information");
-  const data = await resp.json();
-  localStorage.setItem("user", JSON.stringify(data.user));
-  return data;
-};
-
-// Trae la información de todos los perfiles (admin only after commit 1)
-searchMatchServices.getAllProfiles = async () => {
-  const resp = await apiFetch("/api/profiles");
-  if (!resp.ok) throw Error("Failed to get all profiles");
-  return resp.json();
-};
-
-// Trae la información de un solo perfil
-searchMatchServices.getOneProfile = async (user_id) => {
-  const resp = await apiFetch(`/api/profiles/${user_id}`);
-  if (!resp.ok) throw Error(`Failed to get profile from ${user_id}`);
-  return resp.json();
-};
-
-// Traer los matches del user
-searchMatchServices.getUserMatchesInfo = async (user_id) => {
-  const resp = await apiFetch(`/api/matches/user/${user_id}`);
-  if (!resp.ok) throw Error(`Failed to get matches from user ${user_id}`);
-  return resp.json();
-};
-
 // Trae las estrellas de las reviews de un user
 // FIX: parameter renamed from profile.id → userId (must be user_id, not profile.id)
 searchMatchServices.getStarsByUser = async (userId) => {
