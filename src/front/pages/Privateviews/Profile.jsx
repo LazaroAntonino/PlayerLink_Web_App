@@ -49,14 +49,14 @@ const formatPreferences = (prefs) => {
   return prefs.slice(0, -1).join(", ") + " and " + prefs[prefs.length - 1] + ".";
 };
 
-/** Convierte "a, b and c." de vuelta en ["a", "b", "c"] */
+/** Convierte "a, b and c." de vuelta en ["a", "b", "c"], filtrando valores centinela */
 const parsePreferences = (str) => {
   if (!str) return [];
   return str
     .replace(/\.$/, "")
     .split(/, | and /)
     .map((p) => p.trim())
-    .filter(Boolean);
+    .filter((p) => p && p !== "Undefinied" && p !== "Undefined");
 };
 
 // ── Datos estáticos de avatares ──────────────────────────────────────────────

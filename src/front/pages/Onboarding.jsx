@@ -116,7 +116,7 @@ const Onboarding = () => {
         const profilePayload = {
             nick_name: onboardingData.nick_name,
             photo: onboardingData.photo,
-            preferences: preferences || "Undefinied",
+            preferences: preferences || null,
         };
 
         try {

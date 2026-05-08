@@ -220,7 +220,14 @@ export const ProfileInfoTab = ({
                         </>
                     ) : (
                         <FieldValue
-                            value={profile.preferences && profile.preferences.trim().length > 0 ? profile.preferences : null}
+                            value={
+                                profile.preferences &&
+                                profile.preferences.trim().length > 0 &&
+                                profile.preferences !== "Undefinied" &&
+                                profile.preferences !== "Undefined"
+                                    ? profile.preferences
+                                    : null
+                            }
                             emptyText="No preferences selected yet."
                         />
                     )}

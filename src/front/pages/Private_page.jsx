@@ -9,7 +9,7 @@ const profileIsComplete = (user) => {
 
 export const Private_page = () => {
     const navigate = useNavigate()
-    const { store, dispatch } = useGlobalReducer();
+    const { store } = useGlobalReducer();
 
     useEffect(() => {
         if (!store.user) {
