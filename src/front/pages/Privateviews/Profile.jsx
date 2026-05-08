@@ -322,6 +322,19 @@ const Profile = () => {
     }
   };
 
+  /** Cancela la edición inline de horas y limpia el error asociado */
+  const handleCancelEditGame = () => {
+    setIdOfGameBeingEdited(0);
+    setGame({ title: "", hours_played: "", image: "" });
+    setErrorCeroHours("");
+  };
+
+  /** Cancela el modal "Add game" y limpia los errores de validación */
+  const handleCancelAddGame = () => {
+    setErrorHoursPlayed("");
+    setErrorRepeatedGame("");
+  };
+
   const handleDeleteGame = async (game_id) => {
     try {
       await gameServices.deleteGameById(game_id);
@@ -490,8 +503,10 @@ const Profile = () => {
               game={game}
               onGameChange={handleGameFormChange}
               onAddGame={handleAddGame}
+              onCancelAddGame={handleCancelAddGame}
               onDeleteGame={handleDeleteGame}
               onUpdateHours={handleUpdateHours}
+              onCancelEditGame={handleCancelEditGame}
               idOfGameBeingEdited={idOfGameBeingEdited}
               setIdOfGameBeingEdited={setIdOfGameBeingEdited}
               setGame={setGame}

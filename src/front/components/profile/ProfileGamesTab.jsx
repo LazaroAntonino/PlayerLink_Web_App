@@ -90,8 +90,10 @@ export const ProfileGamesTab = ({
     game,
     onGameChange,
     onAddGame,
+    onCancelAddGame,
     onDeleteGame,
     onUpdateHours,
+    onCancelEditGame,
     idOfGameBeingEdited,
     setIdOfGameBeingEdited,
     setGame,
@@ -160,6 +162,7 @@ export const ProfileGamesTab = ({
                                         className="btn-close btn-sci-fi"
                                         data-bs-dismiss="modal"
                                         aria-label="Close"
+                                        onClick={onCancelAddGame}
                                     />
                                 </div>
 
@@ -224,6 +227,7 @@ export const ProfileGamesTab = ({
                                         type="button"
                                         className="btn-sci-fi-primary pl-btn pl-btn--ghost pl-btn--sm"
                                         data-bs-dismiss="modal"
+                                        onClick={onCancelAddGame}
                                     >
                                         Cancel
                                     </button>
@@ -276,10 +280,7 @@ export const ProfileGamesTab = ({
                                     <button
                                         type="button"
                                         className="game-action-btn game-action-cancel"
-                                        onClick={() => {
-                                            setIdOfGameBeingEdited(0);
-                                            setGame({ title: "", hours_played: "", image: "" });
-                                        }}
+                                        onClick={onCancelEditGame}
                                         aria-label="Cancel"
                                     >
                                         <i className="fa-solid fa-xmark"></i>
@@ -348,10 +349,14 @@ ProfileGamesTab.propTypes = {
     onGameChange: PropTypes.func.isRequired,
     /** Submits the add-game form */
     onAddGame: PropTypes.func.isRequired,
+    /** Clears add-game errors and resets state when the modal is dismissed without saving */
+    onCancelAddGame: PropTypes.func.isRequired,
     /** Deletes a game by id */
     onDeleteGame: PropTypes.func.isRequired,
     /** Submits inline hours edit form */
     onUpdateHours: PropTypes.func.isRequired,
+    /** Cancels inline hours edit: resets editing id, form state and error */
+    onCancelEditGame: PropTypes.func.isRequired,
     /** ID of the game row currently being inline-edited */
     idOfGameBeingEdited: PropTypes.number.isRequired,
     /** Sets which game row is in edit mode */
