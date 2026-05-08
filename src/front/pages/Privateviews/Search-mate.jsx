@@ -169,11 +169,12 @@ export const SearchMate = () => {
       dispatch({ type: "saveDislike", payload: dislikedProfile });
     } catch (error) {
       console.error("Error sending dislike:", error);
+      // Aunque falle la red, avanzamos de todas formas para no bloquear la UI
     } finally {
       const remainingProfiles = store.searchMatchProfiles.filter(
         (_, index) => index !== currentUser
       );
-      dispatch({ type: "getSearchMatchProfiles", payload: remainingProfiles });
+      dispatch({ type: "getSearchMatchProfilesFiltered", payload: remainingProfiles });
       setCurrentUser(0);
       setIsAnimating(false);
     }
@@ -199,7 +200,9 @@ export const SearchMate = () => {
 
 
   //Mensaje si tarda al cargar nuevos users
-  if (loading) {
+  // IMPORTANTE: no mostrar skeleton si el modal de match está abierto
+  // (el re-fetch se dispara por el cambio de userMatchesInfo al hacer match)
+  if (loading && !showMatchModal) {
     return <SearchMatchCardSkeleton />;
   }
 

@@ -258,22 +258,24 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
               <hr className="search-match-last-line" />
 
               {/* botones */}
-              <div className='row mt-3 d-flex justify-content-center'>
-                <div className="col-6">
+              <div className='row mt-3 d-flex justify-content-center align-items-center gap-3'>
+                <div className="col-auto">
                   {/* dislike button */}
                   <button type="button"
                     onClick={handleDislike}
-                    className="p-1 me-1 bg-transparent border border-3  search-match-button search-match-dislike-btn-border ">
+                    className="p-1 bg-transparent border border-3 search-match-button search-match-dislike-btn-border">
                     <i className="fa-solid fa-xmark fa-3x d-flex justify-content-center align-items-center search-match-dislike"></i>
                   </button>
                 </div>
 
-                {/* like button */}
-                <button type="button"
-                  onClick={handleLike}
-                  className="p-1 me-1 bg-transparent border border-3 search-match-button search-match-like-btn-border">
-                  <i className="hover-button-pulsate-bck fa-solid fa-heart fa-2x d-flex justify-content-center align-items-center search-match-like "></i>
-                </button>
+                <div className="col-auto">
+                  {/* like button */}
+                  <button type="button"
+                    onClick={handleLike}
+                    className="p-1 bg-transparent border border-3 search-match-button search-match-like-btn-border">
+                    <i className="hover-button-pulsate-bck fa-solid fa-heart fa-2x d-flex justify-content-center align-items-center search-match-like"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
