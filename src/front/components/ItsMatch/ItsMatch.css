@@ -261,3 +261,11 @@
   border-color: #00f0ff;
   background: #00f0ff0f;
 }
+
+/* ── Discord copy feedback ── */
+.its-match-discord--copied {
+  border-color: #00ff88 !important;
+  color: #00ff88 !important;
+  background: #00ff8818 !important;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}

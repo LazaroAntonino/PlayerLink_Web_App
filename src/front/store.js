@@ -46,13 +46,14 @@ export default function storeReducer(store, action = {}) {
         ...store,
         searchMatchProfiles: action.payload,
       };
-    case "saveLike":
+    case "saveLike": {
       const updatedLikes = [...store.likesSent, action.payload];
       localStorage.setItem("likesSent", JSON.stringify(updatedLikes));
       return {
         ...store,
         likesSent: updatedLikes,
       };
+    }
 
     case "saveDislike": {
       const updatedDislikes = [...store.dislikesSent, action.payload];

@@ -1,6 +1,6 @@
 import './ItsMatch.css';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import photo1 from "../../assets/img/profile-pics/profile-pic-1.png";
 import photo2 from "../../assets/img/profile-pics/profile-pic-2.png";
 import photo3 from "../../assets/img/profile-pics/profile-pic-3.png";
@@ -71,6 +71,7 @@ function Confetti() {
 
 export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
     const navigate = useNavigate();
+    const [discordCopied, setDiscordCopied] = useState(false);
 
     if (!profile) return null;
 
@@ -86,7 +87,10 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
 
     const copyDiscord = () => {
         if (profile.discord && profile.discord !== 'undefined') {
-            navigator.clipboard.writeText(profile.discord);
+            navigator.clipboard.writeText(profile.discord).then(() => {
+                setDiscordCopied(true);
+                setTimeout(() => setDiscordCopied(false), 2000);
+            });
         }
     };
 
@@ -143,12 +147,15 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
                 )}
                 {profile.discord && profile.discord !== 'undefined' && (
                     <span
-                        className="its-match-tag its-match-discord"
+                        className={`its-match-tag its-match-discord${discordCopied ? ' its-match-discord--copied' : ''}`}
                         onClick={copyDiscord}
                         title="Click to copy Discord"
                     >
-                        <i className="fa-brands fa-discord me-1" />
-                        {profile.discord}
+                        <i className={`fa-brands fa-discord me-1${discordCopied ? ' d-none' : ''}`} />
+                        {discordCopied
+                            ? <><i className="fa-solid fa-check me-1" />¡Copiado!</>
+                            : profile.discord
+                        }
                     </span>
                 )}
             </div>

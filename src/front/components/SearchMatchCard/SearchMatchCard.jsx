@@ -92,8 +92,23 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
   // Touch events
   const handleTouchStart = (e) => onDragStart(e.touches[0].clientX);
-  const handleTouchMove = (e) => onDragMove(e.touches[0].clientX);
   const handleTouchEnd = () => onDragEnd();
+
+  // Non-passive native touchmove listener to allow preventDefault() and prevent
+  // page scroll while dragging the card on mobile (React 17+ registers touch events
+  // as passive by default, making e.preventDefault() a no-op in synthetic handlers).
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+    const onTouchMoveNative = (e) => {
+      if (dragRef.current.active) {
+        e.preventDefault(); // prevents page scroll during card drag
+        onDragMove(e.touches[0].clientX);
+      }
+    };
+    card.addEventListener('touchmove', onTouchMoveNative, { passive: false });
+    return () => card.removeEventListener('touchmove', onTouchMoveNative);
+  }, []);
   // ──────────────────────────────────────────────────────────────────────────
 
   const handleLike = () => {
@@ -137,7 +152,6 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
             onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{ userSelect: 'none', cursor: 'grab' }}
           >
