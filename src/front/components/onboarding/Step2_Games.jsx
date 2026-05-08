@@ -19,8 +19,15 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
             onChange({ games: data.games.filter(g => g.title !== game.title) });
         } else {
             if (data.games.length >= MAX_GAMES) return;
-            onChange({ games: [...data.games, { title: game.title, image: game.image, hours_played: 0 }] });
+            onChange({ games: [...data.games, { title: game.title, image: game.image, hours_played: "" }] });
         }
+    };
+
+    const updateHours = (title, value) => {
+        const hours = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
+        onChange({
+            games: data.games.map(g => g.title === title ? { ...g, hours_played: hours } : g),
+        });
     };
 
     const removeChip = (title) => {
@@ -35,12 +42,28 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
             <h2>Tus juegos favoritos</h2>
             <p className="ob-subtitle">Selecciona hasta {MAX_GAMES} juegos que más juegas</p>
 
-            {/* Chips de juegos seleccionados */}
+            {/* Chips de juegos seleccionados con campo de horas inline */}
             {data.games.length > 0 && (
-                <div className="ob-chips-row">
+                <div className="ob-selected-games">
                     {data.games.map(g => (
-                        <span key={g.title} className="ob-chip">
-                            {g.title}
+                        <div key={g.title} className="ob-game-chip-row">
+                            <span className="ob-game-chip-title">
+                                <i className="fa-solid fa-gamepad ob-game-chip-icon" />
+                                {g.title}
+                            </span>
+                            <label className="ob-game-chip-hours-label">
+                                <input
+                                    type="number"
+                                    className="ob-game-chip-hours-input"
+                                    min="0"
+                                    max="99999"
+                                    placeholder="0"
+                                    value={g.hours_played}
+                                    onChange={e => updateHours(g.title, e.target.value)}
+                                    aria-label={`Horas en ${g.title}`}
+                                />
+                                <span className="ob-game-chip-hours-unit">h</span>
+                            </label>
                             <button
                                 type="button"
                                 className="ob-chip-remove"
@@ -49,7 +72,7 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
                             >
                                 ×
                             </button>
-                        </span>
+                        </div>
                     ))}
                 </div>
             )}
@@ -78,7 +101,6 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
                             className={"ob-game-item" + (sel ? " selected" : "") + (disabled ? " disabled" : "")}
                             onClick={() => toggleGame(game)}
                             disabled={disabled}
-                            style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1 }}
                         >
                             <span className="ob-game-item-check">
                                 {sel && <i className="fa-solid fa-check" style={{ fontSize: "0.65rem", color: "#07070f" }} />}

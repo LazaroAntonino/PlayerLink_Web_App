@@ -1,114 +1,64 @@
 import './Terms.css';
-import React, { useState } from "react";
 
-export const Terms = ({ onAccept }) => {
+/**
+ * TermsText — renderiza el contenido de Términos y Condiciones.
+ * Sin Bootstrap modal; se usa inline dentro del formulario de registro.
+ */
+export const TermsText = () => (
+  <div className="terms-text-content">
+    <p>
+      Welcome to PlayerLink, our platform for connecting gamers. By registering,
+      you agree to the following terms. Please read them carefully.
+    </p>
 
-  const [accepted, setAccepted] = useState(false);
+    <h6>1. Service Description</h6>
+    <p>
+      Our platform helps users discover and connect with other gamers based on
+      shared interests, using details such as Steam ID, Discord username,
+      language, zodiac sign, play style, and approximate location.
+    </p>
 
-  // Función para manejar el checkbox
-  const handleCheckbox = (e) => {
-    setAccepted(e.target.checked);
-  };
+    <h6>2. Privacy and Data Protection</h6>
+    <p>
+      All information provided will be handled according to our Privacy Policy.
+      We will never share your Steam or Discord credentials with third parties
+      without your consent.
+    </p>
 
-  // Función para el botón Guardar que solo funciona si está aceptado
-  const handleSave = () => {
-    if (accepted && onAccept) {
-      onAccept();  // Avisa de que se aceptaron los T&C
-      const modal = window.bootstrap.Modal.getInstance(document.getElementById("TermsAndConditionsModal"));
-      modal.hide(); // cierra el modal porque si se aceptó
-    }
-  };
+    <h6>3. User Conduct</h6>
+    <p>
+      Using the platform to harass, deceive, or harm other users is strictly
+      prohibited. Toxic, racist, offensive, or fraudulent behaviour may result
+      in account suspension or permanent ban.
+    </p>
 
+    <h6>4. Third-Party Integration</h6>
+    <p>
+      By connecting your Steam and Discord accounts, you authorise the app to
+      access basic profile data to enhance the matchmaking experience.
+    </p>
 
-  return (
+    <h6>5. Changes to the Service</h6>
+    <p>
+      We reserve the right to modify or discontinue the service at any time,
+      with or without notice.
+    </p>
 
-    <>
-      {/* <!-- Button trigger modal --> */}
-      {/* <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#TermsAndConditionsModal">
-        T&C
-      </button> */}
+    <h6>6. Account Deletion</h6>
+    <p>
+      You may delete your account at any time from your settings. We also
+      reserve the right to suspend your access if you violate these terms.
+    </p>
 
-      {/* <!-- Modal --> */}
-      <div className="modal fade" id="TermsAndConditionsModal" tabIndex="-1" aria-labelledby="TermsAndConditionsModalLabel" aria-hidden="true">
-        <div className="modal-dialog">
-          <div className="modal-content terms-border ">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="TermsAndConditionsModalLabel">Terms and Conditions</h1>
-              <button type="button" className="btn-close terms-close-modal me-1" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body ms-2 ">
-              <p>
-                Welcome to PlayerLInk, our platform for connecting gamers. By registering, you agree to the following terms and conditions. Please read them carefully before using our services.
-              </p>
+    <h6>7. Limitation of Liability</h6>
+    <p>
+      We are not responsible for any interactions that occur outside of the app,
+      nor for disputes between users. Use the service at your own risk.
+    </p>
 
-              <h5>1. Service Description</h5>
-              <p>
-                Our platform helps users discover and connect with other gamers based on shared interests, using details such as Steam ID, Discord username, language, zodiac sign, play style, and approximate location.
-              </p>
-
-              <h5>2. Privacy and Data Protection</h5>
-              <p>
-                All information provided will be handled according to our Privacy Policy. We will never share your Steam or Discord credentials with third parties without your consent.
-              </p>
-
-              <h5>3. User Conduct</h5>
-              <p>
-                Using the platform to harass, deceive, or harm other users is strictly prohibited. Any toxic, racist, offensive, or fraudulent behavior may result in your account being suspended or permanently banned.
-              </p>
-
-              <h5>4. Third-Party Integration</h5>
-              <p>
-                By connecting your Steam and Discord accounts, you authorize the app to access basic profile data to enhance the matchmaking experience.
-              </p>
-
-              <h5>5. Changes to the Service</h5>
-              <p>
-                We reserve the right to modify or discontinue the service at any time, with or without notice.
-              </p>
-
-              <h5>6. Account Deletion</h5>
-              <p>
-                You may delete your account at any time from your settings. We also reserve the right to suspend your access if you violate these terms.
-              </p>
-
-              <h5>7. Limitation of Liability</h5>
-              <p>
-                We are not responsible for any interactions that occur outside of the app, nor for disputes between users. Use the service at your own risk.
-              </p>
-
-              <p className="mt-4">If you have any questions, feel free to contact us at support@playerlink.com.</p>
-            </div>
-            <div className="modal-footer">
-              {/* Checkbox para aceptar */}
-              <div className="form-check mt-3">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="acceptTermsCheckbox"
-                  checked={accepted}
-                  onChange={handleCheckbox}
-                />
-                <label className="form-check-label" htmlFor="acceptTermsCheckbox">
-                  I have read and accept the Terms and Conditions
-                </label>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn terms-decline-btn" data-bs-dismiss="modal">Decline</button>
-              <button
-                type="button"
-                className="btn terms-accept-btn"
-                disabled={!accepted}
-                data-bs-dismiss={accepted ? "modal" : undefined}
-                onClick={handleSave}
-              >
-                Accept
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </>
-  )
-}
+    <p className="terms-contact">
+      Questions? Contact us at{' '}
+      <a href="mailto:support@playerlink.com">support@playerlink.com</a>
+    </p>
+  </div>
+);

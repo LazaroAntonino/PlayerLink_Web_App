@@ -324,6 +324,89 @@
   opacity: 1;
 }
 
+/* ── Juegos seleccionados con campo de horas ─────────────────────── */
+.ob-selected-games {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ob-game-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 10px;
+  padding: 0.4rem 0.7rem;
+  animation: ob-chip-in 0.2s ease forwards;
+}
+
+.ob-game-chip-title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary, #00f0ff);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ob-game-chip-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.ob-game-chip-hours-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.ob-game-chip-hours-input {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.4rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* Ocultar flechas en Chrome/Safari/Firefox */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
+
+.ob-game-chip-hours-input::-webkit-inner-spin-button,
+.ob-game-chip-hours-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ob-game-chip-hours-input:focus {
+  border-color: var(--color-primary, #00f0ff);
+  box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.15);
+}
+
+.ob-game-chip-hours-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.ob-game-chip-hours-unit {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #8888aa);
+  font-weight: 500;
+}
+
 .ob-game-list {
   display: flex;
   flex-direction: column;

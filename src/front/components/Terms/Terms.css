@@ -1,22 +1,33 @@
-.terms-border {
-  border: solid 3px !important;
-  border-color: #8f00ff !important;
+/* ── Terms inline text ───────────────────────────────────────────── */
+.terms-text-content {
+  font-size: 0.8rem;
+  color: var(--color-text-muted, #8888aa);
+  line-height: 1.6;
 }
 
-.terms-close-modal {
-  background-color: #a41ef165;
-}
-.terms-accept-btn{
-    background-color: #00f0ff
-}
-
-.terms-accept-btn:hover{
-    background-color: #8f00ff 
+.terms-text-content h6 {
+  color: var(--color-primary, #00f0ff);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0.8rem 0 0.2rem;
 }
 
-.terms-decline-btn{
-    background-color: #64646465;
+.terms-text-content p {
+  margin-bottom: 0.4rem;
 }
-.terms-decline-btn:hover{
-    background-color: #ff000065;
+
+.terms-contact {
+  margin-top: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.terms-contact a {
+  color: var(--color-primary, #00f0ff);
+  text-decoration: none;
+}
+
+.terms-contact a:hover {
+  text-decoration: underline;
 }

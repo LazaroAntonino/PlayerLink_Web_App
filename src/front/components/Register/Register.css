@@ -48,3 +48,87 @@
   padding-left: 0px;
  }
 }
+/* ── Terms & Conditions inline section ─────────────────────────────── */
+.register-terms-section {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.75rem;
+}
+
+.register-terms-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.register-terms-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #00f0ff;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.register-terms-label {
+  font-size: 0.82rem;
+  color: #333;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.register-terms-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #8f00ff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  transition: color 0.2s ease;
+}
+
+.register-terms-toggle:hover {
+  color: #00f0ff;
+}
+
+.register-terms-body {
+  margin-top: 0.6rem;
+  max-height: 180px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  scrollbar-width: thin;
+  scrollbar-color: #8f00ff transparent;
+  animation: terms-slide-in 0.2s ease forwards;
+}
+
+@keyframes terms-slide-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Submit button ──────────────────────────────────────────────────── */
+.register-submit-btn {
+  border: 2px solid aqua !important;
+  padding: 0.5rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.register-submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
