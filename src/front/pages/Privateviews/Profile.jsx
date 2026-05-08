@@ -171,13 +171,14 @@ const Profile = () => {
   const getReviews = async () => {
     reviewServices
       .getAllReviewsReceived(store.user?.id)
-      .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
+      .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }))
+      .catch((err) => console.error("Error loading reviews:", err));
   };
 
   const loadProfile = async () => {
     try {
       const data = await userServices.getUserInfo();
-      await dispatch({ type: "getUserInfo", payload: data.user });
+      dispatch({ type: "getUserInfo", payload: data.user });
 
       const p = data.user?.profile;
       if (!p) return;

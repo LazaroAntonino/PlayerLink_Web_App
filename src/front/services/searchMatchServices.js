@@ -37,7 +37,6 @@ searchMatchServices.addDislikeSent = async (rejector_id, rejected_id) => {
   try {
     const resp = await apiFetch(`/api/rejects/${rejector_id}/${rejected_id}`, {
       method: "POST",
-      body: JSON.stringify({ rejector_id, rejected_id }),
     });
     if (!resp.ok) throw new Error("Failed to send a dislike");
     return resp.json();

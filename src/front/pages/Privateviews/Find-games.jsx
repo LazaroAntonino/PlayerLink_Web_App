@@ -3,6 +3,7 @@ import "../../findGames.css";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { useNavigate, useLocation } from "react-router-dom";
 import userServices from "../../services/userServices.js";
+import apiFetch from "../../services/apiFetch.js";
 
 const INITIAL_MESSAGE = {
   sender: "bot",
@@ -17,7 +18,6 @@ const QUICK_SUGGESTIONS = [
 ];
 
 export const FindGames = () => {
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { store, dispatch } = useGlobalReducer();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,13 +64,8 @@ export const FindGames = () => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${BACKEND_URL}/api/ai/find-games`, {
+      const response = await apiFetch(`/api/ai/find-games`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ messages: updatedMessages }),
       });
 
