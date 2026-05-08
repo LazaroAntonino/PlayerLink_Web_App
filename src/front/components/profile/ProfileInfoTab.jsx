@@ -222,9 +222,9 @@ export const ProfileInfoTab = ({
                         <FieldValue
                             value={
                                 profile.preferences &&
-                                profile.preferences.trim().length > 0 &&
-                                profile.preferences !== "Undefinied" &&
-                                profile.preferences !== "Undefined"
+                                    profile.preferences.trim().length > 0 &&
+                                    profile.preferences !== "Undefinied" &&
+                                    profile.preferences !== "Undefined"
                                     ? profile.preferences
                                     : null
                             }

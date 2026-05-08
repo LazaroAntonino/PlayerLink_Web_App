@@ -35,7 +35,7 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
             const parsedUser = userInfo?.user ?? JSON.parse(localStorage.getItem('user'))
             dispatch({ type: 'getUserInfo', payload: parsedUser })
             if (onSuccess) onSuccess()
-            navigate('/private/profile')
+            navigate('/private')
         } catch (error) {
             console.error('Login failed', error)
             setErrorLogin("Something went wrong. Please try again.")
