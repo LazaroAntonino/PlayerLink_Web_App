@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { flushSync } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import "./chat.css";
 import chatServices from "../services/chatServices.js";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { PHOTO_ASSETS, DEFAULT_PHOTO } from "../assets/photoAssets.js";
 
-const POLL_MS    = 4000;
-const MAX_CHARS  = 500;
-const MAX_LINES  = 3;
+const POLL_MS = 4000;
+const MAX_CHARS = 500;
+const MAX_LINES = 3;
 const LINE_HEIGHT = 24; // px aproximado por línea
-const PAGE_LIMIT  = 30; // mensajes por página
+const PAGE_LIMIT = 30; // mensajes por página
 
 // ── Helpers ───────────────────────────────────────────────
 const formatTime = (isoString) => {
@@ -43,19 +44,19 @@ const Chat = () => {
     const navigate = useNavigate();
     const { store, dispatch } = useGlobalReducer();
 
-    const [messages, setMessages]       = useState([]);
-    const [hasMore, setHasMore]         = useState(false);
+    const [messages, setMessages] = useState([]);
+    const [hasMore, setHasMore] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
-    const [otherUser, setOtherUser]     = useState(null);
-    const [text, setText]               = useState("");
-    const [sending, setSending]         = useState(false);
-    const [error, setError]             = useState("");
-    const [loading, setLoading]         = useState(true);
+    const [otherUser, setOtherUser] = useState(null);
+    const [text, setText] = useState("");
+    const [sending, setSending] = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
 
-    const bottomRef      = useRef(null);
-    const textareaRef    = useRef(null);
-    const pollRef        = useRef(null);
-    const isTypingRef    = useRef(false);
+    const bottomRef = useRef(null);
+    const textareaRef = useRef(null);
+    const pollRef = useRef(null);
+    const isTypingRef = useRef(false);
     const messagesAreaRef = useRef(null);
 
     // Cursor refs — updated on every load, used by polling & load-more
@@ -155,26 +156,28 @@ const Chat = () => {
         // Guardar scroll actual para restaurarlo tras prepend
         const area = messagesAreaRef.current;
         const scrollHeightBefore = area?.scrollHeight ?? 0;
-        const scrollTopBefore    = area?.scrollTop    ?? 0;
+        const scrollTopBefore = area?.scrollTop ?? 0;
 
         try {
             const data = await chatServices.getMessages(matchId, {
                 beforeId: oldestIdRef.current,
                 limit: PAGE_LIMIT,
             });
-            setMessages(prev => [...data.messages, ...prev]);
-            setHasMore(data.has_more);
 
-            if (data.oldest_id !== null) {
-                oldestIdRef.current = data.oldest_id;
-            }
-
-            // Restaurar posición de scroll — el usuario no debe saltar al principio
-            requestAnimationFrame(() => {
-                if (area) {
-                    area.scrollTop = scrollTopBefore + (area.scrollHeight - scrollHeightBefore);
+            // flushSync forces React to commit DOM synchronously so we can
+            // measure the new scrollHeight immediately after — no scroll jump.
+            flushSync(() => {
+                setMessages(prev => [...data.messages, ...prev]);
+                setHasMore(data.has_more);
+                if (data.oldest_id !== null) {
+                    oldestIdRef.current = data.oldest_id;
                 }
             });
+
+            // DOM is already updated here — restore scroll position precisely
+            if (area) {
+                area.scrollTop = scrollTopBefore + (area.scrollHeight - scrollHeightBefore);
+            }
         } catch (err) {
             console.error("Error cargando mensajes anteriores:", err);
             setError("No se pudieron cargar mensajes anteriores.");

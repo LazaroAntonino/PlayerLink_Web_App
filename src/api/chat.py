@@ -45,7 +45,7 @@ def get_chat_messages(match_id):
     # ── Query params ──────────────────────────────────────────────────────
     before_id = request.args.get('before_id', type=int)   # load older history
     after_id  = request.args.get('after_id',  type=int)   # poll newer messages
-    limit     = min(request.args.get('limit', 30, type=int), 50)
+    limit     = max(1, min(request.args.get('limit', 30, type=int), 50))
 
     q = db.session.query(ChatMessage).filter(ChatMessage.match_id == match_id)
 
