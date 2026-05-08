@@ -99,6 +99,7 @@ export default function storeReducer(store, action = {}) {
       localStorage.removeItem("searchMatchProfiles");
       localStorage.removeItem("profile");
       localStorage.removeItem("itsMatchInfo");
+      localStorage.removeItem("playerlink_onboarding");
 
       return {
         user: null,

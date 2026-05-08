@@ -97,11 +97,21 @@ const Onboarding = () => {
             return;
         }
 
-        // Construir el campo `preferences` concatenando plataformas + estilo
-        const preferences = [
+        // Construir el campo `preferences` en formato estándar: "A, B and C."
+        const prefItems = [
             ...onboardingData.platforms,
             onboardingData.playStyle,
-        ].filter(Boolean).join(",");
+        ].filter(Boolean);
+        let preferences;
+        if (prefItems.length === 0) {
+            preferences = "";
+        } else if (prefItems.length === 1) {
+            preferences = prefItems[0] + ".";
+        } else {
+            const last = prefItems[prefItems.length - 1];
+            const rest = prefItems.slice(0, -1).join(", ");
+            preferences = `${rest} and ${last}.`;
+        }
 
         const profilePayload = {
             nick_name: onboardingData.nick_name,
@@ -131,7 +141,7 @@ const Onboarding = () => {
             // Refrescar el store con los datos actualizados
             const updatedUser = await userServices.getUserInfo();
             const parsed = updatedUser?.user ?? JSON.parse(localStorage.getItem("user"));
-            dispatch({ type: "getUserInfo", payload: parsed });
+            dispatch({ type: "refreshUser", payload: parsed });
 
             // Limpiar onboarding del localStorage
             localStorage.removeItem(LS_KEY);
