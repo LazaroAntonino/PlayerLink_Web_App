@@ -1,6 +1,7 @@
 """
 Authentication & User management blueprint.
-Routes: /register, /login, /mailer, /token, /check_mail,
+Routes: /register, /login, /token, /check_mail,
+        /verify-email, /resend-verification,
         /password_update, /password_update_with_token,
         /private, /users (CRUD)
 """
@@ -22,7 +23,6 @@ from api.utils import admin_required, hash_password
 from api.extensions import limiter
 from flask_limiter.util import get_remote_address
 from api.mail.mailer import send_email, send_verification_email
-
 load_dotenv()
 
 auth_bp = Blueprint('auth', __name__)
@@ -122,12 +122,6 @@ def login():
     except Exception as e:
         print(f"[LOGIN ERROR] {type(e).__name__}: {e}")
         return jsonify({'error': 'Login failed', 'detail': str(e)}), 400
-
-
-# ── MAILER ────────────────────────────────────────────────────────────────────
-@auth_bp.route('/mailer/<address>', methods=['POST'])
-def handle_mail(address):
-    return send_email(address)
 
 
 # ── VERIFY EMAIL ──────────────────────────────────────────────────────────────
