@@ -3,6 +3,12 @@ Chat blueprint.
 Routes: /chat/messages/<match_id> (GET/POST),
         /chat/messages/unread/count (GET),
         /chat/preview/<user_id> (GET)
+
+Pagination on GET /chat/messages/<match_id>:
+  ?before_id=<int>  → load N messages older than that ID  (load-more)
+  ?after_id=<int>   → load messages newer than that ID    (polling)
+  ?limit=<int>      → page size, default 30, max 50
+  Response: { messages: [...], has_more: bool, oldest_id: int|null }
 """
 from flask import Blueprint, request, jsonify
 from sqlalchemy import select
@@ -36,29 +42,65 @@ def get_chat_messages(match_id):
     if err:
         return err
 
-    # Last 50 messages ordered ascending for display
-    messages = (
-        db.session.query(ChatMessage)
-        .filter(ChatMessage.match_id == match_id)
-        .order_by(ChatMessage.created_at.desc())
-        .limit(50)
-        .all()
-    )
-    messages = list(reversed(messages))
+    # ── Query params ──────────────────────────────────────────────────────
+    before_id = request.args.get('before_id', type=int)   # load older history
+    after_id  = request.args.get('after_id',  type=int)   # poll newer messages
+    limit     = min(request.args.get('limit', 30, type=int), 50)
 
-    # Mark unread messages from the OTHER user as read
-    (
-        db.session.query(ChatMessage)
-        .filter(
-            ChatMessage.match_id == match_id,
-            ChatMessage.sender_id != user_id,
-            ChatMessage.read == False,          # noqa: E712
+    q = db.session.query(ChatMessage).filter(ChatMessage.match_id == match_id)
+
+    if after_id is not None:
+        # Polling: all messages newer than after_id (no "has_more" needed here)
+        messages = (
+            q.filter(ChatMessage.id > after_id)
+            .order_by(ChatMessage.created_at.asc())
+            .all()
         )
-        .update({'read': True}, synchronize_session=False)
-    )
-    db.session.commit()
+        has_more = False
 
-    return jsonify([m.serialize() for m in messages]), 200
+    elif before_id is not None:
+        # Load older: messages with id < before_id, fetch limit+1 to detect more
+        raw = (
+            q.filter(ChatMessage.id < before_id)
+            .order_by(ChatMessage.created_at.desc())
+            .limit(limit + 1)
+            .all()
+        )
+        has_more = len(raw) > limit
+        messages = list(reversed(raw[:limit]))
+
+    else:
+        # Initial load: last N messages
+        raw = (
+            q.order_by(ChatMessage.created_at.desc())
+            .limit(limit + 1)
+            .all()
+        )
+        has_more = len(raw) > limit
+        messages = list(reversed(raw[:limit]))
+
+    # ── Mark unread as read ───────────────────────────────────────────────
+    # Always mark when viewing current/new messages (initial + polling).
+    # Skip when loading older history (before_id) — those were already read.
+    if before_id is None:
+        (
+            db.session.query(ChatMessage)
+            .filter(
+                ChatMessage.match_id == match_id,
+                ChatMessage.sender_id != user_id,
+                ChatMessage.read == False,          # noqa: E712
+            )
+            .update({'read': True}, synchronize_session=False)
+        )
+        db.session.commit()
+
+    oldest_id = messages[0].id if messages else None
+
+    return jsonify({
+        'messages':  [m.serialize() for m in messages],
+        'has_more':  has_more,
+        'oldest_id': oldest_id,
+    }), 200
 
 
 # ── POST message ──────────────────────────────────────────────────────────────

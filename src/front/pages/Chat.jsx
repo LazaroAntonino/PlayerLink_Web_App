@@ -5,10 +5,11 @@ import chatServices from "../services/chatServices.js";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 import { PHOTO_ASSETS, DEFAULT_PHOTO } from "../assets/photoAssets.js";
 
-const POLL_MS = 4000;
-const MAX_CHARS = 500;
-const MAX_LINES = 3;
+const POLL_MS    = 4000;
+const MAX_CHARS  = 500;
+const MAX_LINES  = 3;
 const LINE_HEIGHT = 24; // px aproximado por línea
+const PAGE_LIMIT  = 30; // mensajes por página
 
 // ── Helpers ───────────────────────────────────────────────
 const formatTime = (isoString) => {
@@ -42,43 +43,72 @@ const Chat = () => {
     const navigate = useNavigate();
     const { store, dispatch } = useGlobalReducer();
 
-    const [messages, setMessages] = useState([]);
-    const [otherUser, setOtherUser] = useState(null);
-    const [text, setText] = useState("");
-    const [sending, setSending] = useState(false);
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);
+    const [messages, setMessages]       = useState([]);
+    const [hasMore, setHasMore]         = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [otherUser, setOtherUser]     = useState(null);
+    const [text, setText]               = useState("");
+    const [sending, setSending]         = useState(false);
+    const [error, setError]             = useState("");
+    const [loading, setLoading]         = useState(true);
 
-    const bottomRef = useRef(null);
-    const textareaRef = useRef(null);
-    const pollRef = useRef(null);
-    const isTypingRef = useRef(false);
+    const bottomRef      = useRef(null);
+    const textareaRef    = useRef(null);
+    const pollRef        = useRef(null);
+    const isTypingRef    = useRef(false);
     const messagesAreaRef = useRef(null);
 
-    // ── Fetch messages ────────────────────────────────────────
+    // Cursor refs — updated on every load, used by polling & load-more
+    const latestIdRef = useRef(null);   // highest msg id we have
+    const oldestIdRef = useRef(null);   // lowest  msg id we have (for load-more)
+
+    // ── Polling: fetch only NEW messages (after_id) ───────────────────────
     const fetchMessages = useCallback(async () => {
         try {
-            const data = await chatServices.getMessages(matchId);
-            setMessages(data);
-
-            // Actualizar badge global con el nuevo unread real
-            const { unread } = await chatServices.getUnreadCount();
-            dispatch({ type: "setUnreadCount", payload: unread });
+            if (latestIdRef.current !== null) {
+                // Efficient: only fetch messages we don't have yet
+                const data = await chatServices.getMessages(matchId, {
+                    afterId: latestIdRef.current,
+                    limit: PAGE_LIMIT,
+                });
+                if (data.messages.length > 0) {
+                    setMessages(prev => [...prev, ...data.messages]);
+                    latestIdRef.current = Math.max(...data.messages.map(m => m.id));
+                    // Refresh unread badge
+                    const { unread } = await chatServices.getUnreadCount();
+                    dispatch({ type: "setUnreadCount", payload: unread });
+                }
+            } else {
+                // Empty conversation — full fetch to detect first incoming message
+                const data = await chatServices.getMessages(matchId, { limit: PAGE_LIMIT });
+                if (data.messages.length > 0) {
+                    setMessages(data.messages);
+                    setHasMore(data.has_more);
+                    latestIdRef.current = Math.max(...data.messages.map(m => m.id));
+                    oldestIdRef.current = data.oldest_id;
+                    const { unread } = await chatServices.getUnreadCount();
+                    dispatch({ type: "setUnreadCount", payload: unread });
+                }
+            }
         } catch (err) {
             console.error("Error polling messages:", err);
         }
     }, [matchId, dispatch]);
 
-    // ── Carga inicial ─────────────────────────────────────────
+    // ── Carga inicial ─────────────────────────────────────────────────────
     useEffect(() => {
         if (!store.user?.id) { navigate("/"); return; }
-        // NOTE: store.userMatchesInfo guard removed — chat fetches its own data
-        // and the guard caused an infinite spinner when the store hadn't loaded matches yet.
 
         (async () => {
             try {
-                const data = await chatServices.getMessages(matchId);
-                setMessages(data);
+                const data = await chatServices.getMessages(matchId, { limit: PAGE_LIMIT });
+                setMessages(data.messages);
+                setHasMore(data.has_more);
+
+                if (data.messages.length > 0) {
+                    latestIdRef.current = Math.max(...data.messages.map(m => m.id));
+                    oldestIdRef.current = data.oldest_id;
+                }
 
                 // Resolve the other user from chat previews
                 const previews = await chatServices.getChatPreviews(store.user.id);
@@ -91,15 +121,14 @@ const Chat = () => {
             } catch (err) {
                 setError("No se pudieron cargar los mensajes.");
             } finally {
-                setLoading(false);  // always hide spinner, success or error
+                setLoading(false);
             }
         })();
     }, [matchId, store.user]);
 
-    // ── Polling ───────────────────────────────────────────────
+    // ── Polling ───────────────────────────────────────────────────────────
     useEffect(() => {
         pollRef.current = setInterval(() => {
-            // No hacer polling si el usuario está escribiendo o la ventana no tiene foco
             if (isTypingRef.current || !document.hasFocus()) return;
             fetchMessages();
         }, POLL_MS);
@@ -107,9 +136,7 @@ const Chat = () => {
         return () => clearInterval(pollRef.current);
     }, [fetchMessages]);
 
-    // ── Scroll al último mensaje ──────────────────────────────
-    // Only auto-scroll when the user is already near the bottom
-    // (avoids interrupting reading of older messages during polling)
+    // ── Auto-scroll al último mensaje (solo si el usuario está abajo) ─────
     useEffect(() => {
         if (!messages.length) return;
         const area = messagesAreaRef.current;
@@ -120,14 +147,49 @@ const Chat = () => {
         }
     }, [messages]);
 
-    // ── Textarea auto-grow ────────────────────────────────────
+    // ── Cargar mensajes anteriores (paginación hacia arriba) ──────────────
+    const handleLoadMore = async () => {
+        if (!hasMore || loadingMore || oldestIdRef.current === null) return;
+        setLoadingMore(true);
+
+        // Guardar scroll actual para restaurarlo tras prepend
+        const area = messagesAreaRef.current;
+        const scrollHeightBefore = area?.scrollHeight ?? 0;
+        const scrollTopBefore    = area?.scrollTop    ?? 0;
+
+        try {
+            const data = await chatServices.getMessages(matchId, {
+                beforeId: oldestIdRef.current,
+                limit: PAGE_LIMIT,
+            });
+            setMessages(prev => [...data.messages, ...prev]);
+            setHasMore(data.has_more);
+
+            if (data.oldest_id !== null) {
+                oldestIdRef.current = data.oldest_id;
+            }
+
+            // Restaurar posición de scroll — el usuario no debe saltar al principio
+            requestAnimationFrame(() => {
+                if (area) {
+                    area.scrollTop = scrollTopBefore + (area.scrollHeight - scrollHeightBefore);
+                }
+            });
+        } catch (err) {
+            console.error("Error cargando mensajes anteriores:", err);
+            setError("No se pudieron cargar mensajes anteriores.");
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    // ── Textarea auto-grow ────────────────────────────────────────────────
     const handleTextChange = (e) => {
         const val = e.target.value;
         if (val.length > MAX_CHARS) return;
         setText(val);
         isTypingRef.current = val.length > 0;
 
-        // Auto-resize
         const ta = textareaRef.current;
         if (ta) {
             ta.style.height = "auto";
@@ -136,7 +198,7 @@ const Chat = () => {
         }
     };
 
-    // ── Enviar mensaje ────────────────────────────────────────
+    // ── Enviar mensaje ────────────────────────────────────────────────────
     const handleSend = async () => {
         const content = text.trim();
         if (!content || sending) return;
@@ -149,6 +211,8 @@ const Chat = () => {
         try {
             const newMsg = await chatServices.sendMessage(matchId, content);
             setMessages(prev => [...prev, newMsg]);
+            // Actualizar cursor de latest para que el polling no repita este mensaje
+            latestIdRef.current = newMsg.id;
         } catch (err) {
             setError(err.message || "No se pudo enviar el mensaje");
         } finally {
@@ -163,13 +227,13 @@ const Chat = () => {
         }
     };
 
-    // ── Avatar del otro ───────────────────────────────────────
+    // ── Avatar del otro usuario ───────────────────────────────────────────
     const otherPhoto = otherUser?.photo
         ? (PHOTO_ASSETS[otherUser.photo] ?? DEFAULT_PHOTO)
         : null;
     const otherInitials = (otherUser?.nickname || "??").slice(0, 2).toUpperCase();
 
-    // ── Render ────────────────────────────────────────────────
+    // ── Render ────────────────────────────────────────────────────────────
     return (
         <div className="chat-page-wrapper">
             <div className="chat-window">
@@ -207,6 +271,24 @@ const Chat = () => {
                     {loading && (
                         <div className="chat-status-msg">
                             <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
+                        </div>
+                    )}
+
+                    {/* Botón "cargar más" — aparece arriba cuando hay páginas anteriores */}
+                    {!loading && hasMore && (
+                        <div className="chat-load-more-wrapper">
+                            <button
+                                className="chat-load-more-btn"
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                aria-label="Cargar mensajes anteriores"
+                            >
+                                {loadingMore ? (
+                                    <><i className="fa-solid fa-spinner fa-spin" /> Cargando...</>
+                                ) : (
+                                    <><i className="fa-solid fa-chevron-up" /> Ver mensajes anteriores</>
+                                )}
+                            </button>
                         </div>
                     )}
 
