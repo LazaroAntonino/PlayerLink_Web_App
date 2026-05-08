@@ -16,7 +16,7 @@ import PropTypes from "prop-types";
 import "./AvatarPickerModal.css";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-const MAX_SIZE_MB   = 5;
+const MAX_SIZE_MB = 5;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 export const AvatarPickerModal = ({
@@ -27,12 +27,12 @@ export const AvatarPickerModal = ({
     onUpload,
     onClose,
 }) => {
-    const [modalTab,      setModalTab]      = useState("preset");
-    const [selectedFile,  setSelectedFile]  = useState(null);
-    const [previewUrl,    setPreviewUrl]    = useState(null);
-    const [uploadStatus,  setUploadStatus]  = useState("idle"); // idle | uploading | error
-    const [uploadError,   setUploadError]   = useState("");
-    const [dragOver,      setDragOver]      = useState(false);
+    const [modalTab, setModalTab] = useState("preset");
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [uploadStatus, setUploadStatus] = useState("idle"); // idle | uploading | error
+    const [uploadError, setUploadError] = useState("");
+    const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef(null);
 
     // Clean up object URL to avoid memory leaks
@@ -192,12 +192,12 @@ export const AvatarPickerModal = ({
                         <div
                             className={[
                                 "avatar-dropzone",
-                                dragOver  ? "drag-over"   : "",
+                                dragOver ? "drag-over" : "",
                                 previewUrl ? "has-preview" : "",
                             ].filter(Boolean).join(" ")}
-                            onDragOver={(e)  => { e.preventDefault(); setDragOver(true);  }}
-                            onDragEnter={(e) => { e.preventDefault(); setDragOver(true);  }}
-                            onDragLeave={()  => setDragOver(false)}
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+                            onDragLeave={() => setDragOver(false)}
                             onDrop={handleDrop}
                             onClick={() => fileInputRef.current?.click()}
                             role="button"
@@ -283,17 +283,17 @@ export const AvatarPickerModal = ({
 };
 
 AvatarPickerModal.propTypes = {
-    show:             PropTypes.bool.isRequired,
-    photoArray:       PropTypes.arrayOf(
+    show: PropTypes.bool.isRequired,
+    photoArray: PropTypes.arrayOf(
         PropTypes.shape({
-            key:  PropTypes.string.isRequired,
+            key: PropTypes.string.isRequired,
             file: PropTypes.string.isRequired,
         })
     ).isRequired,
     selectedPhotoKey: PropTypes.string.isRequired,
-    onSelect:         PropTypes.func.isRequired,
+    onSelect: PropTypes.func.isRequired,
     /** Async function (file: File) => void. Should throw on failure. */
-    onUpload:         PropTypes.func.isRequired,
-    onClose:          PropTypes.func.isRequired,
+    onUpload: PropTypes.func.isRequired,
+    onClose: PropTypes.func.isRequired,
 };
 
