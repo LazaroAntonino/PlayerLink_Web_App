@@ -118,7 +118,7 @@ export const ProfileInfoTab = ({
                         </select>
                     ) : (
                         <FieldValue
-                            value={profile.gender && profile.gender !== "Undefined" ? profile.gender : null}
+                            value={profile.gender && profile.gender !== "Undefined" && profile.gender !== "Undefinied" ? profile.gender : null}
                             emptyText="Not set"
                         />
                     )}

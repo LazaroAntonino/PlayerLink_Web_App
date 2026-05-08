@@ -259,6 +259,15 @@ const Profile = () => {
     setProfile((prev) => ({ ...prev, [field]: value }));
   };
 
+  /** Cambia de pestaña y cierra el modo edición (descartando cambios sin guardar) */
+  const handleTabChange = (tab) => {
+    if (isEditing) {
+      setIsEditing(false);
+      loadProfile(); // descarta cambios no guardados
+    }
+    setActiveTab(tab);
+  };
+
   const handleGameFormChange = (e) => {
     const { name, value } = e.target;
     setGame((prev) => ({
@@ -423,7 +432,7 @@ const Profile = () => {
             />
           )}
 
-          <ProfileTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+          <ProfileTabBar activeTab={activeTab} onTabChange={handleTabChange} />
 
           {activeTab === "info" && (
             <ProfileInfoTab
