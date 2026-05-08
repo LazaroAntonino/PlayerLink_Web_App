@@ -113,8 +113,8 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
   const handleLike = () => {
     setAnimationClass('exiting-right');
-    // trigger button pulse
-    const likeBtn = document.querySelector('.search-match-like-btn-border');
+    // trigger button pulse — scoped to this card to avoid affecting other DOM elements
+    const likeBtn = cardRef.current?.querySelector('.search-match-like-btn-border');
     if (likeBtn) {
       likeBtn.classList.add('pulsing');
       likeBtn.addEventListener('animationend', () => likeBtn.classList.remove('pulsing'), { once: true });
@@ -200,7 +200,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
               {/* Games */}
               {profile?.games && profile.games.length > 0 ? (
-                profile.games
+                [...profile.games]
                   .sort((a, b) => b.gameHoursPlayed - a.gameHoursPlayed)
                   .slice(0, 3)
                   .map((g, index) => (
