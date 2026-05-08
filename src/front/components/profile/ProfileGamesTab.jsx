@@ -227,7 +227,10 @@ export const ProfileGamesTab = ({
                                         type="button"
                                         className="btn-sci-fi-primary pl-btn pl-btn--ghost pl-btn--sm"
                                         data-bs-dismiss="modal"
-                                        onClick={onCancelAddGame}
+                                        onClick={() => {
+                                            onCancelAddGame();
+                                            onCancelEditGame();
+                                        }}
                                     >
                                         Cancel
                                     </button>

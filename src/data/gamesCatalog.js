@@ -29,7 +29,7 @@ export const GAMES_CATALOG = [
   { title: "Dota 2",                      image: "https://cdn.akamai.steamstatic.com/steam/apps/570/header.jpg" },
   { title: "Smite",                       image: "https://cdn.akamai.steamstatic.com/steam/apps/386360/header.jpg" },
   // Heroes of the Storm: no está en Steam (Battle.net)
-  { title: "Heroes of the Storm",         image: "https://static-cdn.jtvnw.net/ttv-boxart/295722-285x380.jpg" },
+  { title: "Heroes of the Storm",         image: "https://mir-s3-cdn-cf.behance.net/projects/404/dc37e747692331.Y3JvcCw4MDUsNjMwLDE5Nyww.jpg" },
 
   // ══ BATTLE ROYALE ══
   // Fortnite: no está en Steam (Epic exclusivo)
@@ -105,12 +105,16 @@ export const GAMES_CATALOG = [
   { title: "XCOM 2",                      image: "https://cdn.akamai.steamstatic.com/steam/apps/268500/header.jpg" },
 
   // ══ DEPORTES / RACING ══
-  { title: "EA FC 25",                    image: "https://cdn.akamai.steamstatic.com/steam/apps/2195250/header.jpg" },
+  { title: "EA SPORTS FC™ 25",            image: "https://cdn.akamai.steamstatic.com/steam/apps/2669320/header.jpg" },
   { title: "Rocket League",               image: "https://cdn.akamai.steamstatic.com/steam/apps/252950/header.jpg" },
   { title: "F1 24",                       image: "https://cdn.akamai.steamstatic.com/steam/apps/2440510/header.jpg" },
   { title: "Forza Horizon 5",             image: "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg" },
   { title: "NBA 2K25",                    image: "https://cdn.akamai.steamstatic.com/steam/apps/2528340/header.jpg" },
-  { title: "Gran Turismo 7",              image: "https://upload.wikimedia.org/wikipedia/en/b/b0/Gran_Turismo_7_cover.jpg" },
+  { title: "Gran Turismo 7",              image: "https://www.gtplanet.net/wp-content/uploads/2020/06/gran-turismo-7-art.jpg" },
+  { title: "EA SPORTS™ FIFA 23",          image: "https://cdn.akamai.steamstatic.com/steam/apps/1811260/header.jpg" },
+  { title: "EA SPORTS FC™ 24",            image: "https://cdn.akamai.steamstatic.com/steam/apps/2195250/header.jpg" },
+
+
 
   // ══ HORROR / TERROR ══
   { title: "Resident Evil 4 Remake",      image: "https://cdn.akamai.steamstatic.com/steam/apps/2050650/header.jpg" },
