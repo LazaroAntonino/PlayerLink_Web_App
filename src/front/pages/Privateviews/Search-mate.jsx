@@ -71,14 +71,13 @@ export const SearchMate = () => {
     try {
       const data = await searchMatchServices.getFilteredProfiles(store.user.id, activeFilters);
 
-      const matchedIds = store.userMatchesInfo?.map(m => m.user_id || m.id) || [];
-      const likedIds = store.likesSent?.map(l => l.id) || [];
+    const matchedIds = store.userMatchesInfo?.map(m => m.user_id) || [];
+      const likedIds = store.likesSent?.map(l => l.user_id) || [];
 
       let allProfiles = Array.isArray(data) ? data : (data.profiles ?? []);
 
       const filteredProfiles = allProfiles.filter(profile => {
-        const pid = profile.id || profile.user_id;
-        return !matchedIds.includes(pid) && !likedIds.includes(pid);
+        return !matchedIds.includes(profile.user_id) && !likedIds.includes(profile.user_id);
       });
 
       dispatch({ type: "getSearchMatchProfiles", payload: filteredProfiles });
@@ -127,7 +126,8 @@ export const SearchMate = () => {
       const result = await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
 
       if (result?.is_match && result?.match_profile) {
-        // Match detectado — guardar match_id para el botón de chat
+        // Match detectado — guardar like en store igual que en el caso normal
+        dispatch({ type: "saveLike", payload: likedProfile });
         dispatch({ type: "addMatch", payload: result.match_profile });
         setMatchProfile(result.match_profile);
         setMatchId(result.match_id ?? null);
@@ -183,11 +183,9 @@ export const SearchMate = () => {
     dispatch({ type: "getItsMatchInfo", payload: null });
 
     if (matchProfile) {
-      const remainingProfiles = store.searchMatchProfiles.filter(profile => {
-        const profileId = profile.id || profile.user_id;
-        const matchUserId = matchProfile.id || matchProfile.user_id;
-        return profileId !== matchUserId;
-      });
+      const remainingProfiles = store.searchMatchProfiles.filter(profile =>
+        profile.user_id !== matchProfile.user_id
+      );
 
       dispatch({ type: "getSearchMatchProfiles", payload: remainingProfiles });
       setCurrentUser(0);
