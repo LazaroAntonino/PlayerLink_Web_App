@@ -20,6 +20,7 @@ export const initialStore = () => {
     searchMatchProfiles: safeJSONParse("searchMatchProfiles", []),
     matchReviewsReceived: null,
     unreadCount: 0,
+    blockedUserIds: [],   // IDs de usuarios bloqueados por el usuario autenticado
   };
 };
 
@@ -112,6 +113,7 @@ export default function storeReducer(store, action = {}) {
         searchMatchProfiles: [],
         matchReviewsReceived: null,
         unreadCount: 0,
+        blockedUserIds: [],
       };
 
     case "matchReviewsReceived":
@@ -124,6 +126,28 @@ export default function storeReducer(store, action = {}) {
       return {
         ...store,
         unreadCount: action.payload,
+      };
+
+    // ── Bloqueos ─────────────────────────────────────────────────────────
+    case "setBlockedUserIds":
+      // payload: array de números (blocked_id)
+      return {
+        ...store,
+        blockedUserIds: action.payload,
+      };
+
+    case "addBlockedUserId":
+      // payload: número (blocked_id recién bloqueado)
+      return {
+        ...store,
+        blockedUserIds: [...store.blockedUserIds, action.payload],
+      };
+
+    case "removeBlockedUserId":
+      // payload: número (blocked_id a desbloquear)
+      return {
+        ...store,
+        blockedUserIds: store.blockedUserIds.filter((id) => id !== action.payload),
       };
 
     case "getUserInfo": {

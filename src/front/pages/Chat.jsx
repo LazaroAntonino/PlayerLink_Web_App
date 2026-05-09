@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { flushSync } from "react-dom";
+import { flushSync, createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import "./chat.css";
 import chatServices from "../services/chatServices.js";
+import blockServices from "../services/blockServices.js";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import { PHOTO_ASSETS, DEFAULT_PHOTO } from "../assets/photoAssets.js";
+import { resolvePhoto } from "../assets/photoAssets.js";
 
 const POLL_MS = 4000;
 const MAX_CHARS = 500;
@@ -52,6 +53,12 @@ const Chat = () => {
     const [sending, setSending] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+
+    // ── Block state ───────────────────────────────────────────────────────
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [blockLoading, setBlockLoading] = useState(false);
+    const [blockError, setBlockError] = useState("");
 
     const bottomRef = useRef(null);
     const textareaRef = useRef(null);
@@ -186,6 +193,26 @@ const Chat = () => {
         }
     };
 
+    // ── Block handler ─────────────────────────────────────────────────────
+    const handleBlock = async () => {
+        if (!otherUser) return;
+        setBlockLoading(true);
+        setBlockError("");
+        try {
+            // Recuperar el other_user_id del preview almacenado
+            const previews = await chatServices.getChatPreviews(store.user.id);
+            const preview = previews.find(p => String(p.match_id) === String(matchId));
+            if (!preview) throw new Error("No se pudo identificar al usuario");
+            await blockServices.blockUser(preview.other_user_id);
+            dispatch({ type: "addBlockedUserId", payload: preview.other_user_id });
+            // El match ha sido eliminado en el backend → volver a lista de chats
+            navigate("/private/chats");
+        } catch (err) {
+            setBlockError(err.message || "Error al bloquear el usuario");
+            setBlockLoading(false);
+        }
+    };
+
     // ── Textarea auto-grow ────────────────────────────────────────────────
     const handleTextChange = (e) => {
         const val = e.target.value;
@@ -231,158 +258,254 @@ const Chat = () => {
     };
 
     // ── Avatar del otro usuario ───────────────────────────────────────────
-    const otherPhoto = otherUser?.photo
-        ? (PHOTO_ASSETS[otherUser.photo] ?? DEFAULT_PHOTO)
-        : null;
-    const otherInitials = (otherUser?.nickname || "??").slice(0, 2).toUpperCase();
+    const otherPhoto = resolvePhoto(otherUser?.photo);
 
     // ── Render ────────────────────────────────────────────────────────────
     return (
-        <div className="chat-page-wrapper">
-            <div className="chat-window">
-                {/* Header */}
-                <div className="chat-header">
-                    <button
-                        className="chat-header-back"
-                        onClick={() => navigate("/private/chats")}
-                        aria-label="Volver"
-                    >
-                        <i className="fa-solid fa-arrow-left" />
-                    </button>
+        <>
+            <div className="chat-page-wrapper">
+                <div className="chat-window">
+                    {/* Header */}
+                    <div className="chat-header">
+                        <button
+                            className="chat-header-back"
+                            onClick={() => navigate("/private/chats")}
+                            aria-label="Volver"
+                        >
+                            <i className="fa-solid fa-arrow-left" />
+                        </button>
 
-                    {otherPhoto ? (
-                        <img src={otherPhoto} alt={otherUser?.nickname} className="chat-header-avatar" />
-                    ) : (
-                        <div className="chat-header-avatar-placeholder">{otherInitials}</div>
-                    )}
+                        {otherUser && (
+                            <img src={otherPhoto} alt={otherUser?.nickname} className="chat-header-avatar" />
+                        )}
 
-                    <div className="chat-header-info">
-                        <span className="chat-header-nick">
-                            {otherUser?.nickname ?? "Cargando..."}
-                        </span>
-                        <span className="chat-header-status">
-                            <i className="fa-solid fa-circle"
-                                style={{ fontSize: "0.45rem", color: "var(--color-success, #00ff88)" }}
-                                aria-hidden="true" />
-                            PlayerLink
-                        </span>
-                    </div>
-                </div>
-
-                {/* Messages area */}
-                <div className="chat-messages-area" ref={messagesAreaRef}>
-                    {loading && (
-                        <div className="chat-status-msg">
-                            <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
+                        <div className="chat-header-info">
+                            <span className="chat-header-nick">
+                                {otherUser?.nickname ?? "Cargando..."}
+                            </span>
+                            <span className="chat-header-status">
+                                <i className="fa-solid fa-circle"
+                                    style={{ fontSize: "0.45rem", color: "var(--color-success, #00ff88)" }}
+                                    aria-hidden="true" />
+                                PlayerLink
+                            </span>
                         </div>
-                    )}
 
-                    {/* Botón "cargar más" — aparece arriba cuando hay páginas anteriores */}
-                    {!loading && hasMore && (
-                        <div className="chat-load-more-wrapper">
+                        {/* Menú de opciones */}
+                        <div className="chat-header-menu-wrapper">
                             <button
-                                className="chat-load-more-btn"
-                                onClick={handleLoadMore}
-                                disabled={loadingMore}
-                                aria-label="Cargar mensajes anteriores"
+                                className="chat-header-menu-btn"
+                                onClick={() => setMenuOpen(prev => !prev)}
+                                aria-label="Más opciones"
+                                aria-expanded={menuOpen}
                             >
-                                {loadingMore ? (
-                                    <><i className="fa-solid fa-spinner fa-spin" /> Cargando...</>
-                                ) : (
-                                    <><i className="fa-solid fa-chevron-up" /> Ver mensajes anteriores</>
-                                )}
+                                <i className="fa-solid fa-ellipsis-vertical" aria-hidden="true" />
                             </button>
-                        </div>
-                    )}
 
-                    {!loading && messages.length === 0 && (
-                        <div className="chat-conversation-empty">
-                            <div className="chat-conv-empty-icon">👋</div>
-                            <p>¡Sois un match!</p>
-                            <span>Sé el primero en decir hola a {otherUser?.nickname ?? "tu match"}</span>
-                        </div>
-                    )}
-
-                    {messages.map((msg, idx) => {
-                        const mine = msg.sender_id === store.user?.id;
-                        const showDateSep =
-                            idx === 0 ||
-                            !isSameDay(messages[idx - 1].created_at, msg.created_at);
-
-                        return (
-                            <div key={msg.id}>
-                                {showDateSep && (
-                                    <div className="chat-date-separator">
-                                        {formatDateLabel(msg.created_at)}
+                            {menuOpen && (
+                                <>
+                                    {/* Overlay invisible para cerrar el dropdown al hacer clic fuera */}
+                                    <div
+                                        style={{ position: "fixed", inset: 0, zIndex: 199 }}
+                                        onClick={() => setMenuOpen(false)}
+                                    />
+                                    <div className="chat-dropdown">
+                                        <button
+                                            className="chat-dropdown-item chat-dropdown-item--danger"
+                                            onClick={() => { setMenuOpen(false); setShowBlockModal(true); setBlockError(""); }}
+                                        >
+                                            <i className="fa-solid fa-ban" aria-hidden="true" />
+                                            Bloquear usuario
+                                        </button>
                                     </div>
-                                )}
+                                </>
+                            )}
+                        </div>
+                    </div>
 
-                                <div className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}>
-                                    <div className={`chat-bubble ${mine ? "mine" : "theirs"}`}>
-                                        {msg.content}
-                                        <div className="chat-bubble-meta">
-                                            <span>{formatTime(msg.created_at)}</span>
-                                            {mine && (
-                                                <span
-                                                    className="chat-read-icon"
-                                                    title={msg.read ? "Leído" : "Enviado"}
-                                                >
-                                                    {msg.read ? "✓✓" : "✓"}
-                                                </span>
-                                            )}
+                    {/* Messages area */}
+                    <div className="chat-messages-area" ref={messagesAreaRef}>
+                        {loading && (
+                            <div className="chat-status-msg">
+                                <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
+                            </div>
+                        )}
+
+                        {/* Botón "cargar más" — aparece arriba cuando hay páginas anteriores */}
+                        {!loading && hasMore && (
+                            <div className="chat-load-more-wrapper">
+                                <button
+                                    className="chat-load-more-btn"
+                                    onClick={handleLoadMore}
+                                    disabled={loadingMore}
+                                    aria-label="Cargar mensajes anteriores"
+                                >
+                                    {loadingMore ? (
+                                        <><i className="fa-solid fa-spinner fa-spin" /> Cargando...</>
+                                    ) : (
+                                        <><i className="fa-solid fa-chevron-up" /> Ver mensajes anteriores</>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+
+                        {!loading && messages.length === 0 && (
+                            <div className="chat-conversation-empty">
+                                <div className="chat-conv-empty-icon">👋</div>
+                                <p>¡Sois un match!</p>
+                                <span>Sé el primero en decir hola a {otherUser?.nickname ?? "tu match"}</span>
+                            </div>
+                        )}
+
+                        {messages.map((msg, idx) => {
+                            const mine = msg.sender_id === store.user?.id;
+                            const showDateSep =
+                                idx === 0 ||
+                                !isSameDay(messages[idx - 1].created_at, msg.created_at);
+
+                            return (
+                                <div key={msg.id}>
+                                    {showDateSep && (
+                                        <div className="chat-date-separator">
+                                            {formatDateLabel(msg.created_at)}
+                                        </div>
+                                    )}
+
+                                    <div className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}>
+                                        <div className={`chat-bubble ${mine ? "mine" : "theirs"}`}>
+                                            {msg.content}
+                                            <div className="chat-bubble-meta">
+                                                <span>{formatTime(msg.created_at)}</span>
+                                                {mine && (
+                                                    <span
+                                                        className="chat-read-icon"
+                                                        title={msg.read ? "Leído" : "Enviado"}
+                                                    >
+                                                        {msg.read ? "✓✓" : "✓"}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
 
-                    <div ref={bottomRef} />
-                </div>
-
-                {/* Error bar */}
-                {error && (
-                    <div className="chat-error-bar">
-                        <span>{error}</span>
-                        <button className="chat-error-close" onClick={() => setError("")}>×</button>
+                        <div ref={bottomRef} />
                     </div>
-                )}
 
-                {/* Input bar */}
-                <div className="chat-input-bar">
-                    {text.length > 0 && (
-                        <div
-                            className="chat-char-counter"
-                            style={{ color: text.length > 450 ? "var(--color-danger, #ff4d6d)" : "var(--color-text-muted, #8888aa)" }}
-                        >
-                            {text.length}/{MAX_CHARS}
+                    {/* Error bar */}
+                    {error && (
+                        <div className="chat-error-bar">
+                            <span>{error}</span>
+                            <button className="chat-error-close" onClick={() => setError("")}>×</button>
                         </div>
                     )}
-                    <div className="chat-input-row">
-                        <textarea
-                            ref={textareaRef}
-                            className="chat-textarea"
-                            placeholder="Escribe un mensaje..."
-                            value={text}
-                            onChange={handleTextChange}
-                            onKeyDown={handleKeyDown}
-                            rows={1}
-                            aria-label="Mensaje"
-                        />
-                        <button
-                            className="chat-send-btn"
-                            onClick={handleSend}
-                            disabled={!text.trim() || sending}
-                            aria-label="Enviar"
-                        >
-                            {sending
-                                ? <i className="fa-solid fa-spinner fa-spin" />
-                                : <i className="fa-solid fa-paper-plane" />}
-                        </button>
+
+                    {/* Input bar */}
+                    <div className="chat-input-bar">
+                        {text.length > 0 && (
+                            <div
+                                className="chat-char-counter"
+                                style={{ color: text.length > 450 ? "var(--color-danger, #ff4d6d)" : "var(--color-text-muted, #8888aa)" }}
+                            >
+                                {text.length}/{MAX_CHARS}
+                            </div>
+                        )}
+                        <div className="chat-input-row">
+                            <textarea
+                                ref={textareaRef}
+                                className="chat-textarea"
+                                placeholder="Escribe un mensaje..."
+                                value={text}
+                                onChange={handleTextChange}
+                                onKeyDown={handleKeyDown}
+                                rows={1}
+                                aria-label="Mensaje"
+                            />
+                            <button
+                                className="chat-send-btn"
+                                onClick={handleSend}
+                                disabled={!text.trim() || sending}
+                                aria-label="Enviar"
+                            >
+                                {sending
+                                    ? <i className="fa-solid fa-spinner fa-spin" />
+                                    : <i className="fa-solid fa-paper-plane" />}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* ══ MODAL: Confirmar bloqueo ════════════════════════════════════ */}
+            {createPortal(
+                <div
+                    className={`modal fade ${showBlockModal ? "show d-block" : ""}`}
+                    tabIndex="-1"
+                    aria-modal="true"
+                    role="dialog"
+                    style={{ backgroundColor: showBlockModal ? "rgba(0,0,0,0.6)" : "transparent" }}
+                    onClick={(e) => { if (e.target === e.currentTarget && !blockLoading) setShowBlockModal(false); }}
+                >
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content modal-sci-fi">
+                            <div className="modal-header modal-sci-fi-header">
+                                <h5 className="modal-title modal-sci-fi-title">
+                                    <i className="fa-solid fa-ban me-2" style={{ color: "#ff4d6d" }} aria-hidden="true" />
+                                    Bloquear usuario
+                                </h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowBlockModal(false)}
+                                    aria-label="Cerrar"
+                                    disabled={blockLoading}
+                                />
+                            </div>
+                            <div className="modal-body modal-sci-fi-body">
+                                <div className="chat-block-warning">
+                                    <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                                    <span>
+                                        ¿Bloquear a <strong>{otherUser?.nickname}</strong>? Esta acción eliminará
+                                        el match y todos los mensajes entre vosotros. No volverá a aparecer
+                                        en tu búsqueda.
+                                    </span>
+                                </div>
+                                {blockError && (
+                                    <p className="mt-3 mb-0" style={{ color: "#ff4d6d", fontSize: "0.85rem" }}>
+                                        <i className="fa-solid fa-circle-exclamation me-1" aria-hidden="true" />
+                                        {blockError}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="modal-footer modal-sci-fi-footer">
+                                <button
+                                    type="button"
+                                    className="btn-sci-fi-secondary pl-btn pl-btn--accent"
+                                    onClick={() => setShowBlockModal(false)}
+                                    disabled={blockLoading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-sci-fi-primary pl-btn pl-btn--danger"
+                                    onClick={handleBlock}
+                                    disabled={blockLoading}
+                                >
+                                    {blockLoading
+                                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Bloqueando...</>
+                                        : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Bloquear</>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+        </>
     );
 };
 

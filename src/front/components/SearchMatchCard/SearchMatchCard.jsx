@@ -1,24 +1,7 @@
 import './SearchMatchCard.css';
 import { useEffect, useState, useRef } from 'react';
 import searchMatchServices from '../../services/searchMatchServices';
-import photo1 from "../../assets/img/profile-pics/profile-pic-1.png";
-import photo2 from "../../assets/img/profile-pics/profile-pic-2.png";
-import photo3 from "../../assets/img/profile-pics/profile-pic-3.png";
-import photo4 from "../../assets/img/profile-pics/profile-pic-4.png";
-import photo5 from "../../assets/img/profile-pics/profile-pic-5.png";
-import photo6 from "../../assets/img/profile-pics/profile-pic-6.png";
-import photo7 from "../../assets/img/profile-pics/profile-pic-7.png";
-import photo8 from "../../assets/img/profile-pics/profile-pic-8.png";
-import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
-
-const PHOTO_MAP = { photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9 };
-
-/** Color HSL determinístico basado en el nickname */
-const nickToHSL = (str = "") => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  return `hsl(${Math.abs(hash) % 360}, 60%, 50%)`;
-};
+import { resolvePhoto } from '../../assets/photoAssets.js';
 
 export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
@@ -30,9 +13,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   const dragRef = useRef({ active: false, startX: 0, currentX: 0 });
   const cardRef = useRef(null);
 
-  const photo = PHOTO_MAP[profile?.photo] ?? null;
-  const hasPhoto = Boolean(photo);
-  const initials = (profile?.nick_name || "??").slice(0, 2).toUpperCase();
+  const photo = resolvePhoto(profile?.photo);
 
   useEffect(() => {
     if (!profile?.user_id) return;
@@ -166,18 +147,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
             <div className="card-body">
               <div className='d-flex justify-content-center'>
                 <div className='d-flex justify-content-center rounded-circle'>
-                  {hasPhoto
-                    ? <img src={photo} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
-                    : (
-                      <div
-                        className="search-match-profile-pic search-match-avatar-initials border border-3"
-                        style={{ background: nickToHSL(profile?.nick_name) }}
-                        aria-label={`Avatar de ${profile?.nick_name}`}
-                      >
-                        {initials}
-                      </div>
-                    )
-                  }
+                  <img src={photo} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
                 </div>
               </div>
 

@@ -10,7 +10,7 @@ import cloudinary.uploader
 
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from api.models import db, User, Profile, Review, Game
+from api.models import db, User, Profile, Review, Game, Block
 from api.utils import admin_required
 
 profiles_bp = Blueprint('profiles', __name__)
@@ -167,7 +167,16 @@ def profiles_to_explore(user_id):
 
     liked_user_ids    = [like.liked_id for like in user.likes_given]
     rejected_user_ids = [reject.rejected_id for reject in user.rejects_given]
-    exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id])
+
+    # IDs bloqueados por mí o que me bloquearon a mí (bidireccional)
+    blocked_by_me = {
+        r[0] for r in db.session.query(Block.blocked_id).filter(Block.blocker_id == user_id)
+    }
+    blocked_me = {
+        r[0] for r in db.session.query(Block.blocker_id).filter(Block.blocked_id == user_id)
+    }
+
+    exclude_ids = set(liked_user_ids + rejected_user_ids + [user_id]) | blocked_by_me | blocked_me
 
     query = (
         db.session.query(Profile)

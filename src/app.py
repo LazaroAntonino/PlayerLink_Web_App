@@ -13,6 +13,7 @@ from api.profiles import profiles_bp
 from api.matches import matches_bp
 from api.chat import chat_bp
 from api.ai import ai_bp
+from api.blocks import blocks_bp
 from api.extensions import limiter
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -80,6 +81,7 @@ app.register_blueprint(profiles_bp, url_prefix='/api')
 app.register_blueprint(matches_bp,  url_prefix='/api')
 app.register_blueprint(chat_bp,     url_prefix='/api')
 app.register_blueprint(ai_bp,       url_prefix='/api')
+app.register_blueprint(blocks_bp,   url_prefix='/api')
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)

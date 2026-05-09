@@ -25,15 +25,7 @@ import { ProfileCommentsTab } from "../../components/profile/ProfileCommentsTab.
 import { AvatarPickerModal } from "../../components/profile/AvatarPickerModal.jsx";
 
 // Assets - Avatares
-import photo1 from "../../assets/img/profile-pics/profile-pic-1.png";
-import photo2 from "../../assets/img/profile-pics/profile-pic-2.png";
-import photo3 from "../../assets/img/profile-pics/profile-pic-3.png";
-import photo4 from "../../assets/img/profile-pics/profile-pic-4.png";
-import photo5 from "../../assets/img/profile-pics/profile-pic-5.png";
-import photo6 from "../../assets/img/profile-pics/profile-pic-6.png";
-import photo7 from "../../assets/img/profile-pics/profile-pic-7.png";
-import photo8 from "../../assets/img/profile-pics/profile-pic-8.png";
-import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
+import { PHOTO_ARRAY, resolvePhoto } from "../../assets/photoAssets.js";
 
 // Assets - Medallas
 import goldMedal from "../../assets/img/medals/gold-medal.png";
@@ -60,23 +52,7 @@ const parsePreferences = (str) => {
 };
 
 // ── Datos estáticos de avatares ──────────────────────────────────────────────
-
-const PHOTO_ARRAY = [
-  { key: "photo1", file: photo1 },
-  { key: "photo2", file: photo2 },
-  { key: "photo3", file: photo3 },
-  { key: "photo4", file: photo4 },
-  { key: "photo5", file: photo5 },
-  { key: "photo6", file: photo6 },
-  { key: "photo7", file: photo7 },
-  { key: "photo8", file: photo8 },
-  { key: "photo9", file: photo9 },
-];
-
-const PHOTO_ASSETS = {
-  photo1, photo2, photo3, photo4,
-  photo5, photo6, photo7, photo8, photo9,
-};
+// PHOTO_ARRAY viene de photoAssets.js — no se redeclara aquí.
 
 // ── Componente ───────────────────────────────────────────────────────────────
 
@@ -262,15 +238,10 @@ const Profile = () => {
   };
 
   /**
-   * Resolve the image src for the avatar.
-   * Handles two cases:
-   *   1. Cloudinary / external URL  → use as-is
-   *   2. Preset key ("photo1"…"photo9") → map to imported asset
+   * Resolve the image src for the avatar using the centralized resolvePhoto helper.
+   * Handles Cloudinary URLs, preset keys ("photo1"…"photo9") and null/undefined.
    */
-  const selectPhoto = () => {
-    if (profile.photo && profile.photo.startsWith("http")) return profile.photo;
-    return PHOTO_ASSETS[profile.photo] || photo1;
-  };
+  const selectPhoto = () => resolvePhoto(profile.photo);
 
   const selectMedal = (hours) => {
     const h = parseInt(hours, 10) || 0;

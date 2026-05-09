@@ -39,3 +39,21 @@ export const PHOTO_ASSETS = {
 
 /** Fallback when no photo key is stored */
 export const DEFAULT_PHOTO = photo1;
+
+/**
+ * Resolves any photo value stored in profile.photo to a usable <img src>.
+ *
+ * Two cases:
+ *   1. Cloudinary / external URL  (starts with "http") → use as-is
+ *   2. Preset key ("photo1"…"photo9")                  → map to imported asset
+ *
+ * Falls back to DEFAULT_PHOTO if the value is empty or unrecognised.
+ *
+ * @param {string|null|undefined} photo - The raw value from profile.photo
+ * @returns {string} A resolved image src ready to pass to <img src>
+ */
+export const resolvePhoto = (photo) => {
+  if (!photo) return DEFAULT_PHOTO;
+  if (photo.startsWith("http")) return photo;
+  return PHOTO_ASSETS[photo] ?? DEFAULT_PHOTO;
+};

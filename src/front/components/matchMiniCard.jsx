@@ -5,7 +5,7 @@ import goldMedal from "../assets/img/medals/gold-medal.png";
 import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
 import { useNavigate } from 'react-router-dom';
-import { PHOTO_ASSETS, DEFAULT_PHOTO } from "../assets/photoAssets.js";
+import { resolvePhoto } from "../assets/photoAssets.js";
 
 export const MatchMiniCard = ({ id, nickname, gender, games, age, location, photo }) => {
   const navigate = useNavigate();
@@ -22,8 +22,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
     return bronzeMedal;
   };
 
-  const photoSrc = photo ? (PHOTO_ASSETS[photo] ?? DEFAULT_PHOTO) : null;
-  const initials = (nickname || "??").slice(0, 2).toUpperCase();
+  const photoSrc = resolvePhoto(photo);
 
   return (
     <div
@@ -37,11 +36,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
       {/* Header */}
       <div className="match-card-header">
         <div className="match-card-avatar-ring">
-          {photoSrc ? (
-            <img src={photoSrc} alt={nickname} className="match-card-avatar" />
-          ) : (
-            <div className="match-card-avatar-placeholder">{initials}</div>
-          )}
+          <img src={photoSrc} alt={nickname} className="match-card-avatar" />
         </div>
         <div className="match-card-user-info">
           <p className="match-card-nickname">{nickname || "—"}</p>

@@ -767,130 +767,8 @@
   border: 2px solid black;
 }
 /* === MODAL SCI-FI === */
-.modal-sci-fi {
-  background: rgba(10, 15, 26, 0.97);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-  border-radius: 20px;
-  box-shadow: 0 0 40px rgba(0, 229, 255, 0.12), 0 0 60px rgba(127, 0, 255, 0.1);
-  color: #ffffff;
-}
-
-.modal-sci-fi-header {
-  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
-  background: rgba(0, 229, 255, 0.04);
-  color: var(--color-primary, #00e5ff);
-  padding: 1rem 1.5rem;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-}
-
-.modal-sci-fi-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.btn-close-sci-fi,
-.btn-sci-fi {
-  filter: invert(1);
-  opacity: 0.6;
-}
-.btn-close-sci-fi:hover,
-.btn-sci-fi:hover {
-  opacity: 1;
-}
-
-/* Bootstrap .btn-close en fondos oscuros */
-.modal-sci-fi-header .btn-close {
-  filter: invert(1) grayscale(1);
-  opacity: 0.7;
-}
-.modal-sci-fi-header .btn-close:hover {
-  opacity: 1;
-}
-
-.modal-sci-fi-body {
-  background: transparent;
-  padding: 1.5rem;
-}
-
-.modal-sci-fi-footer {
-  border-top: 1px solid rgba(0, 229, 255, 0.1);
-  background: rgba(0, 229, 255, 0.03);
-  padding: 1rem 1.5rem;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.label-sci-fi {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(0, 229, 255, 0.6);
-  margin-bottom: 6px;
-  display: block;
-}
-
-.input-sci-fi {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-  color: #fff;
-  padding: 0.55rem 0.85rem;
-  border-radius: 8px;
-  width: 100%;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.input-sci-fi:focus {
-  outline: none;
-  border-color: var(--color-primary, #00e5ff);
-  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.1);
-}
-.input-sci-fi::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.btn-sci-fi-primary {
-  padding: 8px 22px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(0, 229, 255, 0.45);
-  background: rgba(0, 229, 255, 0.08);
-  color: var(--color-primary, #00e5ff);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.btn-sci-fi-primary:hover {
-  background: rgba(0, 229, 255, 0.18);
-  box-shadow: 0 0 14px rgba(0, 229, 255, 0.3);
-  transform: translateY(-1px);
-}
-.btn-sci-fi-primary:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-sci-fi-secondary {
-  padding: 8px 22px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(255, 80, 80, 0.35);
-  background: transparent;
-  color: rgba(255, 130, 130, 0.8);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-sci-fi-secondary:hover {
-  background: rgba(255, 80, 80, 0.08);
-  border-color: rgba(255, 80, 80, 0.6);
-  color: #ff8080;
-}
+/* modal-sci-fi, btn-sci-fi-primary, btn-sci-fi-secondary, label-sci-fi, input-sci-fi
+   → movidos a index.css (estilos globales compartidos) */
 
 /* Botones de las modales */
 .section-button {
@@ -1731,4 +1609,124 @@
 .profile-sk-line--sub {
   height: 13px;
   width: 70%;
+}
+
+/* ── Bloqueo / Denuncia ─────────────────────────────────────────────────────*/
+
+.block-report-zone {
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 68, 102, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-block-user,
+.btn-report-user {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.btn-block-user {
+  color: rgba(255, 77, 109, 0.75);
+  border-color: rgba(255, 77, 109, 0.25);
+}
+.btn-block-user:hover {
+  color: #ff4d6d;
+  border-color: rgba(255, 77, 109, 0.55);
+  background: rgba(255, 77, 109, 0.08);
+  box-shadow: 0 0 12px rgba(255, 77, 109, 0.15);
+}
+
+.btn-report-user {
+  color: rgba(255, 162, 0, 0.7);
+  border-color: rgba(255, 162, 0, 0.2);
+}
+.btn-report-user:hover {
+  color: #ffa200;
+  border-color: rgba(255, 162, 0, 0.5);
+  background: rgba(255, 162, 0, 0.07);
+  box-shadow: 0 0 12px rgba(255, 162, 0, 0.12);
+}
+
+/* Modal de confirmación de bloqueo — reutiliza modal-sci-fi */
+.block-modal-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255, 77, 109, 0.07);
+  border: 1px solid rgba(255, 77, 109, 0.2);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.87rem;
+  line-height: 1.5;
+}
+.block-modal-warning i {
+  color: #ff4d6d;
+  font-size: 1.1rem;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* Modal de denuncia — select de motivos */
+.report-reason-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(0,229,255,0.5)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.report-reason-select:focus {
+  border-color: rgba(0, 229, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.08);
+}
+.report-reason-select option {
+  background: #0d1120;
+  color: #fff;
+}
+
+/* Feedback de éxito en modal de denuncia */
+.report-success-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+  text-align: center;
+}
+.report-success-msg i {
+  font-size: 2.5rem;
+  color: #00e676;
+  text-shadow: 0 0 16px rgba(0, 230, 118, 0.4);
+}
+.report-success-msg p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.92rem;
+  margin: 0;
 }

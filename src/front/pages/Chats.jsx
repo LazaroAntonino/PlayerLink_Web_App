@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import "./chat.css";
 import chatServices from "../services/chatServices.js";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import { PHOTO_ASSETS, DEFAULT_PHOTO } from "../assets/photoAssets.js";
+import { resolvePhoto } from "../assets/photoAssets.js";
 
 // ── Skeleton ──────────────────────────────────────────────
 const ChatListSkeleton = () => (
@@ -38,19 +38,14 @@ const formatTime = (isoString) => {
 
 // ── Item individual (componente interno) ─────────────────
 const ChatListItemJSX = ({ p, navigate, userId }) => {
-    const photoSrc = p.photo ? (PHOTO_ASSETS[p.photo] ?? DEFAULT_PHOTO) : null;
-    const initials = (p.nickname || "??").slice(0, 2).toUpperCase();
+    const photoSrc = resolvePhoto(p.photo);
 
     return (
         <button
             className={`chat-list-item ${p.unread > 0 ? "has-unread" : ""}`}
             onClick={() => navigate(`/private/chat/${p.match_id}`)}
         >
-            {photoSrc ? (
-                <img src={photoSrc} alt={p.nickname} className="chat-list-avatar" />
-            ) : (
-                <div className="chat-list-avatar-placeholder">{initials}</div>
-            )}
+            <img src={photoSrc} alt={p.nickname} className="chat-list-avatar" />
 
             <div className="chat-list-info">
                 <div className="chat-list-nick">{p.nickname}</div>

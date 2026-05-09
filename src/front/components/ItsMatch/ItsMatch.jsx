@@ -1,19 +1,7 @@
 import './ItsMatch.css';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import photo1 from "../../assets/img/profile-pics/profile-pic-1.png";
-import photo2 from "../../assets/img/profile-pics/profile-pic-2.png";
-import photo3 from "../../assets/img/profile-pics/profile-pic-3.png";
-import photo4 from "../../assets/img/profile-pics/profile-pic-4.png";
-import photo5 from "../../assets/img/profile-pics/profile-pic-5.png";
-import photo6 from "../../assets/img/profile-pics/profile-pic-6.png";
-import photo7 from "../../assets/img/profile-pics/profile-pic-7.png";
-import photo8 from "../../assets/img/profile-pics/profile-pic-8.png";
-import photo9 from "../../assets/img/profile-pics/profile-pic-9.png";
-
-const PHOTO_MAP = { photo1, photo2, photo3, photo4, photo5, photo6, photo7, photo8, photo9 };
-
-const getPhoto = (key) => PHOTO_MAP[key?.trim()] || photo1;
+import { resolvePhoto } from '../../assets/photoAssets.js';
 
 // ── Mini confetti canvas ──────────────────────────────────────────────────────
 const COLORS = ['#00f0ff', '#008cff', '#ff2d78', '#ffe600', '#a855f7', '#fff'];
@@ -110,7 +98,7 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
             <div className="its-match-photos">
                 <div className="its-match-photo-wrap its-match-photo-left">
                     <img
-                        src={getPhoto(myProfile?.photo)}
+                        src={resolvePhoto(myProfile?.photo)}
                         alt="Your avatar"
                         className="its-match-avatar"
                     />
@@ -123,7 +111,7 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
 
                 <div className="its-match-photo-wrap its-match-photo-right">
                     <img
-                        src={getPhoto(profile.photo)}
+                        src={resolvePhoto(profile.photo)}
                         alt={`${profile.nick_name}'s avatar`}
                         className="its-match-avatar"
                     />

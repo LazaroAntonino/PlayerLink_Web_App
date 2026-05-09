@@ -5,18 +5,11 @@ import userServices from "../services/userServices";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../pages/Privateviews/Profile.css";
 import reviewServices from "../services/reviewServices";
+import blockServices from "../services/blockServices";
 import goldMedal from "../assets/img/medals/gold-medal.png";
 import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
-import photo1 from "../assets/img/profile-pics/profile-pic-1.png";
-import photo2 from "../assets/img/profile-pics/profile-pic-2.png";
-import photo3 from "../assets/img/profile-pics/profile-pic-3.png";
-import photo4 from "../assets/img/profile-pics/profile-pic-4.png";
-import photo5 from "../assets/img/profile-pics/profile-pic-5.png";
-import photo6 from "../assets/img/profile-pics/profile-pic-6.png";
-import photo7 from "../assets/img/profile-pics/profile-pic-7.png";
-import photo8 from "../assets/img/profile-pics/profile-pic-8.png";
-import photo9 from "../assets/img/profile-pics/profile-pic-9.png";
+import { resolvePhoto } from "../assets/photoAssets.js";
 
 
 
@@ -25,11 +18,18 @@ export const MatchUserDetails = () => {
   const { store, dispatch } = useGlobalReducer();
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("info");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPic, setSelectedPic] = useState("profile-pic-1.png");
-  const [rating, setRating] = useState(0);
   const [newComment, setNewComment] = useState({ stars: 0, comment: "" });
   const [hoverRating, setHoverRating] = useState(0);
+
+  // ── Block / Report state ─────────────────────────────────────────────────
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [blockLoading, setBlockLoading] = useState(false);
+  const [blockError, setBlockError] = useState("");
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState("");
+  const [reportSuccess, setReportSuccess] = useState(false);
   const allGames = store.itsMatchInfo?.profile?.games ?? [];
   const topThreeGames = allGames
     .slice()                                      // 1. Copia el array para no mutar el original
@@ -100,8 +100,44 @@ export const MatchUserDetails = () => {
   };
 
 
-  const handleSaveComment = async (e) => {
-    e.preventDefault();
+  // ── Block handler ────────────────────────────────────────────────────────
+  const handleBlock = async () => {
+    setBlockLoading(true);
+    setBlockError("");
+    try {
+      await blockServices.blockUser(store.itsMatchInfo?.id);
+      dispatch({ type: "addBlockedUserId", payload: store.itsMatchInfo?.id });
+      // El match ha sido eliminado en el backend → volver a la lista de matches
+      navigate("/private/your-matches");
+    } catch (err) {
+      setBlockError(err.message || "Error al bloquear el usuario");
+      setBlockLoading(false);
+    }
+  };
+
+  // ── Report handler ───────────────────────────────────────────────────────
+  const handleReport = async () => {
+    if (!reportReason.trim()) return;
+    setReportLoading(true);
+    setReportError("");
+    try {
+      await blockServices.reportUser(store.itsMatchInfo?.id, reportReason);
+      setReportSuccess(true);
+    } catch (err) {
+      setReportError(err.message || "Error al enviar la denuncia");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleCloseReportModal = () => {
+    setShowReportModal(false);
+    setReportReason("");
+    setReportError("");
+    setReportSuccess(false);
+  };
+
+  const handleSaveComment = async () => {
     try {
       // 1. Envía la nueva review: userId, recipientId, { stars, comment }
       await reviewServices.postNewReview(
@@ -126,21 +162,6 @@ export const MatchUserDetails = () => {
     }
   };
 
-  const selectPhoto = () => {
-    switch (profile.photo) {
-      case "photo1": return photo1;
-      case "photo2": return photo2;
-      case "photo3": return photo3;
-      case "photo4": return photo4;
-      case "photo5": return photo5;
-      case "photo6": return photo6;
-      case "photo7": return photo7;
-      case "photo8": return photo8;
-      case "photo9": return photo9;
-      default: return photo1;
-    }
-  };
-
   // Helper: campos vacíos o "no data" muestran "Not set"
   const FieldValue = ({ value }) => {
     const isEmpty = !value || value === "no data" || value === "undefined" || value === "0" || value === 0;
@@ -157,7 +178,7 @@ export const MatchUserDetails = () => {
         <div className="left-avatar-wrapper">
           <div className="left-avatar-ring">
             <img
-              src={selectPhoto()}
+              src={resolvePhoto(profile.photo)}
               alt="Profile avatar"
               className="left-avatar-img"
             />
@@ -212,9 +233,191 @@ export const MatchUserDetails = () => {
             </div>
           </>
         )}
+
+        {/* ── Bloquear / Denunciar ── */}
+        <div className="block-report-zone">
+          <button
+            className="btn-block-user"
+            onClick={() => { setShowBlockModal(true); setBlockError(""); }}
+          >
+            <i className="fa-solid fa-ban" aria-hidden="true" />
+            Bloquear usuario
+          </button>
+          <button
+            className="btn-report-user"
+            onClick={() => { setShowReportModal(true); setReportError(""); setReportSuccess(false); }}
+          >
+            <i className="fa-solid fa-flag" aria-hidden="true" />
+            Denunciar usuario
+          </button>
+        </div>
       </div>
 
-      {/* ── Right Panel ── */}
+      {/* ══ MODAL: Confirmar bloqueo ══════════════════════════════════════════ */}
+      {createPortal(
+        <div
+          className={`modal fade ${showBlockModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          aria-modal="true"
+          role="dialog"
+          style={{ backgroundColor: showBlockModal ? "rgba(0,0,0,0.6)" : "transparent" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowBlockModal(false); }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content modal-sci-fi">
+              <div className="modal-header modal-sci-fi-header">
+                <h5 className="modal-title modal-sci-fi-title">
+                  <i className="fa-solid fa-ban me-2" style={{ color: "#ff4d6d" }} aria-hidden="true" />
+                  Bloquear usuario
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowBlockModal(false)}
+                  aria-label="Cerrar"
+                  disabled={blockLoading}
+                />
+              </div>
+              <div className="modal-body modal-sci-fi-body">
+                <div className="block-modal-warning">
+                  <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
+                  <span>
+                    ¿Bloquear a <strong>{profile.nickname}</strong>? Esta acción eliminará el match y
+                    todos los mensajes entre vosotros. {profile.nickname} no aparecerá en tu
+                    búsqueda y tú tampoco en la suya.
+                  </span>
+                </div>
+                {blockError && (
+                  <p className="mt-3 mb-0" style={{ color: "#ff4d6d", fontSize: "0.85rem" }}>
+                    <i className="fa-solid fa-circle-exclamation me-1" aria-hidden="true" />
+                    {blockError}
+                  </p>
+                )}
+              </div>
+              <div className="modal-footer modal-sci-fi-footer">
+                <button
+                  type="button"
+                  className="btn-sci-fi-secondary pl-btn pl-btn--accent"
+                  onClick={() => setShowBlockModal(false)}
+                  disabled={blockLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn-sci-fi-primary pl-btn pl-btn--danger"
+                  onClick={handleBlock}
+                  disabled={blockLoading}
+                >
+                  {blockLoading
+                    ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Bloqueando...</>
+                    : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Bloquear</>
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* ══ MODAL: Denunciar usuario ══════════════════════════════════════════ */}
+      {createPortal(
+        <div
+          className={`modal fade ${showReportModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          aria-modal="true"
+          role="dialog"
+          style={{ backgroundColor: showReportModal ? "rgba(0,0,0,0.6)" : "transparent" }}
+          onClick={(e) => { if (e.target === e.currentTarget && !reportLoading) handleCloseReportModal(); }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content modal-sci-fi">
+              <div className="modal-header modal-sci-fi-header">
+                <h5 className="modal-title modal-sci-fi-title">
+                  <i className="fa-solid fa-flag me-2" style={{ color: "#ffa200" }} aria-hidden="true" />
+                  Denunciar usuario
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={handleCloseReportModal}
+                  aria-label="Cerrar"
+                  disabled={reportLoading}
+                />
+              </div>
+              <div className="modal-body modal-sci-fi-body">
+                {reportSuccess ? (
+                  <div className="report-success-msg">
+                    <i className="fa-solid fa-circle-check" aria-hidden="true" />
+                    <p>Tu denuncia ha sido enviada. Nuestro equipo la revisará en breve.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-3">
+                      <label className="label-sci-fi mb-2 d-block">Motivo de la denuncia</label>
+                      <select
+                        className="report-reason-select"
+                        value={reportReason}
+                        onChange={(e) => setReportReason(e.target.value)}
+                        disabled={reportLoading}
+                      >
+                        <option value="">Selecciona un motivo…</option>
+                        <option value="Comportamiento inapropiado">Comportamiento inapropiado</option>
+                        <option value="Acoso o intimidación">Acoso o intimidación</option>
+                        <option value="Spam o publicidad">Spam o publicidad</option>
+                        <option value="Contenido ofensivo en el perfil">Contenido ofensivo en el perfil</option>
+                        <option value="Suplantación de identidad">Suplantación de identidad</option>
+                        <option value="Otro">Otro</option>
+                      </select>
+                    </div>
+                    {reportError && (
+                      <p className="mb-0" style={{ color: "#ff4d6d", fontSize: "0.85rem" }}>
+                        <i className="fa-solid fa-circle-exclamation me-1" aria-hidden="true" />
+                        {reportError}
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="modal-footer modal-sci-fi-footer">
+                {reportSuccess ? (
+                  <button
+                    type="button"
+                    className="btn-sci-fi-primary pl-btn pl-btn--primary"
+                    onClick={handleCloseReportModal}
+                  >
+                    Cerrar
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-sci-fi-secondary pl-btn pl-btn--accent"
+                      onClick={handleCloseReportModal}
+                      disabled={reportLoading}
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-sci-fi-primary pl-btn pl-btn--primary"
+                      onClick={handleReport}
+                      disabled={reportLoading || !reportReason.trim()}
+                    >
+                      {reportLoading
+                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Enviando...</>
+                        : <><i className="fa-solid fa-paper-plane me-1" aria-hidden="true" />Enviar denuncia</>
+                      }
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
       <div className="right-panel">
         {/* Tabs */}
         <div className="tabs">

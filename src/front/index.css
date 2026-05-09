@@ -349,3 +349,133 @@ body.modal-open {
 .pl-btn--full {
   width: 100%;
 }
+
+/* ── modal-sci-fi: Design system compartido (modales oscuros) ── */
+.modal-sci-fi {
+  background: rgba(10, 15, 26, 0.97);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.12), 0 0 60px rgba(127, 0, 255, 0.1);
+  color: #ffffff;
+}
+
+.modal-sci-fi-header {
+  border-bottom: 1px solid rgba(0, 229, 255, 0.12);
+  background: rgba(0, 229, 255, 0.04);
+  color: var(--color-primary, #00e5ff);
+  padding: 1rem 1.5rem;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.modal-sci-fi-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-close-sci-fi,
+.btn-sci-fi {
+  filter: invert(1);
+  opacity: 0.6;
+}
+.btn-close-sci-fi:hover,
+.btn-sci-fi:hover {
+  opacity: 1;
+}
+
+/* Bootstrap .btn-close en fondos oscuros */
+.modal-sci-fi-header .btn-close {
+  filter: invert(1) grayscale(1);
+  opacity: 0.7;
+}
+.modal-sci-fi-header .btn-close:hover {
+  opacity: 1;
+}
+
+.modal-sci-fi-body {
+  background: transparent;
+  padding: 1.5rem;
+}
+
+.modal-sci-fi-footer {
+  border-top: 1px solid rgba(0, 229, 255, 0.1);
+  background: rgba(0, 229, 255, 0.03);
+  padding: 1rem 1.5rem;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.label-sci-fi {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(0, 229, 255, 0.6);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-sci-fi {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  color: #fff;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-sci-fi:focus {
+  outline: none;
+  border-color: var(--color-primary, #00e5ff);
+  box-shadow: 0 0 0 3px rgba(0, 229, 229, 0.1);
+}
+.input-sci-fi::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-sci-fi-primary {
+  padding: 8px 22px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(0, 229, 255, 0.45);
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--color-primary, #00e5ff);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-sci-fi-primary:hover {
+  background: rgba(0, 229, 255, 0.18);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.3);
+  transform: translateY(-1px);
+}
+.btn-sci-fi-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-sci-fi-secondary {
+  padding: 8px 22px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 80, 80, 0.35);
+  background: transparent;
+  color: rgba(255, 130, 130, 0.8);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sci-fi-secondary:hover {
+  background: rgba(255, 80, 80, 0.08);
+  border-color: rgba(255, 80, 80, 0.6);
+  color: #ff8080;
+}
+.btn-sci-fi-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

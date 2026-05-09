@@ -2,7 +2,7 @@
 import os
 import warnings
 from flask_admin import Admin
-from .models import db, User, Profile, Review,Game,Match,Reject,Like
+from .models import db, User, Profile, Review, Game, Match, Reject, Like, Block, Report
 from flask_admin.contrib.sqla import ModelView
 
 def setup_admin(app):
@@ -26,6 +26,8 @@ def setup_admin(app):
     admin.add_view(ModelView(Match, db.session))
     admin.add_view(ModelView(Reject, db.session))
     admin.add_view(ModelView(Like, db.session))
+    admin.add_view(ModelView(Block, db.session))
+    admin.add_view(ModelView(Report, db.session))
 
 
 

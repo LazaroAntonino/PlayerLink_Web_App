@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, ForeignKey, Integer, JSON, DateTime, func, text
+from sqlalchemy import String, Boolean, ForeignKey, Integer, JSON, DateTime, func, text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Optional
 
@@ -62,6 +62,26 @@ class User(db.Model):
     rejects_received: Mapped[List[Reject]] = relationship(
         'Reject', foreign_keys='Reject.rejected_id',
         back_populates='rejected', cascade='all, delete-orphan'
+    )
+
+    # Bloqueos
+    blocks_given: Mapped[List['Block']] = relationship(
+        'Block', foreign_keys='Block.blocker_id',
+        back_populates='blocker', cascade='all, delete-orphan'
+    )
+    blocks_received: Mapped[List['Block']] = relationship(
+        'Block', foreign_keys='Block.blocked_id',
+        back_populates='blocked', cascade='all, delete-orphan'
+    )
+
+    # Denuncias
+    reports_given: Mapped[List['Report']] = relationship(
+        'Report', foreign_keys='Report.reporter_id',
+        back_populates='reporter', cascade='all, delete-orphan'
+    )
+    reports_received: Mapped[List['Report']] = relationship(
+        'Report', foreign_keys='Report.reported_id',
+        back_populates='reported', cascade='all, delete-orphan'
     )
 
     def serialize(self):
@@ -323,3 +343,77 @@ class EmailVerificationToken(db.Model):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
+
+# ── Block ────────────────────────────────────────────────────────────────────
+
+class Block(db.Model):
+    """Registro de bloqueo entre dos usuarios.
+
+    Cuando A bloquea a B:
+      - B desaparece del explorador de A (y viceversa).
+      - El match existente entre A y B se elimina en el endpoint de bloqueo.
+      - Un mismo par (blocker, blocked) solo puede existir una vez (UniqueConstraint).
+    """
+    __tablename__ = 'blocks'
+    __table_args__ = (UniqueConstraint('blocker_id', 'blocked_id', name='uq_block_pair'),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    blocker_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    blocked_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relaciones
+    blocker: Mapped['User'] = relationship(
+        'User', foreign_keys=[blocker_id], back_populates='blocks_given')
+    blocked: Mapped['User'] = relationship(
+        'User', foreign_keys=[blocked_id], back_populates='blocks_received')
+
+    def serialize(self):
+        return {
+            'id':         self.id,
+            'blocker_id': self.blocker_id,
+            'blocked_id': self.blocked_id,
+            'created_at': self.created_at.isoformat(),
+        }
+
+
+# ── Report ───────────────────────────────────────────────────────────────────
+
+class Report(db.Model):
+    """Denuncia de un usuario contra otro.
+
+    El campo `resolved` es gestionado por administradores desde Flask-Admin.
+    Se permiten múltiples denuncias del mismo reporter sobre el mismo reported
+    para que los moderadores tengan un historial completo.
+    """
+    __tablename__ = 'reports'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reporter_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    reported_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    resolved: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default='false')
+
+    # Relaciones
+    reporter: Mapped['User'] = relationship(
+        'User', foreign_keys=[reporter_id], back_populates='reports_given')
+    reported: Mapped['User'] = relationship(
+        'User', foreign_keys=[reported_id], back_populates='reports_received')
+
+    def serialize(self):
+        return {
+            'id':          self.id,
+            'reporter_id': self.reporter_id,
+            'reported_id': self.reported_id,
+            'reason':      self.reason,
+            'created_at':  self.created_at.isoformat(),
+            'resolved':    self.resolved,
+        }
