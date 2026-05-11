@@ -1,184 +1,220 @@
 from app import app, db
-from datetime import datetime, timezone
-from api.models import User, Profile, Review, Game, Match, Reject, Like
+from datetime import datetime, timezone, timedelta
+from api.models import User, Profile, Review, Game, Match, Reject, Like, ChatMessage
 from api.utils import hash_password
 
-with app.app_context():
-    # db.drop_all()
-    # db.create_all()
+SEED_DOMAIN = "seed.local"
 
-    #Creación de users
-    user1 = User(email="juan.perez@example.com", password=hash_password("password123"))
-    user2 = User(email="ana.gomez@example.com", password=hash_password("mypassword"))
-    user3 = User(email="carlos.ruiz@example.com", password=hash_password("securepass"))
-    user4 = User(email="maria.lopez@example.com", password=hash_password("pass456"))
-    user5 = User(email="luis.fernandez@example.com", password=hash_password("pass789"))
-    user6 = User(email="laura.diaz@example.com", password=hash_password("mypassword2"))
-    user7 = User(email="jorge.martinez@example.com", password=hash_password("secretpass"))
-    db.session.add_all([user1, user2, user3, user4, user5, user6, user7])
-    db.session.commit()
+GAMES_CATALOG = [
+    ("Valorant",           "https://static-cdn.jtvnw.net/ttv-boxart/516575-285x380.jpg"),
+    ("CS2",                "https://cdn.akamai.steamstatic.com/steam/apps/730/header.jpg"),
+    ("Apex Legends",       "https://cdn.akamai.steamstatic.com/steam/apps/1172470/header.jpg"),
+    ("Fortnite",           "https://static-cdn.jtvnw.net/ttv-boxart/33214-285x380.jpg"),
+    ("Elden Ring",         "https://cdn.akamai.steamstatic.com/steam/apps/1245620/header.jpg"),
+    ("The Witcher 3",      "https://cdn.akamai.steamstatic.com/steam/apps/292030/header.jpg"),
+    ("Baldur's Gate 3",    "https://cdn.akamai.steamstatic.com/steam/apps/1086940/header.jpg"),
+    ("Hades",              "https://cdn.akamai.steamstatic.com/steam/apps/1145360/header.jpg"),
+    ("Stardew Valley",     "https://cdn.akamai.steamstatic.com/steam/apps/413150/header.jpg"),
+    ("Minecraft",          "https://cdn.akamai.steamstatic.com/steam/apps/1672970/header.jpg"),
+    ("Rocket League",      "https://cdn.akamai.steamstatic.com/steam/apps/252950/header.jpg"),
+    ("Celeste",            "https://cdn.akamai.steamstatic.com/steam/apps/504230/header.jpg"),
+    ("Halo Infinite",      "https://cdn.akamai.steamstatic.com/steam/apps/1240440/header.jpg"),
+    ("Forza Horizon 5",    "https://cdn.akamai.steamstatic.com/steam/apps/1551360/header.jpg"),
+    ("EA SPORTS FC 25",    "https://cdn.akamai.steamstatic.com/steam/apps/2669320/header.jpg"),
+    ("League of Legends",  "https://cdn.akamai.steamstatic.com/steam/apps/2801830/header.jpg"),
+    ("GTA V",              "https://cdn.akamai.steamstatic.com/steam/apps/271590/header.jpg"),
+    ("Cyberpunk 2077",     "https://cdn.akamai.steamstatic.com/steam/apps/1091500/header.jpg"),
+    ("Helldivers 2",       "https://cdn.akamai.steamstatic.com/steam/apps/553850/header.jpg"),
+    ("Lethal Company",     "https://cdn.akamai.steamstatic.com/steam/apps/1966720/header.jpg"),
+    ("Dead by Daylight",   "https://cdn.akamai.steamstatic.com/steam/apps/381210/header.jpg"),
+    ("Phasmophobia",       "https://cdn.akamai.steamstatic.com/steam/apps/739630/header.jpg"),
+    ("Civilization VI",    "https://cdn.akamai.steamstatic.com/steam/apps/289070/header.jpg"),
+    ("Among Us",           "https://cdn.akamai.steamstatic.com/steam/apps/945360/header.jpg"),
+]
 
-    #Creación de los profiles de cada user
-    profile1 = Profile(user_id=1, gender="Male", age=28, name="Juan Perez", discord="juan#1234", preferences="Action, Adventure", zodiac="Leo", location="Madrid", nick_name="juancito", bio="Gamer and developer", language="Spanish", steam_id="steam_juan123", photo="photo1")
-    profile2 = Profile(user_id=2, gender="Female", age=34, name="Ana Gomez", discord="ana_g#5678", preferences="RPG, Strategy", zodiac="Cancer", location="Barcelona", nick_name="anag", bio="Loves strategy games", language="Spanish", steam_id="steam_ana567", photo="photo2")
-    profile3 = Profile(user_id=3, gender="Male", age=22, name="Carlos Ruiz", discord="carlos#9999", preferences="FPS, Sports", zodiac="Aries", location="Valencia", nick_name="carlosR", bio="Competitive gamer", language="Spanish", steam_id="steam_carlos999", photo="photo3")
-    profile4 = Profile(user_id=4, gender="Female", age=30, name="Maria Lopez", discord="maria#4567", preferences="Puzzle, Indie", zodiac="Virgo", location="Sevilla", nick_name="mariL", bio="Casual player", language="Spanish", steam_id="steam_maria456", photo="photo4")
-    profile5 = Profile(user_id=5, gender="Male", age=26, name="Luis Fernandez", discord="luisf#2345", preferences="RPG, Open World", zodiac="Taurus", location="Bilbao", nick_name="luisF", bio="Explores every map", language="Spanish", steam_id="steam_luis234", photo="photo5")
-    profile6 = Profile(user_id=6, gender="Female", age=29, name="Laura Diaz", discord="laura#9876", preferences="MMORPG, Strategy", zodiac="Pisces", location="Granada", nick_name="lauD", bio="Guild leader", language="Spanish", steam_id="steam_laura987", photo="photo6")
-    profile7 = Profile(user_id=7, gender="Male", age=33, name="Jorge Martinez", discord="jorge#1122", preferences="FPS, Racing", zodiac="Sagittarius", location="Zaragoza", nick_name="jorgeM", bio="Competitive and fast", language="Spanish", steam_id="steam_jorge112", photo="photo7")
-    db.session.add_all([profile1, profile2, profile3, profile4, profile5, profile6, profile7])
-    db.session.commit()
+SAMPLE_CHAT = [
+    "Hey! Ready to play tonight?",
+    "Sure, what time works for you?",
+    "Let's do a warm-up first.",
+    "Nice play on that last round!",
+    "Can you join voice chat?",
+    "Thanks for the invite, had a blast!",
+    "GG! Rematch tomorrow?",
+    "Absolutely, see you then!",
+]
 
-    #Crear reviews
-    reviews = [
-    # Reviews para user_id=1
-        Review(user_id=1, author_id=2, stars=5, comment="Great player!"),
-        Review(user_id=1, author_id=3, stars=4, comment="Very strategic."),
-        Review(user_id=1, author_id=4, stars=3, comment="Good, but can improve."),
-        Review(user_id=1, author_id=5, stars=4, comment="Fun to play with."),
-        Review(user_id=1, author_id=6, stars=5, comment="Excellent teamwork."),
-        Review(user_id=1, author_id=7, stars=3, comment="Needs more practice."),
-        Review(user_id=1, author_id=2, stars=4, comment="Really fast and skilled."),
-
-        # Reviews para user_id=2
-        Review(user_id=2, author_id=1, stars=4, comment="Good communication."),
-        Review(user_id=2, author_id=3, stars=5, comment="Amazing skills."),
-        Review(user_id=2, author_id=4, stars=4, comment="Very helpful."),
-        Review(user_id=2, author_id=5, stars=3, comment="Can improve timing."),
-        Review(user_id=2, author_id=6, stars=4, comment="Nice player."),
-        Review(user_id=2, author_id=7, stars=5, comment="Strong strategist."),
-        Review(user_id=2, author_id=1, stars=4, comment="Great teamwork."),
-
-        # Reviews para user_id=3
-        Review(user_id=3, author_id=1, stars=3, comment="Average."),
-        Review(user_id=3, author_id=2, stars=4, comment="Good playstyle."),
-        Review(user_id=3, author_id=4, stars=5, comment="Excellent!"),
-        Review(user_id=3, author_id=5, stars=4, comment="Reliable."),
-        Review(user_id=3, author_id=6, stars=3, comment="Could be better."),
-        Review(user_id=3, author_id=7, stars=4, comment="Consistent."),
-        Review(user_id=3, author_id=2, stars=5, comment="Top player."),
-
-        # Reviews para user_id=4
-        Review(user_id=4, author_id=1, stars=4, comment="Nice teammate."),
-        Review(user_id=4, author_id=2, stars=3, comment="Learning fast."),
-        Review(user_id=4, author_id=3, stars=5, comment="Excellent moves."),
-        Review(user_id=4, author_id=5, stars=4, comment="Friendly player."),
-        Review(user_id=4, author_id=6, stars=4, comment="Very cooperative."),
-        Review(user_id=4, author_id=7, stars=3, comment="Could improve strategy."),
-        Review(user_id=4, author_id=1, stars=5, comment="Reliable player."),
-
-        # Reviews para user_id=5
-        Review(user_id=5, author_id=1, stars=5, comment="Excellent teamwork."),
-        Review(user_id=5, author_id=2, stars=4, comment="Good skills."),
-        Review(user_id=5, author_id=3, stars=4, comment="Great at tactics."),
-        Review(user_id=5, author_id=4, stars=5, comment="Fun to play with."),
-        Review(user_id=5, author_id=6, stars=3, comment="Needs to communicate more."),
-        Review(user_id=5, author_id=7, stars=4, comment="Strong player."),
-        Review(user_id=5, author_id=2, stars=5, comment="Very strategic."),
-
-        # Reviews para user_id=6
-        Review(user_id=6, author_id=1, stars=3, comment="Can improve."),
-        Review(user_id=6, author_id=2, stars=4, comment="Good teamwork."),
-        Review(user_id=6, author_id=3, stars=5, comment="Great leader."),
-        Review(user_id=6, author_id=4, stars=5, comment="Helpful player."),
-        Review(user_id=6, author_id=5, stars=4, comment="Very skilled."),
-        Review(user_id=6, author_id=7, stars=3, comment="Needs more practice."),
-        Review(user_id=6, author_id=1, stars=4, comment="Consistent player."),
-
-        # Reviews para user_id=7
-        Review(user_id=7, author_id=1, stars=4, comment="Fast and skilled."),
-        Review(user_id=7, author_id=2, stars=5, comment="Great strategist."),
-        Review(user_id=7, author_id=3, stars=4, comment="Reliable player."),
-        Review(user_id=7, author_id=4, stars=3, comment="Needs to focus more."),
-        Review(user_id=7, author_id=5, stars=4, comment="Very cooperative."),
-        Review(user_id=7, author_id=6, stars=5, comment="Excellent skills."),
-        Review(user_id=7, author_id=1, stars=4, comment="Good teamwork."),
-    ]
-
-    db.session.add_all(reviews)
-    db.session.commit()
-
-    #Crear games para los perfiles de usuarios
-    games = [
-        # Perfil 1
-        Game(profile_id=1, game_title="Call of Duty",               game_hoursPlayed=120),
-        Game(profile_id=1, game_title="Halo Infinite",              game_hoursPlayed=90),
-        Game(profile_id=1, game_title="Celeste",                    game_hoursPlayed=45),
-        # Perfil 2
-        Game(profile_id=2, game_title="Civilization VI",            game_hoursPlayed=200),
-        Game(profile_id=2, game_title="Stardew Valley",             game_hoursPlayed=130),
-        Game(profile_id=2, game_title="Divinity: Original Sin 2",   game_hoursPlayed=160),
-        # Perfil 3
-        Game(profile_id=3, game_title="FIFA 21",                    game_hoursPlayed=150),
-        Game(profile_id=3, game_title="NBA 2K24",                   game_hoursPlayed=95),
-        Game(profile_id=3, game_title="Rocket League",              game_hoursPlayed=110),
-        # Perfil 4
-        Game(profile_id=4, game_title="Stardew Valley",             game_hoursPlayed=80),
-        Game(profile_id=4, game_title="Unpacking",                  game_hoursPlayed=40),
-        Game(profile_id=4, game_title="Gris",                       game_hoursPlayed=30),
-        # Perfil 5
-        Game(profile_id=5, game_title="The Witcher 3",              game_hoursPlayed=300),
-        Game(profile_id=5, game_title="Skyrim",                     game_hoursPlayed=250),
-        Game(profile_id=5, game_title="Zelda: BOTW",                game_hoursPlayed=180),
-        # Perfil 6
-        Game(profile_id=6, game_title="World of Warcraft",          game_hoursPlayed=500),
-        Game(profile_id=6, game_title="Age of Empires IV",          game_hoursPlayed=120),
-        Game(profile_id=6, game_title="Final Fantasy XIV",          game_hoursPlayed=400),
-        # Perfil 7
-        Game(profile_id=7, game_title="Forza Horizon 5",            game_hoursPlayed=220),
-        Game(profile_id=7, game_title="Valorant",                   game_hoursPlayed=180),
-        Game(profile_id=7, game_title="Gran Turismo 7",             game_hoursPlayed=150),
-    ]
-
-    db.session.add_all(games)
-    db.session.commit()
+ZODIACS   = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"]
+LOCATIONS = ["Madrid","Barcelona","Valencia","Sevilla","Bilbao","Granada","Zaragoza","Malaga","Alicante","Murcia"]
+NAMES = [
+    "Alejandro Garcia","Sofia Martinez","Pablo Lopez","Lucia Sanchez",
+    "Daniel Perez","Carmen Rodriguez","Adrian Gonzalez","Marta Fernandez",
+    "Javier Torres","Laura Diaz","Sergio Ruiz","Ana Moreno",
+    "Carlos Jimenez","Ines Alvarez","Marcos Romero","Elena Navarro",
+    "Hugo Dominguez","Valeria Ramos","Oscar Suarez","Nerea Vargas",
+]
+NICKS = [
+    "xAlejx","sofiagamer","pabloFPS","luciadark","dani_rpg",
+    "carmencraft","adrishot","martacozy","javi_racer","lauraMMO",
+    "sergisniper","ana_indie","carlos7","inesguild","markosaves",
+    "elenaXP","hugoplay","valeriabg3","oskarwar","nereaquest",
+]
+BIOS = [
+    "Llevo jugando desde los 8 anos. FPS y RPG son mi vida.",
+    "Siempre buscando squad para ranked. Main support.",
+    "Speedrunner casual. Cualquier juego, cualquier hora.",
+    "Gamer de noche. Amante de los juegos de terror y cozy.",
+    "Veterano de los MMO, raid leader con experiencia.",
+    "Nueva en el mundo gamer, aprendiendo rapido.",
+    "Coleccionista de platinos. La paciencia es mi superpoder.",
+    "Co-op o nada. Los mejores momentos son en equipo.",
+    "Streamer amateur. Disfruto mas del journey que del meta.",
+    "Juego todo lo que caiga en mis manos. Sin generos favoritos.",
+    "Ex-competitivo de CS, ahora mas casual y relajado.",
+    "Farmeo de recursos como hobby. No me juzgues.",
+    "Lore lover. Leo cada linea de dialogo.",
+    "Builder creativo en cualquier sandbox que exista.",
+    "Battle royale addict. Top 1 o me quedo intentando.",
+    "Fan de las novelas visuales y los JRPGs largos.",
+    "Gamer social, lo mejor es chatear mientras jugamos.",
+    "Purista del teclado y raton. Los mandos no son para mi.",
+    "Indie dev y gamer. Aprecio cada pixel con carino.",
+    "Juego para desconectar. Buena vibra siempre.",
+]
+REVIEW_COMMENTS = [
+    "Muy buen jugador, siempre comunicativo.",
+    "Excelente en equipo, lo recomiendo.",
+    "Buen nivel, aprende rapido.",
+    "Se nota la experiencia, gran companero.",
+    "Muy amable y paciente, genial jugar con el.",
+]
 
 
-    #Crear matches 
-    match1 = Match(user1_id=1, user2_id=2, created_at=datetime(2023, 1, 15, 10, 0, 0, tzinfo=timezone.utc))
-    match2 = Match(user1_id=2, user2_id=3, created_at=datetime(2023, 1, 16, 11, 30, 0, tzinfo=timezone.utc))
-    match3 = Match(user1_id=3, user2_id=1, created_at=datetime(2023, 1, 17, 9, 45, 0, tzinfo=timezone.utc))
-    match4 = Match(user1_id=4, user2_id=5, created_at=datetime(2023, 1, 18, 14, 0, 0, tzinfo=timezone.utc))
-    match5 = Match(user1_id=5, user2_id=6, created_at=datetime(2023, 1, 19, 13, 15, 0, tzinfo=timezone.utc))
-    match6 = Match(user1_id=6, user2_id=7, created_at=datetime(2023, 1, 20, 16, 45, 0, tzinfo=timezone.utc))
-    match7 = Match(user1_id=7, user2_id=4, created_at=datetime(2023, 1, 21, 8, 30, 0, tzinfo=timezone.utc))
-    db.session.add_all([match1, match2, match3, match4, match5, match6, match7])
-    db.session.commit()
+def main():
+    with app.app_context():
+        db.create_all()
 
-    #Crear matches rejected
-    reject1 = Reject(rejector_id=1, rejected_id=3, created_at=datetime(2023, 1, 15, 12, 0, 0, tzinfo=timezone.utc))
-    reject2 = Reject(rejector_id=2, rejected_id=4, created_at=datetime(2023, 1, 16, 13, 15, 0, tzinfo=timezone.utc))
-    reject3 = Reject(rejector_id=3, rejected_id=5, created_at=datetime(2023, 1, 17, 14, 30, 0, tzinfo=timezone.utc))
-    reject4 = Reject(rejector_id=4, rejected_id=6, created_at=datetime(2023, 1, 18, 15, 45, 0, tzinfo=timezone.utc))
-    reject5 = Reject(rejector_id=5, rejected_id=7, created_at=datetime(2023, 1, 19, 16, 0, 0, tzinfo=timezone.utc))
-    reject6 = Reject(rejector_id=6, rejected_id=1, created_at=datetime(2023, 1, 20, 17, 30, 0, tzinfo=timezone.utc))
-    reject7 = Reject(rejector_id=7, rejected_id=2, created_at=datetime(2023, 1, 21, 18, 45, 0, tzinfo=timezone.utc))
-    db.session.add_all([reject1, reject2, reject3, reject4, reject5, reject6, reject7])
-    db.session.commit()
+        # Limpiar seed anterior
+        for u in db.session.query(User).filter(User.email.like(f"%@{SEED_DOMAIN}")).all():
+            db.session.delete(u)
+        db.session.commit()
+
+        # 1. Usuarios
+        credentials = []
+        users_to_add = []
+        for i in range(1, 21):
+            email = f"user{i}@{SEED_DOMAIN}"
+            pwd   = f"Password{i:02d}!"
+            users_to_add.append(User(email=email, password=hash_password(pwd), email_verified=True))
+            credentials.append((email, pwd))
+        db.session.add_all(users_to_add)
+        db.session.commit()
+
+        seeded = db.session.query(User).filter(User.email.like(f"%@{SEED_DOMAIN}")).order_by(User.id).all()
+        n = len(seeded)
+        user_ids = [u.id for u in seeded]
+
+        # 2. Perfiles
+        profile_by_uid = {}
+        for idx, user in enumerate(seeded):
+            i = idx + 1
+            photo = f"photo{i}" if i <= 9 else f"https://i.pravatar.cc/300?img={i+10}"
+            prefs = ", ".join(GAMES_CATALOG[(i + j) % len(GAMES_CATALOG)][0] for j in range(3))
+            p = Profile(
+                user_id=user.id,
+                gender="Male" if i % 2 == 1 else "Female",
+                age=18 + (i % 20),
+                name=NAMES[idx],
+                discord=f"{NICKS[idx]}#{1000+i}",
+                preferences=prefs,
+                zodiac=ZODIACS[idx % len(ZODIACS)],
+                location=LOCATIONS[idx % len(LOCATIONS)],
+                nick_name=NICKS[idx],
+                bio=BIOS[idx],
+                language="Spanish" if i % 2 == 0 else "English",
+                steam_id=f"steam_seed_{i}",
+                photo=photo,
+            )
+            db.session.add(p)
+            profile_by_uid[user.id] = p
+        db.session.commit()
+
+        # 3. Juegos
+        for user in seeded:
+            base  = user.id
+            count = 2 + (base % 3)
+            for k in range(count):
+                title, img = GAMES_CATALOG[(base + k) % len(GAMES_CATALOG)]
+                db.session.add(Game(
+                    profile_id=profile_by_uid[user.id].id,
+                    game_title=title,
+                    game_image=img,
+                    game_hoursPlayed=10 * ((base + k) % 40 + 1),
+                ))
+        db.session.commit()
+
+        # 4. Matches
+        for idx in range(n):
+            db.session.add(Match(
+                user1_id=user_ids[idx],
+                user2_id=user_ids[(idx + 1) % n],
+                created_at=datetime.now(timezone.utc) - timedelta(days=(n - idx)),
+            ))
+        for ai, bi in [(0,5),(2,8),(4,12),(6,15),(1,10),(3,17)]:
+            db.session.add(Match(
+                user1_id=user_ids[ai],
+                user2_id=user_ids[bi],
+                created_at=datetime.now(timezone.utc) - timedelta(days=ai+1),
+            ))
+        db.session.commit()
+
+        # 5. Chat
+        all_matches = db.session.query(Match).filter(Match.user1_id.in_(user_ids)).all()
+        for m in all_matches[:15]:
+            for j in range(4):
+                sender = m.user1_id if j % 2 == 0 else m.user2_id
+                db.session.add(ChatMessage(
+                    match_id=m.id,
+                    sender_id=sender,
+                    content=SAMPLE_CHAT[(m.id + j) % len(SAMPLE_CHAT)],
+                    created_at=datetime.now(timezone.utc) - timedelta(hours=8-j),
+                    read=(j < 3),
+                ))
+        db.session.commit()
+
+        # 6. Likes
+        for idx, uid in enumerate(user_ids):
+            for offset in [1, 3]:
+                db.session.add(Like(liker_id=uid, liked_id=user_ids[(idx+offset)%n]))
+        db.session.commit()
+
+        # 7. Rejects
+        for idx in range(0, n, 3):
+            db.session.add(Reject(
+                rejector_id=user_ids[idx],
+                rejected_id=user_ids[(idx+2)%n],
+                created_at=datetime.now(timezone.utc) - timedelta(days=idx+1),
+            ))
+        db.session.commit()
+
+        # 8. Reviews
+        for idx, uid in enumerate(user_ids):
+            for j in range(1 + idx % 3):
+                db.session.add(Review(
+                    user_id=uid,
+                    author_id=user_ids[(idx+j+1)%n],
+                    stars=3 + (idx+j)%3,
+                    comment=REVIEW_COMMENTS[(idx+j)%len(REVIEW_COMMENTS)],
+                ))
+        db.session.commit()
+
+        # Credenciales
+        print("\n✅ Seeder completado.\n")
+        print(f"  {'EMAIL':<30}  CONTRASENA")
+        print(f"  {'-'*30}  {'-'*12}")
+        for email, pwd in credentials:
+            print(f"  {email:<30}  {pwd}")
+        print()
 
 
-    #Crear likes
-    likes = [
-        Like(liker_id=1, liked_id=2),
-        Like(liker_id=1, liked_id=3),
-        Like(liker_id=2, liked_id=1),
-        Like(liker_id=2, liked_id=4),
-        Like(liker_id=3, liked_id=5),
-        Like(liker_id=3, liked_id=2),
-        Like(liker_id=4, liked_id=1),
-        Like(liker_id=4, liked_id=6),
-        Like(liker_id=5, liked_id=4),
-        Like(liker_id=5, liked_id=7),
-        Like(liker_id=6, liked_id=3),
-        Like(liker_id=6, liked_id=1),
-        Like(liker_id=7, liked_id=2),
-        Like(liker_id=7, liked_id=6),
-    ]
-
-    db.session.add_all(likes)
-    db.session.commit()
-
-
-
-    
-    print("✅ Data seeded successfully")
+if __name__ == "__main__":
+    main()
