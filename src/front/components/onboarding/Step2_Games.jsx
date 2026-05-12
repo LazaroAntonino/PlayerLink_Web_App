@@ -39,8 +39,8 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
 
     return (
         <>
-            <h2>Tus juegos favoritos</h2>
-            <p className="ob-subtitle">Selecciona hasta {MAX_GAMES} juegos que más juegas</p>
+            <h2>Your favorite games</h2>
+            <p className="ob-subtitle">Select up to {MAX_GAMES} games you play the most</p>
 
             {/* Chips de juegos seleccionados con campo de horas inline */}
             {data.games.length > 0 && (
@@ -60,7 +60,7 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
                                     placeholder="0"
                                     value={g.hours_played}
                                     onChange={e => updateHours(g.title, e.target.value)}
-                                    aria-label={`Horas en ${g.title}`}
+                                    aria-label={`Hours in ${g.title}`}
                                 />
                                 <span className="ob-game-chip-hours-unit">h</span>
                             </label>
@@ -68,7 +68,7 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
                                 type="button"
                                 className="ob-chip-remove"
                                 onClick={() => removeChip(g.title)}
-                                aria-label={`Quitar ${g.title}`}
+                                aria-label={`Remove ${g.title}`}
                             >
                                 ×
                             </button>
@@ -83,7 +83,7 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
                 <input
                     type="text"
                     className="ob-input"
-                    placeholder="Buscar juego..."
+                    placeholder="Search game..."
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                 />
@@ -112,19 +112,19 @@ export const Step2_Games = ({ data, onChange, onNext, onBack }) => {
             </div>
 
             <p className={"ob-game-counter" + (atMax ? " at-max" : "")}>
-                {data.games.length}/{MAX_GAMES} juegos{atMax ? " — máximo alcanzado" : ""}
+                {data.games.length}/{MAX_GAMES} games{atMax ? " — maximum reached" : ""}
             </p>
 
             <div className="ob-nav">
-                <button type="button" className="ob-btn-back" onClick={onBack}>← Atrás</button>
+                <button type="button" className="ob-btn-back" onClick={onBack}>← Back</button>
                 <button
                     type="button"
                     className="ob-btn-next"
                     onClick={onNext}
                     disabled={!canContinue}
-                    title={!canContinue ? "Selecciona al menos 1 juego" : ""}
+                    title={!canContinue ? "Select at least 1 game" : ""}
                 >
-                    Siguiente →
+                    Next →
                 </button>
             </div>
 

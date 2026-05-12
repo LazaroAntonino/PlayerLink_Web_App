@@ -2,12 +2,14 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
 }
 
 .private-layout-body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .private-content {
@@ -17,6 +19,16 @@
   overflow-y: auto;
   background-color: transparent;
   color: white;
+  min-height: 0;
+  /* Scroll táctil fluido en iOS/Android */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Mobile: compensar el botón hamburger fijo ── */
+@media (max-width: 768px) {
+  .private-content {
+    padding: 74px 14px max(20px, env(safe-area-inset-bottom, 20px));
+  }
 }
 
 .backgroundPrivateLayout {
@@ -32,8 +44,11 @@
     transform: translateY(10px);
   }
   to {
+    /* No se incluye transform en el estado final.
+       Si se dejara transform:translateY(0), el navegador crea un nuevo
+       containing-block para position:fixed, rompiendo el FAB de filtros
+       y cualquier otro elemento fixed dentro de la página. */
     opacity: 1;
-    transform: translateY(0);
   }
 }
 

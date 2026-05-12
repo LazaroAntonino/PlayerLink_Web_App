@@ -95,17 +95,17 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
                 className="filter-panel"
                 role="dialog"
                 aria-modal="true"
-                aria-label="Panel de filtros"
+                aria-label="Filters panel"
                 ref={panelRef}
                 tabIndex={-1}
             >
                 {/* Header */}
                 <div className="filter-panel-header">
-                    <h2 className="filter-panel-title">🎮 Filtros</h2>
+                    <h2 className="filter-panel-title">🎮 Filters</h2>
                     <button
                         className="filter-panel-close"
                         onClick={onClose}
-                        aria-label="Cerrar panel de filtros"
+                        aria-label="Close filter panel"
                     >
                         ×
                     </button>
@@ -116,7 +116,7 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── JUEGO ─────────────────────────────────── */}
                     <div>
-                        <p className="filter-section-label">🎮 Juego</p>
+                        <p className="filter-section-label">🎮 Game</p>
                         <div className="filter-chips-grid">
                             {GAME_OPTIONS.map(g => (
                                 <button
@@ -134,7 +134,7 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── PLATAFORMA ────────────────────────────── */}
                     <div>
-                        <p className="filter-section-label">🖥️ Plataforma</p>
+                        <p className="filter-section-label">🖥️ Platform</p>
                         <div className="filter-chips-grid">
                             {PLATFORM_OPTIONS.map(p => (
                                 <button
@@ -152,7 +152,7 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── ESTILO DE JUEGO ───────────────────────── */}
                     <div>
-                        <p className="filter-section-label">🏆 Estilo de juego</p>
+                        <p className="filter-section-label">🏆 Play Style</p>
                         <div className="filter-chips-grid">
                             {STYLE_OPTIONS.map(s => (
                                 <button
@@ -170,7 +170,7 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── IDIOMA ────────────────────────────────── */}
                     <div>
-                        <p className="filter-section-label">🌐 Idioma</p>
+                        <p className="filter-section-label">🌐 Language</p>
                         <div className="filter-chips-grid">
                             {LANGUAGE_OPTIONS.map(l => (
                                 <button
@@ -188,7 +188,7 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── GÉNERO ────────────────────────────────── */}
                     <div>
-                        <p className="filter-section-label">👤 Género</p>
+                        <p className="filter-section-label">👤 Gender</p>
                         <div className="filter-chips-grid">
                             {GENDER_OPTIONS.map(g => (
                                 <button
@@ -206,44 +206,44 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
 
                     {/* ── UBICACIÓN (texto libre) ────────────────── */}
                     <div>
-                        <p className="filter-section-label">📍 Ubicación</p>
+                        <p className="filter-section-label">📍 Location</p>
                         <input
                             type="text"
                             className="filter-text-input"
-                            placeholder="Ej: Madrid, Barcelona, México..."
+                            placeholder="E.g.: London, New York, Tokyo..."
                             value={draft.location || ""}
                             onChange={e => setField("location", e.target.value)}
-                            aria-label="Filtrar por ubicación"
+                            aria-label="Filter by location"
                             maxLength={50}
                         />
                     </div>
 
                     {/* ── EDAD ──────────────────────────────────── */}
                     <div>
-                        <p className="filter-section-label">🎂 Rango de edad</p>
+                        <p className="filter-section-label">🎂 Age range</p>
                         <div className="filter-age-row">
                             <input
                                 type="number"
                                 className="filter-age-input"
-                                placeholder="Mín"
+                                placeholder="Min"
                                 min={13}
                                 max={99}
                                 value={draft.age_min ?? ""}
                                 onChange={e => setField("age_min", e.target.value ? Number(e.target.value) : undefined)}
-                                aria-label="Edad mínima"
+                                aria-label="Minimum age"
                             />
                             <span className="filter-age-sep">—</span>
                             <input
                                 type="number"
                                 className="filter-age-input"
-                                placeholder="Máx"
+                                placeholder="Max"
                                 min={13}
                                 max={99}
                                 value={draft.age_max ?? ""}
                                 onChange={e => setField("age_max", e.target.value ? Number(e.target.value) : undefined)}
-                                aria-label="Edad máxima"
+                                aria-label="Maximum age"
                             />
-                            <span className="filter-age-sep">años</span>
+                            <span className="filter-age-sep">years</span>
                         </div>
                     </div>
 
@@ -256,14 +256,14 @@ export const FilterPanel = ({ filters, onApply, onClose, isOpen }) => {
                         className="filter-apply-btn"
                         onClick={handleApply}
                     >
-                        Aplicar filtros
+                        Apply filters
                     </button>
                     <button
                         type="button"
                         className="filter-clear-btn"
                         onClick={handleClear}
                     >
-                        Limpiar todo
+                        Clear all
                     </button>
                 </div>
             </div>

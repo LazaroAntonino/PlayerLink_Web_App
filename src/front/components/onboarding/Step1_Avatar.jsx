@@ -10,9 +10,9 @@ export const Step1_Avatar = ({ data, onChange, onNext }) => {
     const [nickError, setNickError] = useState("");
 
     const validateNick = (value) => {
-        if (value.length < NICK_MIN) return `Mínimo ${NICK_MIN} caracteres`;
-        if (value.length > NICK_MAX) return `Máximo ${NICK_MAX} caracteres`;
-        if (!NICK_REGEX.test(value)) return "Sin espacios, por favor";
+        if (value.length < NICK_MIN) return `Minimum ${NICK_MIN} characters`;
+        if (value.length > NICK_MAX) return `Maximum ${NICK_MAX} characters`;
+        if (!NICK_REGEX.test(value)) return "No spaces allowed";
         return "";
     };
 
@@ -34,15 +34,15 @@ export const Step1_Avatar = ({ data, onChange, onNext }) => {
 
     return (
         <>
-            <h2>Elige tu avatar</h2>
-            <p className="ob-subtitle">Escoge tu apariencia y elige un nick que te represente</p>
+            <h2>Choose your avatar</h2>
+            <p className="ob-subtitle">Pick your look and choose a nickname that represents you</p>
 
             {/* Preview del avatar seleccionado */}
             <div className="ob-avatar-section">
                 {photoSrc ? (
                     <img
                         src={photoSrc}
-                        alt="Avatar seleccionado"
+                        alt="Selected avatar"
                         className="ob-avatar-preview"
                     />
                 ) : (
@@ -69,13 +69,13 @@ export const Step1_Avatar = ({ data, onChange, onNext }) => {
             {/* Nick gamer */}
             <div style={{ marginTop: "1.5rem" }}>
                 <label htmlFor="ob-nick" className="ob-input-label">
-                    Nick gamer
+                    Gamer Nick
                 </label>
                 <input
                     id="ob-nick"
                     type="text"
                     className={"ob-input" + (nickError ? " error" : "")}
-                    placeholder="Ej: ShadowSniper42"
+                    placeholder="e.g. ShadowSniper42"
                     value={data.nick_name}
                     onChange={handleNickChange}
                     maxLength={NICK_MAX}
@@ -86,7 +86,7 @@ export const Step1_Avatar = ({ data, onChange, onNext }) => {
                     <p className="ob-error-msg">{nickError}</p>
                 ) : (
                     <p className="ob-hint">
-                        {data.nick_name.length}/{NICK_MAX} — sin espacios, 3-20 caracteres
+                        {data.nick_name.length}/{NICK_MAX} — no spaces, 3–20 characters
                     </p>
                 )}
             </div>
@@ -98,7 +98,7 @@ export const Step1_Avatar = ({ data, onChange, onNext }) => {
                     onClick={handleNext}
                     disabled={!!validateNick(data.nick_name)}
                 >
-                    Siguiente →
+                    Next →
                 </button>
             </div>
         </>

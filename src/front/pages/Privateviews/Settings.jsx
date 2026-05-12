@@ -160,32 +160,29 @@ const SettingsView = () => {
     setShowPasswordModal(false);
     setShowPassword(false); // ojo cerrado
     setShowNewPassword(false)
-    setPassword({ password: "", confirmedPassword: "" }); // limpia inputs
+    setPassword({ actualPassword: "", password: "", confirmedPassword: "" }); // limpia inputs
     setErrorPassword(""); // limpia error
     setCorrectPassword(""); // limpia mensaje éxito
   };
 
 
-  const handleChange = e => {
-    setEmail({
-      ...email,
-      [e.target.name]: e.target.value
-    })
-    setPassword({
-      ...password,
-      [e.target.name]: e.target.value
-    })
-  }
+  const handleEmailChange = e => {
+    setEmail(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePasswordChange = e => {
+    setPassword(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
 
   useEffect(() => {
     const errors = [];
     const pwd = password.password;
 
-    if (pwd.length < 8) errors.push("at least 8 characters");
-    if (!/[A-Z]/.test(pwd)) errors.push("an uppercase letter");
-    if (!/[a-z]/.test(pwd)) errors.push("a lowercase letter");
-    if (!/[0-9]/.test(pwd)) errors.push("a number");
-    if (!/[^A-Za-z0-9]/.test(pwd)) errors.push("a special character");
+    if (pwd.length > 0 && pwd.length < 8) errors.push("at least 8 characters");
+    if (pwd.length > 0 && !/[A-Z]/.test(pwd)) errors.push("an uppercase letter");
+    if (pwd.length > 0 && !/[a-z]/.test(pwd)) errors.push("a lowercase letter");
+    if (pwd.length > 0 && !/[0-9]/.test(pwd)) errors.push("a number");
+    if (pwd.length > 0 && !/[^A-Za-z0-9]/.test(pwd)) errors.push("a special character");
 
     setPasswordErrors(errors);
   }, [password.password]);
@@ -215,9 +212,9 @@ const SettingsView = () => {
 
             <h3>Change Email</h3>
             <form onSubmit={submitEmailChange}>
-              <input type="actualEmail" placeholder="Email" name="actualEmail" value={email.actualEmail} onChange={handleChange} />
-              <input type="email" placeholder="New Email" name="email" value={email.email} onChange={handleChange} />
-              <input type="email" placeholder="Confirm New Email" name="confirmedEmail" value={email.confirmedEmail} onChange={handleChange} />
+              <input type="email" placeholder="Current Email" name="actualEmail" value={email.actualEmail} onChange={handleEmailChange} />
+              <input type="email" placeholder="New Email" name="email" value={email.email} onChange={handleEmailChange} />
+              <input type="email" placeholder="Confirm New Email" name="confirmedEmail" value={email.confirmedEmail} onChange={handleEmailChange} />
               {sameEmail && <h6 className="text-danger mt-1">{sameEmail}</h6>}
               {emailChanged && <h6 className="text-success mt-1">{emailChanged}</h6>}
               {errorEmailChange && <h6 className="text-danger mt-1">{errorEmailChange}</h6>}
@@ -243,7 +240,7 @@ const SettingsView = () => {
                     name="actualPassword"
                     value={password.actualPassword}
                     className='settings-change-password-input'
-                    onChange={handleChange}
+                    onChange={handlePasswordChange}
 
                   />
                   <i
@@ -263,7 +260,7 @@ const SettingsView = () => {
                     name="password"
                     value={password.password}
                     className="settings-change-password-input"
-                    onChange={handleChange} />
+                    onChange={handlePasswordChange} />
                   <i
                     onClick={() => setShowNewPassword(prev => !prev)}
                     className={`fa-solid setting-change-password-eye-icon ${showNewPassword ? "fa-eye-slash" : "fa-eye"}`}
@@ -281,7 +278,7 @@ const SettingsView = () => {
                 </h5>
               )}
 
-              <input type="password" placeholder="Confirm New Password" name="confirmedPassword" value={password.confirmedPassword} onChange={handleChange} />
+              <input type="password" placeholder="Confirm New Password" name="confirmedPassword" value={password.confirmedPassword} onChange={handlePasswordChange} />
               {errorPassword && <h6 className="text-danger mt-1">{errorPassword}</h6>}
               {correctPassword && <h6 className="text-success mt-1">{correctPassword}</h6>}
 

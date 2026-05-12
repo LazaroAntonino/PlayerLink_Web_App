@@ -102,7 +102,7 @@ export const NavbarHome = () => {
                 {sessionExpiredMsg && (
                   <div className="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
                     <span>⚠️</span>
-                    <span>Tu sesión ha expirado. Por favor, inicia sesión de nuevo.</span>
+                    <span>Your session has expired. Please sign in again.</span>
                   </div>
                 )}
                 <div>

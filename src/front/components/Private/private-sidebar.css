@@ -53,6 +53,8 @@
   position: relative;
   overflow: hidden;
   transform: translateX(0);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /*AJUSTAR EL TAMAÑO DE LOS ICONOS !!! NO OLVIDAAARRR*/
@@ -128,19 +130,21 @@
     background: rgba(0, 0, 0, 0.6);
     z-index: 999;
     backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
   }
 }
 
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
-    top: 60px; /* Altura del navbar */
+    top: 0;
     left: -300px;
-    height: calc(100% - 60px);
-    width: 250px;
+    height: 100%;
+    width: min(260px, 85vw);
     background-color: #000;
     transition: left 0.3s ease-in-out;
     z-index: 1000;
+    padding-top: 74px; /* espacio para el botón toggle */
   }
 
   .sidebar.open {
@@ -149,7 +153,6 @@
 }
 
 .sidebar-toggle {
-  display: none;
   position: fixed;
   top: 12px;
   left: 12px;
@@ -160,12 +163,15 @@
   border: 1px solid rgba(0, 255, 255, 0.4);
   border-radius: 8px;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: none;
+  width: 44px;
+  height: 44px;
+  display: none; /* mostrado sólo en móvil vía @media */
   align-items: center;
   justify-content: center;
   transition: background 0.2s ease, box-shadow 0.2s ease;
+  /* Eliminar retraso de 300ms en iOS y Android */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .sidebar-toggle:hover {

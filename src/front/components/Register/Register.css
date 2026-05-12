@@ -42,8 +42,8 @@
 
 /* Pantalla móvil  */
 @media (max-width: 600px) {
- .register-card{
-  width: 20rem;
+ .register-card {
+  width: min(20rem, 94vw);
   padding-right: 0px;
   padding-left: 0px;
  }

@@ -102,6 +102,8 @@ export default function storeReducer(store, action = {}) {
       localStorage.removeItem("profile");
       localStorage.removeItem("itsMatchInfo");
       localStorage.removeItem("playerlink_onboarding");
+      localStorage.removeItem("playerlink_explore_filters");
+      localStorage.removeItem("userMatchesInfo");
 
       return {
         user: null,

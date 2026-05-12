@@ -141,7 +141,7 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
                     >
                         <i className={`fa-brands fa-discord me-1${discordCopied ? ' d-none' : ''}`} />
                         {discordCopied
-                            ? <><i className="fa-solid fa-check me-1" />¡Copiado!</>
+                            ? <><i className="fa-solid fa-check me-1" />Copied!</>
                             : profile.discord
                         }
                     </span>
@@ -168,7 +168,7 @@ export const ItsMatch = ({ profile, myProfile, matchId, onClose }) => {
                         onClick={handleGoToChat}
                     >
                         <i className="fa-solid fa-message me-2" />
-                        Enviar mensaje
+                        Send message
                     </button>
                 )}
                 <button

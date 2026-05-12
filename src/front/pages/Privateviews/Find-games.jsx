@@ -7,14 +7,14 @@ import apiFetch from "../../services/apiFetch.js";
 
 const INITIAL_MESSAGE = {
   sender: "bot",
-  text: "¡Hola! Soy tu Game Advisor 🎮 Tengo acceso a tu perfil y a los datos de PlayerLink. Puedo recomendarte juegos, encontrar jugadores compatibles contigo o contarte estadísticas de la comunidad. ¿Qué quieres saber?",
+  text: "Hi! I'm your Game Advisor 🎮 I have access to your profile and PlayerLink data. I can recommend games, find compatible players or tell you community stats. What do you want to know?",
 };
 
 const QUICK_SUGGESTIONS = [
-  "¿Qué juegos me recomiendas?",
-  "¿Quién es compatible conmigo?",
-  "¿Cuáles son mis juegos?",
-  "Rellena mi perfil automáticamente",
+  "What games do you recommend?",
+  "Who is compatible with me?",
+  "What are my games?",
+  "Fill my profile automatically",
 ];
 
 export const FindGames = () => {
@@ -88,14 +88,14 @@ export const FindGames = () => {
         toastTimerRef.current = setTimeout(() => setProfileUpdatedToast(false), 4000);
       }
     } catch (err) {
-      const msg = err.message || "Error de conexión";
+      const msg = err.message || "Connection error";
       if (msg.includes("503") || msg.includes("not configured")) {
         setError(
-          "El servicio de IA no está configurado. Contacta con el administrador."
+          "The AI service is not configured. Please contact the administrator."
         );
       } else if (msg.includes("429")) {
         setError(
-          "Demasiadas peticiones. Espera un momento e inténtalo de nuevo."
+          "Too many requests. Please wait a moment and try again."
         );
       } else {
         setError(msg);
@@ -129,7 +129,7 @@ export const FindGames = () => {
   };
 
   const userGamesCount = store.user?.profile?.games?.length ?? 0;
-  const userNick = store.user?.profile?.nick_name || "Jugador";
+  const userNick = store.user?.profile?.nick_name || "Player";
 
   return (
     <div className="fg-page">
@@ -139,8 +139,8 @@ export const FindGames = () => {
         {profileUpdatedToast && (
           <div className="fg-profile-updated-toast" role="alert">
             <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
-            <span>¡Perfil actualizado! Los cambios ya están guardados.</span>
-            <button onClick={() => setProfileUpdatedToast(false)} aria-label="Cerrar">
+            <span>Profile updated! Changes have been saved.</span>
+            <button onClick={() => setProfileUpdatedToast(false)} aria-label="Close">
               <i className="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </div>
@@ -157,7 +157,7 @@ export const FindGames = () => {
               <h1 className="fg-title">Game Advisor</h1>
               <span className="fg-subtitle">
                 <span className="fg-online-dot"></span>
-                Con acceso a tu perfil&nbsp;·&nbsp;{userGamesCount} juegos registrados
+                With access to your profile&nbsp;·&nbsp;{userGamesCount} games registered
               </span>
             </div>
           </div>
@@ -165,8 +165,8 @@ export const FindGames = () => {
             <button
               className="fg-icon-btn"
               onClick={clearChat}
-              title="Nueva conversación"
-              aria-label="Limpiar conversación"
+              title="New conversation"
+              aria-label="Clear conversation"
             >
               <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
             </button>
@@ -189,7 +189,7 @@ export const FindGames = () => {
           {/* Sugerencias rápidas — solo en el estado inicial */}
           {showSuggestions && messages.length === 1 && (
             <div className="fg-suggestions">
-              <p className="fg-suggestions-label">Prueba preguntando:</p>
+              <p className="fg-suggestions-label">Try asking:</p>
               <div className="fg-suggestions-grid">
                 {QUICK_SUGGESTIONS.map((s, i) => (
                   <button
@@ -225,7 +225,7 @@ export const FindGames = () => {
           <div className="fg-error">
             <i className="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
             <span>{error}</span>
-            <button onClick={() => setError("")} aria-label="Cerrar error">
+            <button onClick={() => setError("")} aria-label="Close error">
               <i className="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
           </div>
@@ -235,26 +235,26 @@ export const FindGames = () => {
         <div className="fg-input-area">
           <div className="fg-context-pill">
             <i className="fa-solid fa-database" aria-hidden="true"></i>
-            Conectado a PlayerLink&nbsp;·&nbsp;Hola, {userNick}
+            Connected to PlayerLink&nbsp;·&nbsp;Hi, {userNick}
           </div>
           <form className="fg-form" onSubmit={handleSubmit}>
             <input
               ref={inputRef}
               type="text"
               className="fg-input"
-              placeholder="Pregunta sobre juegos, matches, comunidad..."
+              placeholder="Ask about games, players, community..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
               maxLength={500}
-              aria-label="Mensaje para el asistente"
+              aria-label="Message for the assistant"
             />
             <button
               type="submit"
               className="fg-send-btn"
               disabled={isLoading || !inputValue.trim()}
-              aria-label="Enviar mensaje"
+              aria-label="Send message"
             >
               {isLoading ? (
                 <i className="fa-solid fa-spinner fa-spin"></i>

@@ -35,7 +35,7 @@ export const Sidebar = ({ activePath }) => {
     { to: "/private/profile", icon: profileicon, label: "Profile" },
     { to: "/private/search-a-mate", icon: searchicon, label: "Search a mate" },
     { to: "/private/your-matches", icon: matchicon, label: "Your matches" },
-    { to: "/private/chats", icon: messageicon, label: "Mensajes", isChat: true },
+    { to: "/private/chats", icon: messageicon, label: "Messages", isChat: true },
     { to: "/private/find-games", icon: findicon, label: "Find games" },
     { to: "/private/settings", icon: settingsicon, label: "Settings" },
   ];
@@ -69,7 +69,11 @@ export const Sidebar = ({ activePath }) => {
           <NavLink
             key={link.to}
             to={link.to}
-            className={({ isActive }) => `sidebar-button ${isActive ? "active" : ""}`}
+            className={({ isActive }) => {
+              // Also highlight Messages when inside an individual chat (/private/chat/:id)
+              const isChat = link.isChat && window.location.pathname.startsWith("/private/chat");
+              return `sidebar-button ${isActive || isChat ? "active" : ""}`;
+            }}
             onClick={() => setOpen(false)}
           >
             <span className="sidebar-icon">

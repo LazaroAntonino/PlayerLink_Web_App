@@ -92,7 +92,7 @@ const Onboarding = () => {
 
         const user = store.user;
         if (!user?.id) {
-            setPublishError("No se encontró tu sesión. Por favor, vuelve a iniciar sesión.");
+            setPublishError("Session not found. Please sign in again.");
             setPublishing(false);
             return;
         }
@@ -133,7 +133,7 @@ const Onboarding = () => {
                         hours_played: game.hours_played ?? 0,
                     });
                 } catch (gameErr) {
-                    console.warn("Error guardando juego:", game.title, gameErr);
+                    console.warn("Error saving game:", game.title, gameErr);
                     // No abortar por un juego fallido
                 }
             }
@@ -148,8 +148,8 @@ const Onboarding = () => {
 
             navigate("/private");
         } catch (err) {
-            console.error("Error en onboarding publish:", err);
-            setPublishError(err.message || "Error inesperado. Por favor, inténtalo de nuevo.");
+            console.error("Error in onboarding publish:", err);
+            setPublishError(err.message || "Unexpected error. Please try again.");
             setPublishing(false);
         }
     };

@@ -148,7 +148,7 @@ export const ProfileGamesTab = ({
                         aria-hidden="true"
                         aria-labelledby="commentModalLabel"
                     >
-                        <div className="modal-dialog">
+                        <div className="modal-dialog modal-dialog-centered">
                             <div className="modal-content modal-sci-fi">
                                 <div className="modal-header modal-sci-fi-header">
                                     <h5

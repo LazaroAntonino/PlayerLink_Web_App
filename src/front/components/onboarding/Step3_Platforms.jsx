@@ -23,8 +23,8 @@ export const Step3_Platforms = ({ data, onChange, onNext, onBack, onSkip }) => {
 
     return (
         <>
-            <h2>Tus plataformas</h2>
-            <p className="ob-subtitle">¿En qué dispositivos juegas? Selecciona todos los que uses</p>
+            <h2>Your platforms</h2>
+            <p className="ob-subtitle">What devices do you play on? Select all that apply</p>
 
             <div className="ob-platforms-grid">
                 {PLATFORMS.map(({ id, label, icon }) => (
@@ -43,14 +43,14 @@ export const Step3_Platforms = ({ data, onChange, onNext, onBack, onSkip }) => {
 
             {!canContinue && (
                 <p className="ob-error-msg" style={{ marginTop: "0.5rem" }}>
-                    Selecciona al menos 1 plataforma para continuar
+                    Select at least 1 platform to continue
                 </p>
             )}
 
             <div className="ob-nav">
-                <button type="button" className="ob-btn-back" onClick={onBack}>← Atrás</button>
+                <button type="button" className="ob-btn-back" onClick={onBack}>← Back</button>
                 <button type="button" className="ob-btn-skip" onClick={onSkip}>
-                    Saltar por ahora
+                    Skip for now
                 </button>
                 <button
                     type="button"
@@ -58,7 +58,7 @@ export const Step3_Platforms = ({ data, onChange, onNext, onBack, onSkip }) => {
                     onClick={onNext}
                     disabled={!canContinue}
                 >
-                    Siguiente →
+                    Next →
                 </button>
             </div>
         </>

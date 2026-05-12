@@ -1,12 +1,12 @@
 import PropTypes from "prop-types";
 
 const STYLES = [
-    { id: "Competitivo", emoji: "🏆", title: "Competitivo", desc: "Vivo para rankear" },
-    { id: "Roleplay", emoji: "🎭", title: "Roleplay", desc: "La historia es lo primero" },
-    { id: "Casual", emoji: "😎", title: "Casual", desc: "Juego para desconectar" },
-    { id: "Speedrun", emoji: "💨", title: "Speedrun", desc: "El tiempo es todo" },
-    { id: "Cooperativo", emoji: "🤝", title: "Cooperativo", desc: "En equipo se llega lejos" },
-    { id: "Explorador", emoji: "🔍", title: "Explorador", desc: "Cada rincón del mapa" },
+    { id: "Competitivo", emoji: "🏆", title: "Competitive", desc: "I live to climb the ranks" },
+    { id: "Roleplay", emoji: "🎭", title: "Roleplay", desc: "Story comes first" },
+    { id: "Casual", emoji: "😎", title: "Casual", desc: "Gaming to unwind" },
+    { id: "Speedrun", emoji: "💨", title: "Speedrun", desc: "Time is everything" },
+    { id: "Cooperativo", emoji: "🤝", title: "Co-op", desc: "Teamwork makes the dream work" },
+    { id: "Explorador", emoji: "🔍", title: "Explorer", desc: "Every corner of the map" },
 ];
 
 export const Step4_PlayStyle = ({ data, onChange, onNext, onBack, onSkip }) => {
@@ -17,8 +17,8 @@ export const Step4_PlayStyle = ({ data, onChange, onNext, onBack, onSkip }) => {
 
     return (
         <>
-            <h2>Tu estilo de juego</h2>
-            <p className="ob-subtitle">¿Cómo describes tu forma de jugar?</p>
+            <h2>Your play style</h2>
+            <p className="ob-subtitle">How would you describe the way you play?</p>
 
             <div className="ob-styles-grid">
                 {STYLES.map(({ id, emoji, title, desc }) => (
@@ -39,9 +39,9 @@ export const Step4_PlayStyle = ({ data, onChange, onNext, onBack, onSkip }) => {
             </div>
 
             <div className="ob-nav">
-                <button type="button" className="ob-btn-back" onClick={onBack}>← Atrás</button>
+                <button type="button" className="ob-btn-back" onClick={onBack}>← Back</button>
                 <button type="button" className="ob-btn-skip" onClick={onSkip}>
-                    Saltar por ahora
+                    Skip for now
                 </button>
                 <button
                     type="button"
@@ -49,7 +49,7 @@ export const Step4_PlayStyle = ({ data, onChange, onNext, onBack, onSkip }) => {
                     onClick={onNext}
                     disabled={!data.playStyle}
                 >
-                    Ver preview →
+                    Preview →
                 </button>
             </div>
         </>

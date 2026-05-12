@@ -46,7 +46,8 @@ function _handleSessionExpired() {
   [
     "token", "user", "likesSent", "dislikesSent",
     "searchMatchProfiles", "profile", "itsMatchInfo",
-    "playerlink_onboarding",
+    "playerlink_onboarding", "playerlink_explore_filters",
+    "userMatchesInfo",
   ].forEach((key) => localStorage.removeItem(key));
 
   // 2. Disparar callback del store (si está registrado)

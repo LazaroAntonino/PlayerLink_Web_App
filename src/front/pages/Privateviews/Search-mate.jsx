@@ -92,11 +92,11 @@ export const SearchMate = () => {
     } finally {
       setLoading(false);
     }
-  }, [store.user, dispatch]);
+  }, [store.user?.id, dispatch]);
 
   useEffect(() => {
     fetchProfiles(filters);
-  }, [store.user, store.userMatchesInfo, filters]);
+  }, [store.user?.id, store.userMatchesInfo, filters]);
 
   // ── Avanzar al siguiente perfil ──────────────────────────────────────────
   const advanceToNextProfile = () => {
@@ -209,13 +209,13 @@ export const SearchMate = () => {
         {activeFilterCount > 0 ? (
           <div className="filter-no-results">
             <span className="filter-no-results-icon">🔍</span>
-            <p className="filter-no-results-title">No hay perfiles con estos filtros</p>
-            <p className="filter-no-results-sub">Prueba ajustando o eliminando los filtros activos</p>
+            <p className="filter-no-results-title">No profiles match these filters</p>
+            <p className="filter-no-results-sub">Try adjusting or removing active filters</p>
             <button
               className="filter-clear-results-btn"
               onClick={() => setFilters({})}
             >
-              Quitar filtros
+              Clear filters
             </button>
           </div>
         ) : (
@@ -270,7 +270,7 @@ export const SearchMate = () => {
                   <span key={key} className="active-filter-chip">
                     {val}
                     <button
-                      aria-label={`Quitar filtro ${key}`}
+                      aria-label={`Remove filter ${key}`}
                       onClick={() => {
                         const next = { ...filters };
                         delete next[key];
@@ -286,7 +286,7 @@ export const SearchMate = () => {
                 style={{ opacity: 0.7 }}
                 onClick={() => setFilters({})}
               >
-                Limpiar todo
+                Clear all
               </button>
             </div>
           )}
@@ -309,7 +309,7 @@ export const SearchMate = () => {
         <button
           className="filter-fab"
           onClick={() => setFilterPanelOpen(true)}
-          aria-label="Abrir filtros"
+          aria-label="Open filters"
         >
           <i className="fa-solid fa-sliders" />
           {activeFilterCount > 0 && (

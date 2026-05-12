@@ -31,9 +31,9 @@ const formatTime = (isoString) => {
         d.getFullYear() === now.getFullYear();
 
     if (isToday) {
-        return d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+        return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
     }
-    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+    return d.toLocaleDateString("en-US", { day: "2-digit", month: "short" });
 };
 
 // ── Item individual (componente interno) ─────────────────
@@ -51,9 +51,9 @@ const ChatListItemJSX = ({ p, navigate, userId }) => {
                 <div className="chat-list-nick">{p.nickname}</div>
                 <div className="chat-list-last">
                     {p.last_message
-                        ? (p.last_message.sender_id === userId ? "Tú: " : "") +
+                        ? (p.last_message.sender_id === userId ? "You: " : "") +
                         p.last_message.content
-                        : "Sin mensajes aún"}
+                        : "No messages yet"}
                 </div>
             </div>
 
@@ -86,7 +86,7 @@ const Chats = () => {
                 const data = await chatServices.getChatPreviews(store.user.id);
                 setPreviews(data);
             } catch (err) {
-                setError("No se pudo cargar la lista de chats.");
+                setError("Could not load chat list.");
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -94,7 +94,8 @@ const Chats = () => {
         };
 
         load();
-    }, [store.user]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [store.user?.id]);
 
     const withMsg = previews.filter(p => p.last_message);
     const withoutMsg = previews.filter(p => !p.last_message);
@@ -108,7 +109,7 @@ const Chats = () => {
                 <div className="chats-header">
                     <h1 className="pl-page-title">
                         <i className="fa-solid fa-message me-2" aria-hidden="true"></i>
-                        Mensajes
+                        Messages
                     </h1>
                 </div>
 
@@ -126,12 +127,12 @@ const Chats = () => {
                     {!loading && !error && previews.length === 0 && (
                         <div className="chat-empty">
                             <div className="chat-empty-icon">🎮</div>
-                            <p className="chat-empty-title">Aún no tienes chats</p>
+                            <p className="chat-empty-title">No chats yet</p>
                             <p className="chat-empty-subtitle">
-                                Consigue matches para empezar a chatear
+                                Get matches to start chatting
                             </p>
                             <Link to="/private/search-a-mate" className="chat-empty-link">
-                                Buscar jugadores →
+                                Find players →
                             </Link>
                         </div>
                     )}
@@ -140,7 +141,7 @@ const Chats = () => {
                         <div className="chat-list">
                             {withMsg.length > 0 && (
                                 <>
-                                    <div className="chat-section-label">Conversaciones activas</div>
+                                    <div className="chat-section-label">Active conversations</div>
                                     {withMsg.map(p => (
                                         <ChatListItemJSX
                                             key={p.match_id}
@@ -155,7 +156,7 @@ const Chats = () => {
                             {withoutMsg.length > 0 && (
                                 <>
                                     <div className="chat-section-label" style={{ marginTop: withMsg.length ? "12px" : "0" }}>
-                                        Sin mensajes aún
+                                        No messages yet
                                     </div>
                                     {withoutMsg.map(p => (
                                         <ChatListItemJSX

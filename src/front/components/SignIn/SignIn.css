@@ -42,8 +42,8 @@
 
 /* Pantalla móvil  */
 @media (max-width: 600px) {
- .sign-in-card{
-  width: 20rem;
+ .sign-in-card {
+  width: min(20rem, 94vw);
   padding-right: 0px;
   padding-left: 0px;
  }

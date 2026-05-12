@@ -1,6 +1,7 @@
 .search-match-card {
   color: #00f0ff;
-  width: 35rem;
+  width: 100%;
+  max-width: 35rem;
   height: auto;
   border-radius: 30px;
   background-color: #0a0f1c;
@@ -8,6 +9,14 @@
   padding: 10px;
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ── Responsive card — mobile-first ── */
+@media (max-width: 480px) {
+  .search-match-card {
+    border-radius: 20px;
+    padding: 8px;
+  }
 }
 
 /* Swipe hint badges */
@@ -52,8 +61,16 @@
 .search-match-profile-pic {
   width: 180px;
   height: 200px;
+  max-width: 55vw;
   border-radius: 20px;
   border-color: #00f0ff !important;
+}
+
+@media (max-width: 400px) {
+  .search-match-profile-pic {
+    width: 140px;
+    height: 160px;
+  }
 }
 
 .search-match-like {
@@ -341,6 +358,7 @@
 .skeleton-avatar {
   width: 180px;
   height: 200px;
+  max-width: 55vw;
   border-radius: 20px;
 }
 
@@ -473,11 +491,12 @@
 
 @media (max-width: 576px) {
   .search-match-card {
-    width: 20rem;
+    width: 100%;
+    max-width: 100%;
   }
   .search-match-profile-pic {
-    width: 120px;
-    height: 140px;
+    width: 130px;
+    height: 150px;
     margin-top: 0;
   }
   .search-match-text-sm {
@@ -570,6 +589,8 @@
 .search-match-like-btn-border,
 .search-match-dislike-btn-border {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .search-match-like-btn-border:hover {

@@ -107,6 +107,30 @@
   box-shadow: 0 0 18px #00f0ff66;
 }
 
+@media (max-width: 380px) {
+  .its-match-wrapper {
+    padding: 1.5rem 1rem 1.25rem;
+  }
+  .its-match-avatar {
+    width: 80px;
+    height: 95px;
+  }
+  .its-match-heart-icon {
+    font-size: 1.6rem;
+  }
+  .its-match-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .its-match-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .its-match-title {
+    font-size: 1.6rem;
+  }
+}
+
 .its-match-photo-left .its-match-avatar {
   animation: slide-in-left 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

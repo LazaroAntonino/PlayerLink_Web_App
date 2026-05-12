@@ -55,7 +55,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
             )}
             {age && age > 0 && (
               <span className="match-card-meta-item">
-                {age} años
+                {age} years
               </span>
             )}
           </div>
@@ -66,7 +66,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
       <div className="match-card-games">
         {topThreeGames.length > 0 ? (
           <>
-            <span className="match-card-games-label">Top juegos</span>
+            <span className="match-card-games-label">Top games</span>
             {topThreeGames.map((game, i) => (
               <div key={game.id ?? i} className="match-card-game-item">
                 {game.gameImage ? (
@@ -99,7 +99,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
         ) : (
           <div className="match-card-no-games">
             <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
-            Sin juegos registrados
+            No games registered
           </div>
         )}
       </div>
@@ -107,7 +107,7 @@ export const MatchMiniCard = ({ id, nickname, gender, games, age, location, phot
       {/* Footer */}
       <div className="match-card-footer">
         <span className="match-card-view-btn">
-          Ver perfil completo
+          View full profile
           <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
         </span>
       </div>

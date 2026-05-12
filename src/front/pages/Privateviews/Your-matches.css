@@ -3,6 +3,7 @@
 .matches-page-wrapper {
   padding: 24px;
   min-height: calc(100vh - 40px);
+  min-height: calc(100dvh - 40px);
 }
 
 .matches-page-header {
@@ -25,8 +26,24 @@
 
 .matches-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .matches-page-wrapper {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .matches-page-wrapper {
+    padding: 12px;
+  }
+  .matches-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .matches-loading {

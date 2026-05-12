@@ -5,7 +5,7 @@
 
 .fg-page {
   padding: 24px;
-  height: calc(100vh - 40px);
+  height: 100%;
   display: flex;
   align-items: stretch;
 }
@@ -22,6 +22,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
   box-shadow:
     0 0 40px rgba(0, 240, 255, 0.06),
     0 0 80px rgba(160, 32, 240, 0.04);
@@ -242,6 +243,8 @@
   cursor: pointer;
   transition: all 0.18s ease;
   font-family: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .fg-suggestion-chip:hover:not(:disabled) {
   background: rgba(0, 240, 255, 0.1);
@@ -365,6 +368,8 @@
   justify-content: center;
   flex-shrink: 0;
   transition: box-shadow 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .fg-send-btn:hover:not(:disabled) {
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
@@ -376,9 +381,15 @@
 }
 
 /* ── Responsive ── */
+@media (max-width: 768px) {
+  .fg-page { padding: 0; }
+  .fg-container { border-radius: 0; border-left: none; border-right: none; }
+  .fg-input-area {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  }
+}
+
 @media (max-width: 600px) {
-  .fg-page                { padding: 10px; }
-  .fg-container           { border-radius: 12px; }
   .fg-bubble              { max-width: 86%; font-size: 0.85rem; }
   .fg-suggestions-grid    { gap: 6px; }
   .fg-suggestion-chip     { font-size: 0.75rem; padding: 6px 12px; }

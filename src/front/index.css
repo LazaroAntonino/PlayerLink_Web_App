@@ -113,6 +113,7 @@
 
 html {
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
 
@@ -280,6 +281,8 @@ body.modal-open {
   text-decoration: none;
   line-height: 1.2;
   white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pl-btn:disabled {

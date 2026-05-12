@@ -17,16 +17,16 @@ const PAGE_LIMIT = 30; // mensajes por página
 const formatTime = (isoString) => {
     if (!isoString) return "";
     const d = new Date(isoString);
-    return d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 };
 
 const formatDateLabel = (isoString) => {
     const d = new Date(isoString);
     const now = new Date();
     const diff = Math.floor((now - d) / 86400000);
-    if (diff === 0) return "Hoy";
-    if (diff === 1) return "Ayer";
-    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" });
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Yesterday";
+    return d.toLocaleDateString("en-US", { day: "2-digit", month: "short" });
 };
 
 const isSameDay = (a, b) => {
@@ -127,12 +127,13 @@ const Chat = () => {
                 const { unread } = await chatServices.getUnreadCount();
                 dispatch({ type: "setUnreadCount", payload: unread });
             } catch (err) {
-                setError("No se pudieron cargar los mensajes.");
+                setError("Could not load messages.");
             } finally {
                 setLoading(false);
             }
         })();
-    }, [matchId, store.user]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [matchId, store.user?.id]);
 
     // ── Polling ───────────────────────────────────────────────────────────
     useEffect(() => {
@@ -187,7 +188,7 @@ const Chat = () => {
             }
         } catch (err) {
             console.error("Error cargando mensajes anteriores:", err);
-            setError("No se pudieron cargar mensajes anteriores.");
+            setError("Could not load previous messages.");
         } finally {
             setLoadingMore(false);
         }
@@ -244,7 +245,7 @@ const Chat = () => {
             // Actualizar cursor de latest para que el polling no repita este mensaje
             latestIdRef.current = newMsg.id;
         } catch (err) {
-            setError(err.message || "No se pudo enviar el mensaje");
+            setError(err.message || "Could not send message");
         } finally {
             setSending(false);
         }
@@ -270,7 +271,7 @@ const Chat = () => {
                         <button
                             className="chat-header-back"
                             onClick={() => navigate("/private/chats")}
-                            aria-label="Volver"
+                            aria-label="Go back"
                         >
                             <i className="fa-solid fa-arrow-left" />
                         </button>
@@ -281,7 +282,7 @@ const Chat = () => {
 
                         <div className="chat-header-info">
                             <span className="chat-header-nick">
-                                {otherUser?.nickname ?? "Cargando..."}
+                                {otherUser?.nickname ?? "Loading..."}
                             </span>
                             <span className="chat-header-status">
                                 <i className="fa-solid fa-circle"
@@ -296,7 +297,7 @@ const Chat = () => {
                             <button
                                 className="chat-header-menu-btn"
                                 onClick={() => setMenuOpen(prev => !prev)}
-                                aria-label="Más opciones"
+                                aria-label="More options"
                                 aria-expanded={menuOpen}
                             >
                                 <i className="fa-solid fa-ellipsis-vertical" aria-hidden="true" />
@@ -315,7 +316,7 @@ const Chat = () => {
                                             onClick={() => { setMenuOpen(false); setShowBlockModal(true); setBlockError(""); }}
                                         >
                                             <i className="fa-solid fa-ban" aria-hidden="true" />
-                                            Bloquear usuario
+                                            Block user
                                         </button>
                                     </div>
                                 </>
@@ -327,7 +328,7 @@ const Chat = () => {
                     <div className="chat-messages-area" ref={messagesAreaRef}>
                         {loading && (
                             <div className="chat-status-msg">
-                                <i className="fa-solid fa-spinner fa-spin" /> Cargando mensajes...
+                                <i className="fa-solid fa-spinner fa-spin" /> Loading messages...
                             </div>
                         )}
 
@@ -338,12 +339,12 @@ const Chat = () => {
                                     className="chat-load-more-btn"
                                     onClick={handleLoadMore}
                                     disabled={loadingMore}
-                                    aria-label="Cargar mensajes anteriores"
+                                    aria-label="Load previous messages"
                                 >
                                     {loadingMore ? (
-                                        <><i className="fa-solid fa-spinner fa-spin" /> Cargando...</>
+                                        <><i className="fa-solid fa-spinner fa-spin" /> Loading...</>
                                     ) : (
-                                        <><i className="fa-solid fa-chevron-up" /> Ver mensajes anteriores</>
+                                        <><i className="fa-solid fa-chevron-up" /> Load previous messages</>
                                     )}
                                 </button>
                             </div>
@@ -352,8 +353,8 @@ const Chat = () => {
                         {!loading && messages.length === 0 && (
                             <div className="chat-conversation-empty">
                                 <div className="chat-conv-empty-icon">👋</div>
-                                <p>¡Sois un match!</p>
-                                <span>Sé el primero en decir hola a {otherUser?.nickname ?? "tu match"}</span>
+                                <p>It's a match!</p>
+                                <span>Be the first to say hi to {otherUser?.nickname ?? "your match"}</span>
                             </div>
                         )}
 
@@ -379,7 +380,7 @@ const Chat = () => {
                                                 {mine && (
                                                     <span
                                                         className="chat-read-icon"
-                                                        title={msg.read ? "Leído" : "Enviado"}
+                                                        title={msg.read ? "Read" : "Sent"}
                                                     >
                                                         {msg.read ? "✓✓" : "✓"}
                                                     </span>
@@ -416,7 +417,7 @@ const Chat = () => {
                             <textarea
                                 ref={textareaRef}
                                 className="chat-textarea"
-                                placeholder="Escribe un mensaje..."
+                                placeholder="Write a message..."
                                 value={text}
                                 onChange={handleTextChange}
                                 onKeyDown={handleKeyDown}
@@ -453,13 +454,13 @@ const Chat = () => {
                             <div className="modal-header modal-sci-fi-header">
                                 <h5 className="modal-title modal-sci-fi-title">
                                     <i className="fa-solid fa-ban me-2" style={{ color: "#ff4d6d" }} aria-hidden="true" />
-                                    Bloquear usuario
+                                    Block user
                                 </h5>
                                 <button
                                     type="button"
                                     className="btn-close"
                                     onClick={() => setShowBlockModal(false)}
-                                    aria-label="Cerrar"
+                                    aria-label="Close"
                                     disabled={blockLoading}
                                 />
                             </div>
@@ -467,9 +468,9 @@ const Chat = () => {
                                 <div className="chat-block-warning">
                                     <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
                                     <span>
-                                        ¿Bloquear a <strong>{otherUser?.nickname}</strong>? Esta acción eliminará
-                                        el match y todos los mensajes entre vosotros. No volverá a aparecer
-                                        en tu búsqueda.
+                                        Block <strong>{otherUser?.nickname}</strong>? This will remove
+                                        the match and all messages between you. They will no longer appear
+                                        in your search.
                                     </span>
                                 </div>
                                 {blockError && (
@@ -486,7 +487,7 @@ const Chat = () => {
                                     onClick={() => setShowBlockModal(false)}
                                     disabled={blockLoading}
                                 >
-                                    Cancelar
+                                    Cancel
                                 </button>
                                 <button
                                     type="button"
@@ -495,8 +496,8 @@ const Chat = () => {
                                     disabled={blockLoading}
                                 >
                                     {blockLoading
-                                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Bloqueando...</>
-                                        : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Bloquear</>
+                                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Blocking...</>
+                                        : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Block</>
                                     }
                                 </button>
                             </div>

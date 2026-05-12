@@ -58,19 +58,15 @@ def get_matches_for_user(user_id):
                 "age":      u.profile.age      or "undefined",
                 "location": u.profile.location or "undefined",
             })
-        else:
-            other_users.append(f" user with id {u.id} has no data")
+        # else: skip silently — user has no profile yet
 
     # Deduplicate by user_id
     unique_dict = {}
     deduped = []
     for item in other_users:
-        if isinstance(item, dict):
-            uid = item["user_id"]
-            if uid not in unique_dict:
-                unique_dict[uid] = item
-                deduped.append(item)
-        else:
+        uid = item["user_id"]
+        if uid not in unique_dict:
+            unique_dict[uid] = item
             deduped.append(item)
 
     return jsonify({"matches": deduped}), 200

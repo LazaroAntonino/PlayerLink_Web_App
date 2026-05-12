@@ -1,51 +1,4 @@
-.matchCardd {
-  height: auto;
-  background: linear-gradient(135deg, rgba(0, 20, 30, 0.95), rgba(10, 0, 20, 0.95));
-  border: 1px solid rgba(0, 240, 255, 0.3) !important;
-  border-radius: 16px !important;
-  color: white;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.matchCardd:hover {
-  transform: translateY(-4px);
-  border-color: rgba(0, 240, 255, 0.7) !important;
-  box-shadow: 0 8px 30px rgba(0, 240, 255, 0.15), 0 4px 15px rgba(0, 0, 0, 0.6);
-}
-
-.matchCardd .card-title {
-  color: #00f0ff;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.matchCardd p {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.9rem;
-}
-
-.medalsBox {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 10px;
-  margin-top: 8px;
-  min-height: 90px;
-}
-
-.imagenminicard {
-  border: 2px solid rgba(0, 240, 255, 0.4);
-  border-radius: 10px;
-  transition: box-shadow 0.2s ease;
-  box-shadow: 0 0 8px rgba(138, 0, 255, 0.3), 0 0 10px rgba(0, 192, 255, 0.3);
-}
-
-.imagenminicard:hover {
-  box-shadow: 0 0 14px rgba(138, 0, 255, 0.6), 0 0 18px rgba(0, 192, 255, 0.5);
-}
-
-/* ── Nuevo diseño MatchMiniCard ─────────────────────────── */
+/* ── MatchMiniCard ─────────────────────────── */
 
 .match-mini-card {
   background: rgba(10, 15, 26, 0.82);
@@ -61,6 +14,8 @@
   height: 100%;
   min-height: 220px;
   position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .match-mini-card::before {

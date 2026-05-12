@@ -19,6 +19,7 @@ export const Reset = () => {
 	const [showPassword, setShowPassword] = useState(false); // estado pra enseñar/esconder contraseña
 	const [errorPassword, setErrorPassword] = useState(""); // estado para error si la contraseña no es la misma
 	const [passwordErrors, setPasswordErrors] = useState([]); //estado para condiciones de la contraseña
+	const [noTokenError, setNoTokenError] = useState(!token); // estado para mostrar error si no hay token
 
 	useEffect(() => {
 		if (token) {
@@ -31,9 +32,6 @@ export const Reset = () => {
 			}
 			fetchData()
 		}
-		else {
-			alert('The reset link has expired. Please request a new password reset')
-		}
 	}, [token]);
 
 	const validatePassword = (password) => {
@@ -45,19 +43,6 @@ export const Reset = () => {
 		return errors;
 	};
 
-	const handleChange = e => {
-		const { name, value } = e.target;
-
-		setFormData(prev => ({
-			...prev,
-			[name]: value
-		}));
-
-		if (name === 'password') {
-			const errors = validatePassword(value);
-			setPasswordErrors(errors);
-		}
-	};
 	const handlePasswordChange = (e) => {
 		const value = e.target.value;
 		setPassword(value);
@@ -102,8 +87,6 @@ export const Reset = () => {
 		}
 		setErrorPassword("");
 
-		//pasamos a la actions.updatePassword el password y el token
-		console.log({ "password": password, "token": token })
 		const resp = await emailServices.updatePassword(password, token)
 		if (resp.success) {
 			setSuccess(true)
@@ -127,78 +110,93 @@ export const Reset = () => {
 							<h2 className="card-title text-center">Password Change Request</h2>
 							<br />
 
-							<form onSubmit={handleSubmit} >
-								<div className="mx-4">
-
-									<h5 htmlFor="basic-url" className="form-label mb-2 mt-2">Enter your new password {user && user?.email} </h5>
-									<div>
-										{/* New Password */}
-										<label htmlFor="basic-url" className="form-label mb-0 mt-2">New password</label>
-									</div>
-									<div className="d-flex btn-reset-card-border rounded-2">
-
-										<input
-											type={showPassword ? "text" : "password"}
-											onChange={handlePasswordChange}
-											value={password}
-											placeholder="Enter new password"
-											className="w-100 border-0"
-										/>
-										<span
-											className="input-group-text border-0 bg-white"
-
-											onClick={() => setShowPassword(prev => !prev)}
-										>
-											<i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
-										</span>
-									</div>
-
-									{/* Confirm Password */}
-									<div>
-										<label htmlFor="basic-url" className="form-label mt-3 mb-0">Confirm New Password</label>
-									</div>
-									<div className="d-flex btn-reset-card-border rounded-2">
-
-										<input
-											type="password"
-											onChange={handleRepeatPasswordChange}
-											value={repeatPassword}
-											placeholder="Repeat new password"
-											className="w-100 border-0"
-										/>
-
-									</div>
-
-									{/* Mensaje con las condiciones contraseña que faltan */}
-									{passwordErrors.length > 0 && (
-										<h5 className="text-warning mt-2 register-message-errors">
-											Password must contain {passwordErrors.join(", ")}.
-										</h5>
-									)}
-									{/* Error contraseñas no coinciden */}
-									{errorPassword && (
-										<h6 className="text-danger mt-2 reset-message-errors">
-											{errorPassword}
-										</h6>
-									)}
-
-									{
-										success !== '' ?
-											success ?
-												<h6 className="text-success mt-3 reset-message-errors">
-													Success! Your password has been updated.
-												</h6>
-												:
-												<h6 className="text-danger mt-3 reset-message-errors">
-													There was an error. Try it again!
-												</h6>
-											:
-											''
-									}
-
-									<input type="submit" value="Continue" className='w-100 rounded-2 mt-5 text-white bg-black btn-reset-card-border' />
+							{noTokenError ? (
+								<div className="text-center px-2 py-3">
+									<i className="fa-solid fa-circle-xmark fa-2x text-danger mb-3" />
+									<p className="text-danger fw-semibold mb-2">The reset link has expired or is invalid.</p>
+									<p className="text-muted small mb-3">Please request a new password reset from the login screen.</p>
+									<button
+										type="button"
+										className="btn btn-sm btn-outline-secondary"
+										onClick={() => navigate("/")}
+									>
+										← Back to home
+									</button>
 								</div>
-							</form>
+							) : (
+								<form onSubmit={handleSubmit} >
+									<div className="mx-4">
+
+										<h5 htmlFor="basic-url" className="form-label mb-2 mt-2">Enter your new password {user && user?.email} </h5>
+										<div>
+											{/* New Password */}
+											<label htmlFor="basic-url" className="form-label mb-0 mt-2">New password</label>
+										</div>
+										<div className="d-flex btn-reset-card-border rounded-2">
+
+											<input
+												type={showPassword ? "text" : "password"}
+												onChange={handlePasswordChange}
+												value={password}
+												placeholder="Enter new password"
+												className="w-100 border-0"
+											/>
+											<span
+												className="input-group-text border-0 bg-white"
+
+												onClick={() => setShowPassword(prev => !prev)}
+											>
+												<i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+											</span>
+										</div>
+
+										{/* Confirm Password */}
+										<div>
+											<label htmlFor="basic-url" className="form-label mt-3 mb-0">Confirm New Password</label>
+										</div>
+										<div className="d-flex btn-reset-card-border rounded-2">
+
+											<input
+												type="password"
+												onChange={handleRepeatPasswordChange}
+												value={repeatPassword}
+												placeholder="Repeat new password"
+												className="w-100 border-0"
+											/>
+
+										</div>
+
+										{/* Mensaje con las condiciones contraseña que faltan */}
+										{passwordErrors.length > 0 && (
+											<h5 className="text-warning mt-2 register-message-errors">
+												Password must contain {passwordErrors.join(", ")}.
+											</h5>
+										)}
+										{/* Error contraseñas no coinciden */}
+										{errorPassword && (
+											<h6 className="text-danger mt-2 reset-message-errors">
+												{errorPassword}
+											</h6>
+										)}
+
+										{
+											success !== '' ?
+												success ?
+													<h6 className="text-success mt-3 reset-message-errors">
+														Success! Your password has been updated.
+													</h6>
+													:
+													<h6 className="text-danger mt-3 reset-message-errors">
+														There was an error. Try it again!
+													</h6>
+												:
+												''
+										}
+
+										<input type="submit" value="Continue" className='w-100 rounded-2 mt-5 text-white bg-black btn-reset-card-border' />
+									</div>
+								</form>
+							)}
 						</div>
 					</div>
 				</div>

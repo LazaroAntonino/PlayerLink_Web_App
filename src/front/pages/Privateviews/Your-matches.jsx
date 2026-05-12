@@ -7,7 +7,7 @@ import "./Your-matches.css"
 
 /** Skeleton card que imita MatchMiniCard durante la carga */
 const MatchMiniCardSkeleton = () => (
-  <div className="match-skeleton-card" aria-busy="true" aria-label="Cargando match...">
+  <div className="match-skeleton-card" aria-busy="true" aria-label="Loading match...">
     <div className="match-sk-avatar skeleton-shimmer" />
     <div className="match-sk-lines">
       <div className="match-sk-line match-sk-line--title skeleton-shimmer" />
@@ -30,9 +30,13 @@ export const YourMatches = () => {
     } else {
       matchServices.getAllMatchesInfo(store.user?.id)
         .then(data => {
-          dispatch({ type: "getAllMatchesInfo", payload: data.matches });
+          dispatch({ type: "getAllMatchesInfo", payload: data.matches ?? [] });
         })
-        .finally(() => setLoading(false)); // desactiva loading al finalizar
+        .catch((err) => {
+          console.error("Error loading matches:", err);
+          dispatch({ type: "getAllMatchesInfo", payload: [] });
+        })
+        .finally(() => setLoading(false));
     }
   }, []);
   // modificar endpoint de get a match con el posit que está pegado al ordenador
@@ -46,7 +50,7 @@ export const YourMatches = () => {
         </h1>
         {Array.isArray(store.userMatchesInfo) && store.userMatchesInfo.length > 0 && (
           <p className="matches-page-subtitle">
-            {store.userMatchesInfo.length} jugador{store.userMatchesInfo.length !== 1 ? 'es' : ''} encontrado{store.userMatchesInfo.length !== 1 ? 's' : ''}
+            {store.userMatchesInfo.length} player{store.userMatchesInfo.length !== 1 ? 's' : ''} found
           </p>
         )}
       </div>

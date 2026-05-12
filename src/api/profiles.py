@@ -192,6 +192,7 @@ def profiles_to_explore(user_id):
             query
             .join(Game, Game.profile_id == Profile.id)
             .filter(Game.game_title.ilike(f'%{game}%'))
+            .distinct()
         )
         filters_applied['game'] = game
 

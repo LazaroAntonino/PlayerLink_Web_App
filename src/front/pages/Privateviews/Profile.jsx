@@ -122,6 +122,7 @@ const Profile = () => {
 
   // Reinicializar popovers de Bootstrap cuando cambian las medallas
   useEffect(() => {
+    if (!window.bootstrap?.Popover) return;
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
       const popover = bootstrap.Popover.getInstance(el);
       if (popover) popover.dispose();
@@ -309,8 +310,10 @@ const Profile = () => {
       await loadProfile();
 
       const modalEl = document.getElementById("commentModal");
-      const modal = window.bootstrap.Modal.getInstance(modalEl);
-      modal?.hide();
+      if (modalEl) {
+        const modal = window.bootstrap?.Modal?.getInstance(modalEl);
+        modal?.hide();
+      }
       setGame({ title: "", hours_played: "", image: "" });
     } catch (err) {
       console.error("Error adding game:", err);
@@ -382,8 +385,8 @@ const Profile = () => {
 
   return (
     <>
-      {/* ── Toast perfil incompleto ── */}
-      <div className={`profile-incomplete-toast${showIncompleteToast ? " visible" : ""}`}>
+      {/* ── Toast perfil incompleto — solo se monta cuando debe mostrarse ── */}
+      {showIncompleteToast && <div className="profile-incomplete-toast visible">
         <div className="pit-body">
           <div className="pit-header">
             <span className="pit-icon">⚡</span>
@@ -422,7 +425,7 @@ const Profile = () => {
                 clearTimeout(toastTimerRef.current);
                 setShowIncompleteToast(false);
                 navigate("/private/find-games", {
-                  state: { autoMessage: "Quiero terminar de rellenar mi perfil, ¿me ayudas? 🎮" }
+                  state: { autoMessage: "I want to finish setting up my profile, can you help me? 🎮" }
                 });
               }}
             >
@@ -447,7 +450,7 @@ const Profile = () => {
             )}
           </div>
         </div>
-      </div>
+      </div>}
 
       <div className="profile-container">
         {/* ── Panel izquierdo ── */}

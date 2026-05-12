@@ -6,7 +6,7 @@
 /* ── Botón flotante ─────────────────────────────────────── */
 .filter-fab {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.75rem));
   right: 1.5rem;
   z-index: 200;
   display: flex;
@@ -74,9 +74,10 @@
     left: 0;
     right: 0;
     border-radius: 20px 20px 0 0;
-    max-height: 88vh;
+    max-height: 88dvh;
     border-top: 2px solid rgba(0, 240, 255, 0.25);
     animation: sheet-up 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   @keyframes sheet-up {

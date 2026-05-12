@@ -53,14 +53,15 @@ export const MatchUserDetails = () => {
 
   useEffect(() => {
     // Limpiar popovers anteriores (evita duplicados o errores)
+    if (!window.bootstrap?.Popover) return;
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
-      const popover = bootstrap.Popover.getInstance(el);
+      const popover = window.bootstrap.Popover.getInstance(el);
       if (popover) popover.dispose();
     });
 
     // Inicializar popovers actuales
     document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
-      new bootstrap.Popover(el);
+      new window.bootstrap.Popover(el);
     });
   }, [topThreeGames]); // 🔥 Se reinicia solo cuando topThreeGames cambia
 
@@ -78,7 +79,7 @@ export const MatchUserDetails = () => {
       zodiac: p.zodiac ?? "no data",
       discord: p.discord ?? "no data",
       steam: p.steam ?? "no data",
-      languages: p.languages ?? "no data", // renamed to match API
+      languages: p.language ?? "no data",
       gamingPrefs: p.preferences ?? "no data",
       bio: p.bio ?? "no data",
       photo: p.photo ?? "no data"
@@ -110,7 +111,7 @@ export const MatchUserDetails = () => {
       // El match ha sido eliminado en el backend → volver a la lista de matches
       navigate("/private/your-matches");
     } catch (err) {
-      setBlockError(err.message || "Error al bloquear el usuario");
+      setBlockError(err.message || "Error blocking user");
       setBlockLoading(false);
     }
   };
@@ -124,7 +125,7 @@ export const MatchUserDetails = () => {
       await blockServices.reportUser(store.itsMatchInfo?.id, reportReason);
       setReportSuccess(true);
     } catch (err) {
-      setReportError(err.message || "Error al enviar la denuncia");
+      setReportError(err.message || "Error sending report");
     } finally {
       setReportLoading(false);
     }
@@ -151,8 +152,10 @@ export const MatchUserDetails = () => {
 
       // 3. Cierra el modal (Bootstrap 5 API)
       const modalEl = document.getElementById("commentModal");
-      const modalInstance = window.bootstrap.Modal.getInstance(modalEl);
-      modalInstance.hide();
+      if (modalEl) {
+        const modalInstance = window.bootstrap?.Modal?.getInstance(modalEl);
+        modalInstance?.hide();
+      }
 
       reviewServices.getAllReviewsReceived(id).then(data => dispatch({ type: "matchReviewsReceived", payload: data }))
 
@@ -241,14 +244,14 @@ export const MatchUserDetails = () => {
             onClick={() => { setShowBlockModal(true); setBlockError(""); }}
           >
             <i className="fa-solid fa-ban" aria-hidden="true" />
-            Bloquear usuario
+            Block user
           </button>
           <button
             className="btn-report-user"
             onClick={() => { setShowReportModal(true); setReportError(""); setReportSuccess(false); }}
           >
             <i className="fa-solid fa-flag" aria-hidden="true" />
-            Denunciar usuario
+            Report user
           </button>
         </div>
       </div>
@@ -268,13 +271,13 @@ export const MatchUserDetails = () => {
               <div className="modal-header modal-sci-fi-header">
                 <h5 className="modal-title modal-sci-fi-title">
                   <i className="fa-solid fa-ban me-2" style={{ color: "#ff4d6d" }} aria-hidden="true" />
-                  Bloquear usuario
+                  Block user
                 </h5>
                 <button
                   type="button"
                   className="btn-close"
                   onClick={() => setShowBlockModal(false)}
-                  aria-label="Cerrar"
+                  aria-label="Close"
                   disabled={blockLoading}
                 />
               </div>
@@ -282,9 +285,9 @@ export const MatchUserDetails = () => {
                 <div className="block-modal-warning">
                   <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" />
                   <span>
-                    ¿Bloquear a <strong>{profile.nickname}</strong>? Esta acción eliminará el match y
-                    todos los mensajes entre vosotros. {profile.nickname} no aparecerá en tu
-                    búsqueda y tú tampoco en la suya.
+                    Block <strong>{profile.nickname}</strong>? This will remove the match and
+                    all messages between you. {profile.nickname} will no longer appear in your
+                    search, and you won't appear in theirs.
                   </span>
                 </div>
                 {blockError && (
@@ -301,7 +304,7 @@ export const MatchUserDetails = () => {
                   onClick={() => setShowBlockModal(false)}
                   disabled={blockLoading}
                 >
-                  Cancelar
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -310,8 +313,8 @@ export const MatchUserDetails = () => {
                   disabled={blockLoading}
                 >
                   {blockLoading
-                    ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Bloqueando...</>
-                    : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Bloquear</>
+                    ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Blocking...</>
+                    : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Block</>
                   }
                 </button>
               </div>
@@ -336,13 +339,13 @@ export const MatchUserDetails = () => {
               <div className="modal-header modal-sci-fi-header">
                 <h5 className="modal-title modal-sci-fi-title">
                   <i className="fa-solid fa-flag me-2" style={{ color: "#ffa200" }} aria-hidden="true" />
-                  Denunciar usuario
+                  Report user
                 </h5>
                 <button
                   type="button"
                   className="btn-close"
                   onClick={handleCloseReportModal}
-                  aria-label="Cerrar"
+                  aria-label="Close"
                   disabled={reportLoading}
                 />
               </div>
@@ -350,25 +353,25 @@ export const MatchUserDetails = () => {
                 {reportSuccess ? (
                   <div className="report-success-msg">
                     <i className="fa-solid fa-circle-check" aria-hidden="true" />
-                    <p>Tu denuncia ha sido enviada. Nuestro equipo la revisará en breve.</p>
+                    <p>Your report has been submitted. Our team will review it shortly.</p>
                   </div>
                 ) : (
                   <>
                     <div className="mb-3">
-                      <label className="label-sci-fi mb-2 d-block">Motivo de la denuncia</label>
+                      <label className="label-sci-fi mb-2 d-block">Reason for report</label>
                       <select
                         className="report-reason-select"
                         value={reportReason}
                         onChange={(e) => setReportReason(e.target.value)}
                         disabled={reportLoading}
                       >
-                        <option value="">Selecciona un motivo…</option>
-                        <option value="Comportamiento inapropiado">Comportamiento inapropiado</option>
-                        <option value="Acoso o intimidación">Acoso o intimidación</option>
-                        <option value="Spam o publicidad">Spam o publicidad</option>
-                        <option value="Contenido ofensivo en el perfil">Contenido ofensivo en el perfil</option>
-                        <option value="Suplantación de identidad">Suplantación de identidad</option>
-                        <option value="Otro">Otro</option>
+                        <option value="">Select a reason…</option>
+                        <option value="Inappropriate behaviour">Inappropriate behaviour</option>
+                        <option value="Harassment or intimidation">Harassment or intimidation</option>
+                        <option value="Spam or advertising">Spam or advertising</option>
+                        <option value="Offensive profile content">Offensive profile content</option>
+                        <option value="Identity impersonation">Identity impersonation</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
                     {reportError && (
@@ -387,7 +390,7 @@ export const MatchUserDetails = () => {
                     className="btn-sci-fi-primary pl-btn pl-btn--primary"
                     onClick={handleCloseReportModal}
                   >
-                    Cerrar
+                    Close
                   </button>
                 ) : (
                   <>
@@ -397,7 +400,7 @@ export const MatchUserDetails = () => {
                       onClick={handleCloseReportModal}
                       disabled={reportLoading}
                     >
-                      Cancelar
+                      Cancel
                     </button>
                     <button
                       type="button"
@@ -406,8 +409,8 @@ export const MatchUserDetails = () => {
                       disabled={reportLoading || !reportReason.trim()}
                     >
                       {reportLoading
-                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Enviando...</>
-                        : <><i className="fa-solid fa-paper-plane me-1" aria-hidden="true" />Enviar denuncia</>
+                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Sending...</>
+                        : <><i className="fa-solid fa-paper-plane me-1" aria-hidden="true" />Send report</>
                       }
                     </button>
                   </>
@@ -524,6 +527,12 @@ export const MatchUserDetails = () => {
                 </div>
               </div>
               <div className="col-md-6">
+                <label className="profile-field-label">Languages</label>
+                <div className="profile-read-field">
+                  <FieldValue value={profile.languages} />
+                </div>
+              </div>
+              <div className="col-md-6">
                 <label className="profile-field-label">Location</label>
                 <div className="profile-read-field">
                   <FieldValue value={profile.location} />
@@ -591,7 +600,7 @@ export const MatchUserDetails = () => {
         {/* ── Comments Tab ── */}
         {activeTab === "comments" && (
           <div className="info-section">
-            <div className="d-flex align-items-center justify-content-between mb-3 pb-3" style={{ borderBottom: '1px solid rgba(0,229,255,0.1)' }}>
+            <div className="comments-header-row mb-3 pb-3" style={{ borderBottom: '1px solid rgba(0,229,255,0.1)' }}>
               <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Comments</h3>
               <button
                 type="button"
@@ -629,8 +638,8 @@ export const MatchUserDetails = () => {
                     <div className="modal-body modal-sci-fi-body">
                       {/* Rating */}
                       <div className="mb-4">
-                        <label className="label-sci-fi">Rating</label>
-                        <div className="d-flex gap-2 mt-1">
+                        <label className="label-sci-fi" style={{ display: 'block', marginBottom: '16px' }}>Rating</label>
+                        <div className="d-flex gap-2" style={{ marginTop: '0' }}>
                           {[1, 2, 3, 4, 5].map((star) => (
                             <i
                               key={star}
