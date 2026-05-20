@@ -79,13 +79,14 @@ def register():
 
         # Send verification email (best-effort: log on failure but don't abort)
         email_result = send_verification_email(email, raw_token)
-        if not email_result.get('success'):
+        email_sent = email_result.get('success', False)
+        if not email_sent:
             print(f"[WARN] Verification email failed for {email}: {email_result.get('msg')}")
             if os.getenv("FLASK_DEBUG") == "1":
                 frontend_url = os.getenv('FRONTEND_URL', 'http://localhost:3000')
                 print(f"[DEV] Verify URL: {frontend_url}/verify-email?token={raw_token}")
 
-        return jsonify({'success': True, 'email_sent': True}), 201
+        return jsonify({'success': True, 'email_sent': email_sent}), 201
 
     except Exception as e:
         db.session.rollback()
