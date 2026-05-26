@@ -13,54 +13,54 @@ export const Home = () => {
 			<NavbarHome />
 			<div className="container-fluid">
 				{/* Carrusel Bootstrap 5 */}
-				<div className="row justify-content-center">
-					<div className="col-12">
-						<div
-							id="carouselExample"
-							className="carousel slide"
-							data-bs-ride="carousel"
-							data-bs-interval="30000"
-						>
-							<div className="carousel-inner">
-								<div className="carousel-item active">
-									<img src={carrusel1} className="d-block w-100" alt="Primera imagen" />
-								</div>
-								<div className="carousel-item">
-									<img src={carrusel2} className="d-block w-100" alt="Segunda imagen" />
-								</div>
-								<div className="carousel-item">
-									<img src={carrusel3} className="d-block w-100" alt="Tercera imagen" />
-								</div>
-								<div className="carousel-item">
-									<img src={carrusel4} className="d-block w-100" alt="Cuarta imagen" />
-								</div>
-							</div>
-							<button className="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-								<span className="carousel-control-prev-icon" aria-hidden="true"></span>
-								<span className="visually-hidden">Anterior</span>
-							</button>
-							<button className="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-								<span className="carousel-control-next-icon" aria-hidden="true"></span>
-								<span className="visually-hidden">Siguiente</span>
-							</button>
+				<div id="carouselExample" className="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+					{/* Indicadores (dots) */}
+					<div className="carousel-indicators">
+						<button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
+						<button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1" aria-label="Slide 2"></button>
+						<button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2" aria-label="Slide 3"></button>
+						<button type="button" data-bs-target="#carouselExample" data-bs-slide-to="3" aria-label="Slide 4"></button>
+					</div>
+					<div className="carousel-inner">
+						<div className="carousel-item active">
+							<img src={carrusel1} className="d-block w-100 carousel-img" alt="PlayerLink — encuentra tu compañero de juego" />
+						</div>
+						<div className="carousel-item">
+							<img src={carrusel2} className="d-block w-100 carousel-img" alt="PlayerLink — conecta con jugadores de todo el mundo" loading="lazy" />
+						</div>
+						<div className="carousel-item">
+							<img src={carrusel3} className="d-block w-100 carousel-img" alt="PlayerLink — encuentra tu squad ideal" loading="lazy" />
+						</div>
+						<div className="carousel-item">
+							<img src={carrusel4} className="d-block w-100 carousel-img" alt="PlayerLink — juega, conecta y disfruta" loading="lazy" />
 						</div>
 					</div>
+					<button className="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+						<span className="carousel-control-prev-icon" aria-hidden="true"></span>
+						<span className="visually-hidden">Anterior</span>
+					</button>
+					<button className="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+						<span className="carousel-control-next-icon" aria-hidden="true"></span>
+						<span className="visually-hidden">Siguiente</span>
+					</button>
 				</div>
 
 				<section className="howitworks-section text-white border-bottom border-top border-white" id='howitworks'>
 					<div className="container">
 						<div className="row d-flex align-items-center justify-content-around">
-							<div className='col-10'>
-								<div className='row d-flex'>
-									<div className="card col-lg-6">
+							<div className='col-12 col-md-10'>
+								{/* Título horizontal solo en móvil */}
+								<h2 className="section-title-mobile d-block d-md-none">HOW IT WORKS</h2>
+								<div className='row d-flex justify-content-center'>
+									<div className="card col-lg-6" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												<img src={logotarjeta} alt="logoapp" />
 											</div>
-											<div className="card-back p-2">Sing up on our web</div>
+											<div className="card-back p-2">Sign up on our web</div>
 										</div>
 									</div>
-									<div className="card col-lg-6">
+									<div className="card col-lg-6" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												<img src={logotarjeta} alt="logoapp" />
@@ -70,7 +70,7 @@ export const Home = () => {
 									</div>
 								</div>
 								<div className='row'>
-									<div className="card col-lg-6">
+									<div className="card col-lg-6" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												<img src={logotarjeta} alt="logoapp" />
@@ -78,7 +78,7 @@ export const Home = () => {
 											<div className="card-back p-2">Find your player match</div>
 										</div>
 									</div>
-									<div className="card col-lg-6">
+									<div className="card col-lg-6" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												<img src={logotarjeta} alt="logoapp" />
@@ -89,8 +89,8 @@ export const Home = () => {
 								</div>
 
 							</div>
-							{/* Texto vertical sólo en md+ */}
-							<div className="vertical-title col-2">
+							{/* Texto vertical — oculto en móvil */}
+							<div className="vertical-title col-2 d-none d-md-block">
 								HOW IT WORKS
 							</div>
 						</div>
@@ -101,13 +101,15 @@ export const Home = () => {
 					<div className="container">
 						<div className="row d-flex align-items-center">
 
-							{/* Texto vertical sólo en md+ */}
-							<div className="vertical-title col-2">BEST PRACTICES</div>
+							{/* Texto vertical — oculto en móvil */}
+							<div className="vertical-title col-2 d-none d-md-block">BEST PRACTICES</div>
 
 							{/* Contenido principal */}
-							<div className='col-10'>
-								<div className="row mb-2 pt-5">
-									<div className="card">
+							<div className='col-12 col-md-10'>
+								{/* Título horizontal solo en móvil */}
+								<h2 className="section-title-mobile d-block d-md-none">BEST PRACTICES</h2>
+								<div className="row mb-2 pt-md-5">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Be Yourself
@@ -115,7 +117,7 @@ export const Home = () => {
 											<div className="card-back p-2">Share your real interests, favorite games, and play style—authenticity attracts the right squad.</div>
 										</div>
 									</div>
-									<div className="card">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Respect Others
@@ -123,7 +125,7 @@ export const Home = () => {
 											<div className="card-back p-2">Great communities are built on mutual respect. Avoid toxicity and support positive interactions.</div>
 										</div>
 									</div>
-									<div className="card">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Stay Active
@@ -133,7 +135,7 @@ export const Home = () => {
 									</div>
 								</div>
 								<div className="row mb-2">
-									<div className="card">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Use Match Filters Wisely
@@ -141,7 +143,7 @@ export const Home = () => {
 											<div className="card-back p-2">Set your preferences (game genres, skill level, time zone) to find players that truly match your vibe."</div>
 										</div>
 									</div>
-									<div className="card">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Give Feedback
@@ -149,7 +151,7 @@ export const Home = () => {
 											<div className="card-back p-2">Rate your matches and report bad behavior—it helps keep the community safe and fun.</div>
 										</div>
 									</div>
-									<div className="card">
+									<div className="card" tabIndex="0">
 										<div className="card-inner box text-center">
 											<div className="card-front">
 												Try New Games Together
@@ -166,7 +168,9 @@ export const Home = () => {
 				<section className="about-section text-white border-bottom" id="aboutus">
 					<div className="container">
 						<div className="row d-flex align-items-center justify-content-around">
-							<div className='col-10'>
+							<div className='col-12 col-md-10'>
+								{/* Título horizontal solo en móvil */}
+								<h2 className="section-title-mobile d-block d-md-none">ABOUT US</h2>
 								<div className="row d-flex gap-4 justify-content-around">
 									{/* Columna del contenido (orígenes + quiénes somos) */}
 									<div className="col-lg-4 col-md-6 p-4 d-flex flex-column text-center tarjeta text-white">
@@ -181,7 +185,7 @@ export const Home = () => {
 										<div className="card-body">
 											<h3 className="neon-heading mb-3">Who are we?</h3>
 											<p className="flex-grow-1">
-												We are a aquad of gaming enthusiast who know the real fun starts when we play together: <br />
+												We are a squad of gaming enthusiasts who know the real fun starts when we play together: <br />
 												Bryan, Alba & Toni
 											</p>
 										</div>
@@ -189,7 +193,7 @@ export const Home = () => {
 								</div>
 							</div>
 							{/* Título vertical: solo se muestra en pantallas grandes */}
-							<div className="col-2 d-lg-flex justify-content-center">
+							<div className="col-2 d-none d-lg-flex justify-content-center">
 								<div className="vertical-title">ABOUT US</div>
 							</div>
 						</div>

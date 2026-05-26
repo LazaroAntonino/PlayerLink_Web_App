@@ -1,3 +1,13 @@
+/* Navbar raíz con position relative para que el collapse flote sobre el contenido */
+.navbar-home-root {
+  position: relative;
+  z-index: 1030;
+}
+
+.navbar-home-container {
+  position: static;
+}
+
 .navbar-home-font {
   color: #ffffff !important;
   text-shadow: 0 1.5px 0 #0088fe, 0 1.5px 1.5px #0088fe;
@@ -42,8 +52,73 @@
   border-color: #a41ef1;
 }
 
+/* Icono hamburguesa visible en fondo negro */
+.navbar-home-toggler .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+/* Menú desplegado en móvil — siempre absolute para animación suave */
+@media (max-width: 991px) {
+  .navbar-home-root {
+    position: relative;
+  }
+  .navbar-collapse {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1029;
+    background-color: #000;
+    border-bottom: 1px solid #a41ef1;
+    overflow: hidden;
+  }
+  .navbar-collapse.show {
+    border-top: 1px solid #a41ef1;
+  }
+  .navbar-home-collapse .navbar-nav {
+    width: 100%;
+    padding: 1rem;
+  }
+  .navbar-home-start-container {
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .navbar-home-btn {
+    width: auto !important;
+    margin-right: 0 !important;
+  }
+}
+
 .modal-home {
   background: none;
+}
+
+/* Modales — centrado perfecto en cualquier pantalla */
+.modal-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100% - 1rem);
+  margin: 0.5rem auto;
+  width: 100%;
+  max-width: min(500px, 96vw);
+}
+
+.modal-content.modal-home {
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .modal-dialog {
+    max-width: calc(100vw - 1rem);
+    margin: 0.5rem auto;
+  }
 }
 
 .btn-close-modal {

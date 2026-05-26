@@ -16,6 +16,19 @@ body {
   font-size: 1.1rem;
 }
 
+/* Carrusel */
+.carousel-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .carousel-img {
+    height: auto;
+  }
+}
+
 /* Secciones con fondo negro y bordes */
 .about-section {
   padding-top: 10rem;
@@ -60,25 +73,44 @@ body {
   color: #f8f8f8;
 }
 
-.card {
+/* Título de sección horizontal para móvil */
+.section-title-mobile {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 6px #fff, 0 0 18px #ff00ff;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+}
+
+/* Reducir padding de secciones en móvil */
+@media (max-width: 767px) {
+  .howitworks-section,
+  .bestpractices-section,
+  .about-section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+}
+
+.howitworks-section .card,
+.bestpractices-section .card {
   width: 250px;
   height: 250px;
   margin: 1rem auto;
   perspective: 1000px;
   cursor: pointer;
-  background-color: transparent;
-  overflow: hidden;
-}
-
-@media (max-width: 480px) {
-  .card {
-    width: min(220px, 90vw);
-    height: min(220px, 90vw);
-  }
-  .box {
-    height: 100%;
-    width: 100%;
-  }
+  /* Override Bootstrap .card solo en secciones del home */
+  display: block !important;
+  background-color: transparent !important;
+  background: none !important;
+  border: none !important;
+  outline: none;
+  padding: 0 !important;
+  border-radius: 12px;
+  box-shadow: none !important;
 }
 
 .box {
@@ -86,8 +118,8 @@ body {
   justify-content: center;
   align-items: center;
   padding: 12px;
-  height: 400px;
-  width: 400px;
+  width: 100%;
+  height: 100%;
   border: 2px solid #0000;
   border-radius: 12px;
   background: linear-gradient(#131219, #131219) padding-box, linear-gradient(
@@ -97,6 +129,18 @@ body {
       ) border-box;
   animation: 2s rotate linear infinite;
   background-color: transparent;
+}
+
+@media (max-width: 480px) {
+  .howitworks-section .card,
+  .bestpractices-section .card {
+    width: min(220px, 90vw);
+    height: min(220px, 90vw);
+  }
+  .vertical-title {
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+  }
 }
 
 @keyframes rotate {
@@ -119,7 +163,10 @@ body {
   transform-style: preserve-3d;
 }
 
-.card:hover .card-inner {
+.howitworks-section .card:hover .card-inner,
+.howitworks-section .card:focus-within .card-inner,
+.bestpractices-section .card:hover .card-inner,
+.bestpractices-section .card:focus-within .card-inner {
   transform: rotateY(180deg);
 }
 
@@ -142,9 +189,15 @@ body {
 }
 
 .card-back {
-  background: transparent;
+  background: linear-gradient(135deg, #131219 0%, #1e1a2e 100%);
   color: rgb(255, 255, 255);
   transform: rotateY(180deg);
+  border: 2px solid #0000;
+  background: linear-gradient(#131219, #1e1a2e) padding-box, linear-gradient(
+        var(--angle),
+        #6bf1fa,
+        #f538ff
+      ) border-box;
 }
 .card-front img {
   width: 100%;

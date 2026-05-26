@@ -54,8 +54,8 @@ export const NavbarHome = () => {
 
   return (
     <>
-      <nav className="navbar navbar-expand-lg bg-black navbar-home-font border-bottom ">
-        <div className="container-fluid">
+      <nav className="navbar navbar-expand-lg bg-black navbar-home-font border-bottom navbar-home-root">
+        <div className="container-fluid navbar-home-container">
           <div className="d-flex align-items-center">
             <a className="navbar-brand" href="#" />
             <img src={logoApp} alt="App Logo" className="d-inline-block align-text-top logo-navbar-home"></img>
@@ -65,17 +65,17 @@ export const NavbarHome = () => {
             <span className="navbar-toggler-icon"></span>
           </button>
           <div className="collapse navbar-collapse navbar-home-collapse border-2 navbar-home-toggler" id="navbarNav">
-            <div className="d-flex align-items-center justify-content-around ms-5">
+            <div className="d-flex align-items-center justify-content-around ms-lg-5">
               <ul className="navbar-nav">
-                <div className="d-flex justify-content-around align-self-center">
+                <div className="d-flex flex-column flex-lg-row justify-content-around align-self-center">
                   <li className="nav-item">
-                    <a className="nav-link navbar-home-font me-5" href="#howitworks">How It Works</a>
+                    <a className="nav-link navbar-home-font me-lg-5" href="#howitworks">How It Works</a>
                   </li>
                   <li className="nav-item">
-                    <a className="nav-link active navbar-home-font me-5" aria-current="page" href="#bestpractices">Best Practices</a>
+                    <a className="nav-link active navbar-home-font me-lg-5" aria-current="page" href="#bestpractices">Best Practices</a>
                   </li>
                   <li className="nav-item">
-                    <a className="nav-link navbar-home-font me-5" href="#aboutus">About Us</a>
+                    <a className="nav-link navbar-home-font me-lg-5" href="#aboutus">About Us</a>
                   </li>
                 </div>
                 <li className="nav-item">
@@ -94,24 +94,22 @@ export const NavbarHome = () => {
 
       {/* modal START body */}
       <div className="modal fade" id="startModal" tabIndex="-1" aria-labelledby="startModalLabel" aria-hidden="true" data-bs-backdrop="false">
-        <div className="modal-dialog">
+        <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content modal-home">
-            <div className="modal-header border-0 mt-5">
-              <div className="modal-body d-flex flex-column">
-                {/* Aviso de sesión expirada */}
-                {sessionExpiredMsg && (
-                  <div className="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
-                    <span>⚠️</span>
-                    <span>Your session has expired. Please sign in again.</span>
-                  </div>
-                )}
-                <div>
-                  {showSignIn ? (
-                    <SignIn onSwitch={() => setShowSignIn(false)} onSuccess={closeStartModal} />
-                  ) : (
-                    <Register onSwitch={() => setShowSignIn(true)} onSuccess={closeStartModal} />
-                  )}
+            <div className="modal-body p-0">
+              {/* Aviso de sesión expirada */}
+              {sessionExpiredMsg && (
+                <div className="alert alert-warning d-flex align-items-center gap-2 mb-3 mx-3 mt-3" role="alert">
+                  <span>⚠️</span>
+                  <span>Your session has expired. Please sign in again.</span>
                 </div>
+              )}
+              <div>
+                {showSignIn ? (
+                  <SignIn onSwitch={() => setShowSignIn(false)} onSuccess={closeStartModal} />
+                ) : (
+                  <Register onSwitch={() => setShowSignIn(true)} onSuccess={closeStartModal} />
+                )}
               </div>
             </div>
           </div>
@@ -121,12 +119,10 @@ export const NavbarHome = () => {
       {/* modal RESET password body */}
       <div>
         <div className="modal fade" id="forgotPasswordModal" tabIndex="-1" aria-labelledby="forgotPasswordModal" aria-hidden="true" data-bs-backdrop="false">
-          <div className="modal-dialog">
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content modal-home">
-              <div className="modal-header border-0 mt-5">
-                <div className="modal-body d-flex">
-                  <ResetPassword />
-                </div>
+              <div className="modal-body p-0">
+                <ResetPassword />
               </div>
             </div>
           </div>

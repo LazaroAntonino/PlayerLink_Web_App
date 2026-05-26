@@ -91,7 +91,7 @@ export const SignIn = ({ onSwitch, onSuccess }) => {
         <>
 
             <div className='d-flex justify-content-center'>
-                <div className='card sign-in-card mt-5'>
+                <div className='card sign-in-card'>
                     <div className="card-body">
                         <div className="d-flex">
                             <button

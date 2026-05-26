@@ -21,7 +21,7 @@ const EmailSentScreen = ({ email, onSwitch }) => {
 
     return (
         <div className="d-flex justify-content-center">
-            <div className="card register-card mt-5">
+            <div className="card register-card">
                 <div className="card-body text-center px-4 py-5">
                     <i className="fa-solid fa-envelope-circle-check fa-3x mb-3" style={{ color: 'var(--color-primary, #6c63ff)' }} />
                     <h2 className="card-title mb-2">Check your inbox!</h2>
@@ -170,7 +170,7 @@ export const Register = ({ onSwitch, onSuccess }) => {
     // ── render ───────────────────────────────────────────────────────────────
     return (
         <div className="d-flex justify-content-center">
-            <div className="card register-card mt-5">
+            <div className="card register-card">
                 <div className="card-body">
 
                     <div className="d-flex mb-1">

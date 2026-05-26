@@ -1,15 +1,13 @@
 .register-card {
-  width: 26rem;
+  width: min(26rem, 94vw);
   height: auto;
-  border: 3px solid;
-  background-color: #ffffff;
   padding: 1rem;
   border: 4px solid #0000;
   border-radius: 30px;
   background: linear-gradient(#ffffff, hsl(0, 0%, 100%, 0.911)) padding-box,
     linear-gradient(var(--angle), #6bf1fa, #f538ff) border-box;
   animation: 15s rotate linear infinite;
-  background-color: transparent;
+  background-color: transparent !important;
 }
 
 .register-card-subtitle {
@@ -42,11 +40,11 @@
 
 /* Pantalla móvil  */
 @media (max-width: 600px) {
- .register-card {
-  width: min(20rem, 94vw);
-  padding-right: 0px;
-  padding-left: 0px;
- }
+  .register-card {
+    width: min(20rem, 94vw);
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+  }
 }
 /* ── Terms & Conditions inline section ─────────────────────────────── */
 .register-terms-section {

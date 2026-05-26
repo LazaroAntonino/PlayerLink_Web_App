@@ -6,7 +6,7 @@ export const ResetPassword = () => {
 
     const [email, setEmail] = useState('')
     const [emailSent, setEmailSent] = useState(false)
- 
+
 
     const handleSubmit = () => {
         if (!email) return;
@@ -24,14 +24,14 @@ export const ResetPassword = () => {
         <>
             <div>
                 <div className='d-flex justify-content-center'>
-                    <div className='card reset-card mt-5'>
+                    <div className='card reset-card'>
                         <div className="card-body">
                             <div className="d-flex">
-                                <button type="button" className="btn-close btn-close-modal" data-bs-dismiss="modal" aria-label="Close" 
-                                onClick={() => {
-                                    setEmailSent(false);
-                                    setEmail('');
-                                }}></button>
+                                <button type="button" className="btn-close btn-close-modal" data-bs-dismiss="modal" aria-label="Close"
+                                    onClick={() => {
+                                        setEmailSent(false);
+                                        setEmail('');
+                                    }}></button>
                             </div>
                             <h2 className="card-title text-center mb-3">Recover password </h2>
 
@@ -49,7 +49,7 @@ export const ResetPassword = () => {
 
                                         {emailSent && (
                                             <h5 className="text-success mt-3 sign-in-message-errors">
-                                                Check your email: instructions to reset your password have been sent. Check your spam 😳​
+                                                Check your email: instructions to reset your password have been sent. Check your spam 😳
                                             </h5>
                                         )}
 
