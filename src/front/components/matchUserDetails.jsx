@@ -1,3 +1,8 @@
+// MatchUserDetails — vista del perfil de un match (read-only).
+// Usa el mismo lenguaje visual que el Profile propio (.pinfo-*) pero sin
+// permitir edición. La pestaña Comments tiene su propio modal en React portal
+// (AddCommentModal) coherente con AddGameModal.
+
 import { useEffect, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,18 +15,58 @@ import goldMedal from "../assets/img/medals/gold-medal.png";
 import silverMedal from "../assets/img/medals/silver-medal.png";
 import bronzeMedal from "../assets/img/medals/bronze-medal.png";
 import { resolvePhoto } from "../assets/photoAssets.js";
+import { AddCommentModal } from "./profile/AddCommentModal.jsx";
 
+// ── Helpers compartidos con ProfileInfoTab ──────────────────────────────────
+const isEmpty = (v) =>
+  v == null ||
+  v === "" ||
+  v === "no data" ||
+  v === "undefined" ||
+  v === "Undefined" ||
+  v === "Undefinied" ||
+  v === 0 ||
+  v === "0" ||
+  (typeof v === "string" && v.trim().length === 0);
 
+const ReadValue = ({ value, placeholder = "Not set" }) =>
+  isEmpty(value)
+    ? <span className="pinfo-empty">{placeholder}</span>
+    : <span className="pinfo-value">{value}</span>;
+
+const parseListField = (raw) =>
+  raw
+    ? String(raw)
+        .replace(/\.$/, "")
+        .split(/, | and /)
+        .map((s) => s.trim())
+        .filter((s) => s && s !== "Undefined" && s !== "Undefinied" && s !== "no data")
+    : [];
+
+const ChipList = ({ items, accent = false }) => {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="pinfo-chips">
+      {items.map((item, i) => (
+        <span key={i} className={`pinfo-chip${accent ? " pinfo-chip--accent" : ""}`}>
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+};
 
 export const MatchUserDetails = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { store, dispatch } = useGlobalReducer();
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState("info");
-  const [newComment, setNewComment] = useState({ stars: 0, comment: "" });
-  const [hoverRating, setHoverRating] = useState(0);
 
-  // ── Block / Report state ─────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState("info");
+
+  // Add Comment modal
+  const [isAddCommentOpen, setIsAddCommentOpen] = useState(false);
+
+  // Block / Report
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [blockLoading, setBlockLoading] = useState(false);
   const [blockError, setBlockError] = useState("");
@@ -30,85 +75,63 @@ export const MatchUserDetails = () => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState("");
   const [reportSuccess, setReportSuccess] = useState(false);
+
   const allGames = store.itsMatchInfo?.profile?.games ?? [];
   const topThreeGames = allGames
-    .slice()                                      // 1. Copia el array para no mutar el original
-    .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))  // 2. Orden descendente por horas
+    .slice()
+    .sort((a, b) => (b.gameHoursPlayed ?? 0) - (a.gameHoursPlayed ?? 0))
     .slice(0, 3);
-
 
   useEffect(() => {
     if (!store.user || store.user === "undefined") {
-      navigate('/')
-    } else {
-      userServices
-        .getUserInfoById(id)
-        .then(data => dispatch({ type: "getItsMatchInfo", payload: data }))
-        .catch(err => console.error("Failed to load user info:", err));
-      reviewServices
-        .getAllReviewsReceived(id)
-        .then(data => dispatch({ type: "matchReviewsReceived", payload: data }));
+      navigate("/");
+      return;
     }
+    userServices
+      .getUserInfoById(id)
+      .then((data) => dispatch({ type: "getItsMatchInfo", payload: data }))
+      .catch((err) => console.error("Failed to load user info:", err));
+    reviewServices
+      .getAllReviewsReceived(id)
+      .then((data) => dispatch({ type: "matchReviewsReceived", payload: data }));
   }, []);
 
-  useEffect(() => {
-    // Limpiar popovers anteriores (evita duplicados o errores)
-    if (!window.bootstrap?.Popover) return;
-    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
-      const popover = window.bootstrap.Popover.getInstance(el);
-      if (popover) popover.dispose();
-    });
-
-    // Inicializar popovers actuales
-    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el => {
-      new window.bootstrap.Popover(el);
-    });
-  }, [topThreeGames]); // 🔥 Se reinicia solo cuando topThreeGames cambia
-
-  // El hook useMemo de React sirve para “memorizar” (cachear) el resultado de una función de cálculo y sólo volver a 
-  // ejecutarla cuando cambien unas dependencias que tú le indiques. Se utiliza para optimizar el rendimiento, evitando 
-  // cálculos innecesarios en cada renderizado.
   const profile = useMemo(() => {
     const p = store.itsMatchInfo?.profile ?? {};
     return {
-      name: p.name ?? "no data",
-      nickname: p.nick_name ?? "no data",
-      age: p.age ?? "no data",
-      gender: p.gender ?? "no data",
-      location: p.location ?? "no data",
-      zodiac: p.zodiac ?? "no data",
-      discord: p.discord ?? "no data",
-      steam: p.steam ?? "no data",
-      languages: p.language ?? "no data",
-      gamingPrefs: p.preferences ?? "no data",
-      bio: p.bio ?? "no data",
-      photo: p.photo ?? "no data"
+      name: p.name,
+      nickname: p.nick_name,
+      age: p.age,
+      gender: p.gender,
+      location: p.location,
+      zodiac: p.zodiac,
+      discord: p.discord,
+      steam: p.steam,
+      languages: p.language,
+      gamingPrefs: p.preferences,
+      bio: p.bio,
+      photo: p.photo,
     };
   }, [store.itsMatchInfo]);
 
+  const preferencesItems = parseListField(profile.gamingPrefs);
+  const languagesItems = parseListField(profile.languages);
+
   const selectMedal = (gamehours) => {
     const hours = parseInt(gamehours, 10);
-    if (isNaN(hours)) {
-      return bronzeMedal;
-    }
-    if (hours >= 2500) {
-      return goldMedal;
-    } else if (hours >= 500) {
-      return silverMedal;
-    } else {
-      return bronzeMedal;
-    }
+    if (isNaN(hours)) return bronzeMedal;
+    if (hours >= 2500) return goldMedal;
+    if (hours >= 500) return silverMedal;
+    return bronzeMedal;
   };
 
-
-  // ── Block handler ────────────────────────────────────────────────────────
+  // ── Block / Report handlers ─────────────────────────────────────────────
   const handleBlock = async () => {
     setBlockLoading(true);
     setBlockError("");
     try {
       await blockServices.blockUser(store.itsMatchInfo?.id);
       dispatch({ type: "addBlockedUserId", payload: store.itsMatchInfo?.id });
-      // El match ha sido eliminado en el backend → volver a la lista de matches
       navigate("/private/your-matches");
     } catch (err) {
       setBlockError(err.message || "Error blocking user");
@@ -116,7 +139,6 @@ export const MatchUserDetails = () => {
     }
   };
 
-  // ── Report handler ───────────────────────────────────────────────────────
   const handleReport = async () => {
     if (!reportReason.trim()) return;
     setReportLoading(true);
@@ -138,46 +160,18 @@ export const MatchUserDetails = () => {
     setReportSuccess(false);
   };
 
-  const handleSaveComment = async () => {
-    try {
-      // 1. Envía la nueva review: userId, recipientId, { stars, comment }
-      await reviewServices.postNewReview(
-        store.user.id,
-        store.itsMatchInfo.id,
-        newComment
-      );
-
-      // 2. Limpia el estado del formulario
-      setNewComment({ stars: 0, comment: "" });
-
-      // 3. Cierra el modal (Bootstrap 5 API)
-      const modalEl = document.getElementById("commentModal");
-      if (modalEl) {
-        const modalInstance = window.bootstrap?.Modal?.getInstance(modalEl);
-        modalInstance?.hide();
-      }
-
-      reviewServices.getAllReviewsReceived(id).then(data => dispatch({ type: "matchReviewsReceived", payload: data }))
-
-    } catch (error) {
-      console.error("Error al guardar el comentario:", error);
-      // aquí podrías mostrar un alert o toast de error
-    }
-  };
-
-  // Helper: campos vacíos o "no data" muestran "Not set"
-  const FieldValue = ({ value }) => {
-    const isEmpty = !value || value === "no data" || value === "undefined" || value === "0" || value === 0;
-    return isEmpty
-      ? <span className="profile-field-empty">Not set</span>
-      : <span className="profile-field-value">{value}</span>;
+  // ── Save comment ────────────────────────────────────────────────────────
+  const handleSaveComment = async ({ stars, comment }) => {
+    await reviewServices.postNewReview(store.user.id, store.itsMatchInfo.id, { stars, comment });
+    setIsAddCommentOpen(false);
+    const data = await reviewServices.getAllReviewsReceived(id);
+    dispatch({ type: "matchReviewsReceived", payload: data });
   };
 
   return (
     <div className="profile-container">
-      {/* ── Left Panel ── */}
+      {/* ══════════ LEFT PANEL ══════════ */}
       <div className="left-panel">
-        {/* Avatar */}
         <div className="left-avatar-wrapper">
           <div className="left-avatar-ring">
             <img
@@ -190,20 +184,16 @@ export const MatchUserDetails = () => {
 
         <h2 className="left-nickname">{profile.nickname || "—"}</h2>
 
-        {profile.location && profile.location !== "no data" && (
+        {!isEmpty(profile.location) && (
           <p className="left-location">
             <i className="fa-solid fa-location-dot me-1" aria-hidden="true"></i>
             {profile.location}
           </p>
         )}
 
-        {/* Separador + Medallas */}
         {topThreeGames.length > 0 && (
           <>
-            <div className="left-section-divider">
-              <span>Top Games</span>
-            </div>
-
+            <div className="left-section-divider"><span>Top Games</span></div>
             <div className="medal-list">
               {topThreeGames.map((el, index) => (
                 <div key={el.id ?? index} className="medal-game-card">
@@ -218,42 +208,323 @@ export const MatchUserDetails = () => {
                     />
                   </span>
                   {el.gameImage ? (
-                    <img
-                      className="game-cover-img"
-                      src={el.gameImage}
-                      alt={`Portada de ${el.gameTitle}`}
-                    />
+                    <img className="game-cover-img" src={el.gameImage} alt={`Cover of ${el.gameTitle}`} />
                   ) : (
                     <div className="game-cover-placeholder">
                       <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
                     </div>
                   )}
-                  <span className="medal-game-title" title={el.gameTitle}>
-                    {el.gameTitle}
-                  </span>
+                  <span className="medal-game-title" title={el.gameTitle}>{el.gameTitle}</span>
                 </div>
               ))}
             </div>
           </>
         )}
 
-        {/* ── Bloquear / Denunciar ── */}
+        {/* Block / Report */}
         <div className="block-report-zone">
           <button
             className="btn-block-user"
             onClick={() => { setShowBlockModal(true); setBlockError(""); }}
           >
-            <i className="fa-solid fa-ban" aria-hidden="true" />
-            Block user
+            <i className="fa-solid fa-ban" aria-hidden="true" /> Block user
           </button>
           <button
             className="btn-report-user"
             onClick={() => { setShowReportModal(true); setReportError(""); setReportSuccess(false); }}
           >
-            <i className="fa-solid fa-flag" aria-hidden="true" />
-            Report user
+            <i className="fa-solid fa-flag" aria-hidden="true" /> Report user
           </button>
         </div>
+      </div>
+
+      {/* ══════════ RIGHT PANEL ══════════ */}
+      <div className="right-panel">
+        <div className="tabs" role="tablist">
+          {["info", "Games", "comments"].map((tab) => (
+            <button
+              key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
+              className={activeTab === tab ? "active" : ""}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {/* ── INFO TAB (read-only, mismas secciones que ProfileInfoTab) ── */}
+        {activeTab === "info" && (
+          <div className="info-section pinfo-root">
+
+            <section className="pinfo-section">
+              <header className="pinfo-section-head">
+                <span className="pinfo-section-icon"><i className="fa-solid fa-feather" /></span>
+                <h3 className="pinfo-section-title">About</h3>
+              </header>
+              <div className="pinfo-card pinfo-card--full">
+                {isEmpty(profile.bio) ? (
+                  <p className="pinfo-empty-block">
+                    <i className="fa-regular fa-comment-dots" aria-hidden="true" />
+                    {profile.nickname || "This player"} hasn't written a bio yet.
+                  </p>
+                ) : (
+                  <p className="pinfo-bio-text">{profile.bio}</p>
+                )}
+              </div>
+            </section>
+
+            <section className="pinfo-section">
+              <header className="pinfo-section-head">
+                <span className="pinfo-section-icon"><i className="fa-solid fa-id-card" /></span>
+                <h3 className="pinfo-section-title">Personal</h3>
+              </header>
+
+              <div className="pinfo-grid pinfo-grid--2col">
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-signature" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Name</span>
+                    <ReadValue value={profile.name} />
+                  </div>
+                </div>
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon pinfo-card-icon--accent"><i className="fa-solid fa-user-ninja" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Nickname</span>
+                    <ReadValue value={profile.nickname} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pinfo-grid pinfo-grid--3col">
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-cake-candles" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Age</span>
+                    <ReadValue value={profile.age > 0 ? `${profile.age} years` : null} placeholder="—" />
+                  </div>
+                </div>
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-venus-mars" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Gender</span>
+                    <ReadValue value={profile.gender} placeholder="—" />
+                  </div>
+                </div>
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-star-and-crescent" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Zodiac</span>
+                    <ReadValue value={profile.zodiac} placeholder="—" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="pinfo-section">
+              <header className="pinfo-section-head">
+                <span className="pinfo-section-icon"><i className="fa-solid fa-earth-americas" /></span>
+                <h3 className="pinfo-section-title">Where & Language</h3>
+              </header>
+
+              <div className="pinfo-grid pinfo-grid--2col">
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-location-dot" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Location</span>
+                    <ReadValue value={profile.location} />
+                  </div>
+                </div>
+                <div className="pinfo-card pinfo-card--col">
+                  <div className="pinfo-card-row">
+                    <div className="pinfo-card-icon pinfo-card-icon--accent"><i className="fa-solid fa-language" /></div>
+                    <div className="pinfo-card-content">
+                      <span className="pinfo-card-label">Languages</span>
+                    </div>
+                  </div>
+                  {languagesItems.length > 0
+                    ? <ChipList items={languagesItems} accent />
+                    : <span className="pinfo-empty">Not set</span>}
+                </div>
+              </div>
+            </section>
+
+            <section className="pinfo-section">
+              <header className="pinfo-section-head">
+                <span className="pinfo-section-icon"><i className="fa-solid fa-gamepad" /></span>
+                <h3 className="pinfo-section-title">Gaming style</h3>
+              </header>
+
+              <div className="pinfo-card pinfo-card--col">
+                <div className="pinfo-card-row">
+                  <div className="pinfo-card-icon"><i className="fa-solid fa-tags" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Preferences</span>
+                  </div>
+                </div>
+                {preferencesItems.length > 0
+                  ? <ChipList items={preferencesItems} />
+                  : <span className="pinfo-empty">Not set</span>}
+              </div>
+            </section>
+
+            <section className="pinfo-section">
+              <header className="pinfo-section-head">
+                <span className="pinfo-section-icon"><i className="fa-solid fa-link" /></span>
+                <h3 className="pinfo-section-title">Connect</h3>
+                <span className="pinfo-section-hint">
+                  <i className="fa-solid fa-handshake me-1" aria-hidden="true" />
+                  Reach out to play together
+                </span>
+              </header>
+
+              <div className="pinfo-grid pinfo-grid--2col">
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon pinfo-card-icon--discord"><i className="fa-brands fa-discord" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Discord</span>
+                    <ReadValue value={profile.discord} />
+                  </div>
+                </div>
+                <div className="pinfo-card">
+                  <div className="pinfo-card-icon pinfo-card-icon--steam"><i className="fa-brands fa-steam" /></div>
+                  <div className="pinfo-card-content">
+                    <span className="pinfo-card-label">Steam Friend ID</span>
+                    <ReadValue value={profile.steam} />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* ── GAMES TAB (read-only) ── */}
+        {activeTab === "Games" && (
+          <div className="info-section">
+            <div className="comments-header-row">
+              <h3 className="comments-title" style={{ margin: 0, padding: 0, border: 'none' }}>
+                Games{" "}
+                <span className="tooltip-wrapper">
+                  <i className="fa-solid fa-circle-info fa-2xs medals-info-icon" aria-hidden="true"></i>
+                  <span className="tooltip-text medal-info-tooltip-text">
+                    <strong>Medal Info:</strong>
+                    <div><i className="fa-solid fa-medal medal-info-gold" aria-hidden="true"></i> +2500 hours</div>
+                    <div><i className="fa-solid fa-medal medal-info-silver" aria-hidden="true"></i> +500 hours</div>
+                    <div><i className="fa-solid fa-medal medal-info-bronze" aria-hidden="true"></i> 0-500 hours</div>
+                  </span>
+                </span>
+              </h3>
+            </div>
+
+            <div className="mt-3">
+              {allGames.length > 0 ? (
+                allGames.map((el, i) => (
+                  <div key={el.id ?? i} className="game-row">
+                    {el.gameImage ? (
+                      <img src={el.gameImage} alt={el.gameTitle} className="game-row-cover"
+                        onError={(e) => {
+                          e.target.style.display = "none";
+                          if (e.target.nextSibling) e.target.nextSibling.style.display = "flex";
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="game-cover-placeholder"
+                      style={{ display: el.gameImage ? "none" : "flex", width: "64px", height: "38px", borderRadius: "7px", flexShrink: 0 }}
+                    >
+                      <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
+                    </div>
+                    <span className="game-row-title">{el.gameTitle}</span>
+                    <div className="game-row-actions">
+                      <span className="game-row-hours">
+                        {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
+                          ? `${el.gameHoursPlayed.toLocaleString()} h`
+                          : <span className="game-row-hours-empty">—</span>
+                        }
+                      </span>
+                      <img
+                        src={selectMedal(el.gameHoursPlayed)}
+                        alt="Medal"
+                        className="medal-icon"
+                        style={{ width: 28, height: 28 }}
+                      />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="comments-empty" style={{ padding: '40px 16px' }}>
+                  <i className="fa-solid fa-gamepad comments-empty-icon" aria-hidden="true" />
+                  <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.62)' }}>No games yet</span>
+                  <span>{profile.nickname || "This player"} hasn't added games.</span>
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── COMMENTS TAB ── */}
+        {activeTab === "comments" && (
+          <div className="info-section">
+            <div className="comments-header-row">
+              <h3 className="comments-title" style={{ margin: 0, padding: 0, border: 'none' }}>
+                Comments
+              </h3>
+              <button
+                type="button"
+                className="botonLeaveComment"
+                onClick={() => setIsAddCommentOpen(true)}
+              >
+                <i className="fa-solid fa-plus me-2" aria-hidden="true" />
+                Leave a comment
+              </button>
+            </div>
+
+            <AddCommentModal
+              isOpen={isAddCommentOpen}
+              onClose={() => setIsAddCommentOpen(false)}
+              onSubmit={handleSaveComment}
+              targetNickname={profile.nickname}
+            />
+
+            {store.matchReviewsReceived?.reviews_received?.length > 0 ? (
+              <div className="comments-list">
+                {store.matchReviewsReceived.reviews_received.map((el) => (
+                  <div key={el.id} className="comment-card">
+                    <div className="comment-header">
+                      <span className="comment-author">
+                        <i className="fa-solid fa-user me-2" aria-hidden="true"></i>
+                        {el.author_nickname}
+                      </span>
+                      <span className="comment-stars">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <i
+                            key={i}
+                            className={`fa-${i < el.stars ? "solid" : "regular"} fa-star`}
+                            style={{ color: i < el.stars ? "#ffd700" : "rgba(255,255,255,0.2)" }}
+                            aria-hidden="true"
+                          />
+                        ))}
+                        <span className="comment-stars-num">{el.stars}/5</span>
+                      </span>
+                    </div>
+                    <p className="comment-text">
+                      <i className="fa-solid fa-comment me-2" style={{ color: 'rgba(0,229,255,0.4)' }} aria-hidden="true"></i>
+                      {el.comment}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="comments-empty">
+                <i className="fa-regular fa-comment-dots comments-empty-icon" aria-hidden="true"></i>
+                <p>No comments yet.</p>
+                <span>Be the first to leave a comment!</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ══ MODAL: Confirmar bloqueo ══════════════════════════════════════════ */}
@@ -264,7 +535,7 @@ export const MatchUserDetails = () => {
           aria-modal="true"
           role="dialog"
           style={{ backgroundColor: showBlockModal ? "rgba(0,0,0,0.6)" : "transparent" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowBlockModal(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget && !blockLoading) setShowBlockModal(false); }}
         >
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content modal-sci-fi">
@@ -313,7 +584,7 @@ export const MatchUserDetails = () => {
                   disabled={blockLoading}
                 >
                   {blockLoading
-                    ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Blocking...</>
+                    ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Blocking…</>
                     : <><i className="fa-solid fa-ban me-1" aria-hidden="true" />Block</>
                   }
                 </button>
@@ -324,7 +595,7 @@ export const MatchUserDetails = () => {
         document.body
       )}
 
-      {/* ══ MODAL: Denunciar usuario ══════════════════════════════════════════ */}
+      {/* ══ MODAL: Denuncia ══════════════════════════════════════════ */}
       {createPortal(
         <div
           className={`modal fade ${showReportModal ? "show d-block" : ""}`}
@@ -409,7 +680,7 @@ export const MatchUserDetails = () => {
                       disabled={reportLoading || !reportReason.trim()}
                     >
                       {reportLoading
-                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Sending...</>
+                        ? <><i className="fa-solid fa-spinner fa-spin me-1" aria-hidden="true" />Sending…</>
                         : <><i className="fa-solid fa-paper-plane me-1" aria-hidden="true" />Send report</>
                       }
                     </button>
@@ -421,320 +692,6 @@ export const MatchUserDetails = () => {
         </div>,
         document.body
       )}
-      <div className="right-panel">
-        {/* Tabs */}
-        <div className="tabs">
-          {['info', 'Games', 'comments'].map(tab => (
-            <button
-              key={tab}
-              className={activeTab === tab ? 'active' : ''}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-
-        {/* ── Info Tab ── */}
-        {activeTab === "info" && (
-          <div className="info-section container">
-
-            {/* Bio */}
-            {profile.bio && profile.bio !== "no data" && (
-              <div className="row mb-2">
-                <div className="col-12">
-                  <label className="profile-field-label">Bio</label>
-                  <div className="profile-read-field" style={{ minHeight: '60px', alignItems: 'flex-start', padding: '12px 14px' }}>
-                    <span className="profile-field-value" style={{ lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
-                      {profile.bio}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="row">
-              <div className="col-md-6">
-                <label className="profile-field-label">Name</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.name} />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label className="profile-field-label">Nickname</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.nickname} />
-                </div>
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="col-md-4">
-                <label className="profile-field-label">Age</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.age} />
-                </div>
-              </div>
-              <div className="col-md-4">
-                <label className="profile-field-label">Gender</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.gender} />
-                </div>
-              </div>
-              <div className="col-md-4">
-                <label className="profile-field-label">Zodiac</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.zodiac} />
-                </div>
-              </div>
-            </div>
-
-            <div className="row">
-              <div className="col-md-6">
-                <label className="profile-field-label d-flex align-items-center gap-2 mt-1 mb-1">
-                  Discord
-                  <span className="tooltip-wrapper">
-                    <i className="ms-1 fa-solid fa-circle-info discord-info-icon" aria-hidden="true"></i>
-                    <span className="tooltip-text discord-info-tooltip-text">
-                      <strong>Connect with your match</strong>
-                      <div>Use their Discord or Steam<br />info to reach out!</div>
-                    </span>
-                  </span>
-                </label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.discord} />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label className="profile-field-label d-flex align-items-center gap-2 mt-1 mb-1">
-                  Steam Friend ID
-                  <span className="tooltip-wrapper">
-                    <i className="ms-1 fa-solid fa-circle-info discord-info-icon" aria-hidden="true"></i>
-                    <span className="tooltip-text discord-info-tooltip-text">
-                      <strong>Connect with your match</strong>
-                      <div>Use their Discord or Steam<br />info to reach out!</div>
-                    </span>
-                  </span>
-                </label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.steam} />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label className="profile-field-label">Gaming Preferences</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.gamingPrefs} />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label className="profile-field-label">Languages</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.languages} />
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label className="profile-field-label">Location</label>
-                <div className="profile-read-field">
-                  <FieldValue value={profile.location} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Games Tab ── */}
-        {activeTab === 'Games' && (
-          <div className="info-section">
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Games</h3>
-              <span className="tooltip-wrapper">
-                <i className="fa-solid fa-circle-info medals-info-icon" aria-hidden="true"></i>
-                <span className="tooltip-text medal-info-tooltip-text">
-                  <strong>Medal Info:</strong>
-                  <div><i className="fa-solid fa-medal medal-info-gold" aria-hidden="true"></i> +2500 hours</div>
-                  <div><i className="fa-solid fa-medal medal-info-silver" aria-hidden="true"></i> +500 hours</div>
-                  <div><i className="fa-solid fa-medal medal-info-bronze" aria-hidden="true"></i> 0-500 hours</div>
-                </span>
-              </span>
-            </div>
-
-            {store.itsMatchInfo?.profile?.games?.length > 0 ? (
-              store.itsMatchInfo.profile.games.map((el, i) => (
-                <div key={i} className="game-row">
-                  {el.gameImage ? (
-                    <img
-                      src={el.gameImage}
-                      alt={el.gameTitle}
-                      className="game-row-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <div
-                    className="game-cover-placeholder"
-                    style={{ display: el.gameImage ? 'none' : 'flex', width: '52px', height: '30px' }}
-                  >
-                    <i className="fa-solid fa-gamepad" aria-hidden="true"></i>
-                  </div>
-                  <span className="game-row-title">{el.gameTitle}</span>
-                  <div className="game-row-actions">
-                    <span className="game-row-hours">
-                      {el.gameHoursPlayed != null && el.gameHoursPlayed > 0
-                        ? `${el.gameHoursPlayed.toLocaleString()} h`
-                        : <span className="game-row-hours-empty">—</span>
-                      }
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="match-ud-games-empty">
-                No games available.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ── Comments Tab ── */}
-        {activeTab === "comments" && (
-          <div className="info-section">
-            <div className="comments-header-row mb-3 pb-3" style={{ borderBottom: '1px solid rgba(0,229,255,0.1)' }}>
-              <h3 className="comments-title mb-0" style={{ border: 'none', paddingBottom: 0 }}>Comments</h3>
-              <button
-                type="button"
-                className="botonLeaveComment pl-btn pl-btn--accent pl-btn--sm"
-                data-bs-toggle="modal"
-                data-bs-target="#commentModal"
-              >
-                Leave a comment
-              </button>
-            </div>
-
-            {/* ── Modal nuevo comentario — portal para escapar el backdrop-filter ── */}
-            {createPortal(
-              <div
-                className="modal fade"
-                id="commentModal"
-                tabIndex="-1"
-                aria-labelledby="commentModalLabel"
-                aria-hidden="true"
-              >
-                <div className="modal-dialog modal-dialog-centered">
-                  <div className="modal-content modal-sci-fi">
-                    <div className="modal-header modal-sci-fi-header">
-                      <h5 className="modal-title modal-sci-fi-title" id="commentModalLabel">
-                        Leave a comment
-                      </h5>
-                      <button
-                        type="button"
-                        className="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"
-                      />
-                    </div>
-
-                    <div className="modal-body modal-sci-fi-body">
-                      {/* Rating */}
-                      <div className="mb-4">
-                        <label className="label-sci-fi" style={{ display: 'block', marginBottom: '16px' }}>Rating</label>
-                        <div className="d-flex gap-2" style={{ marginTop: '0' }}>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <i
-                              key={star}
-                              className={`fa-star fa-xl ${(hoverRating || newComment.stars) >= star ? "fa-solid" : "fa-regular"}`}
-                              style={{
-                                cursor: "pointer",
-                                color: (hoverRating || newComment.stars) >= star ? '#ffd700' : 'rgba(255,255,255,0.25)',
-                                transition: 'color 0.15s'
-                              }}
-                              onClick={() => setNewComment((prev) => ({ ...prev, stars: star }))}
-                              onMouseEnter={() => setHoverRating(star)}
-                              onMouseLeave={() => setHoverRating(0)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Comment */}
-                      <div className="mb-2">
-                        <label htmlFor="newComment" className="label-sci-fi">Comment</label>
-                        <textarea
-                          id="newComment"
-                          className="input-sci-fi"
-                          rows="3"
-                          style={{ resize: 'none', minHeight: '90px' }}
-                          placeholder="Share your experience with this player..."
-                          value={newComment.comment}
-                          onChange={(e) => setNewComment((prev) => ({ ...prev, comment: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="modal-footer modal-sci-fi-footer">
-                      <button
-                        type="button"
-                        className="btn-sci-fi-secondary pl-btn pl-btn--danger"
-                        data-bs-dismiss="modal"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-sci-fi-primary pl-btn pl-btn--primary"
-                        onClick={handleSaveComment}
-                        disabled={!newComment.comment.trim() || newComment.stars === 0}
-                      >
-                        <i className="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>
-                        Save comment
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>,
-              document.body
-            )}
-
-            {/* Reviews list */}
-            {store.matchReviewsReceived?.reviews_received?.length > 0 ? (
-              <div className="comments-list">
-                {store.matchReviewsReceived.reviews_received.map((el) => (
-                  <div key={el.id} className="comment-card">
-                    <div className="comment-header">
-                      <span className="comment-author">
-                        <i className="fa-solid fa-user me-2" aria-hidden="true"></i>
-                        {el.author_nickname}
-                      </span>
-                      <span className="comment-stars">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <i
-                            key={i}
-                            className={`fa-${i < el.stars ? 'solid' : 'regular'} fa-star`}
-                            style={{ color: i < el.stars ? '#ffd700' : 'rgba(255,255,255,0.2)' }}
-                            aria-hidden="true"
-                          />
-                        ))}
-                        <span className="comment-stars-num">{el.stars}/5</span>
-                      </span>
-                    </div>
-                    <p className="comment-text">
-                      <i className="fa-solid fa-comment me-2" style={{ color: 'rgba(0,229,255,0.4)' }} aria-hidden="true"></i>
-                      {el.comment}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="comments-empty">
-                <i className="fa-regular fa-comment-dots comments-empty-icon" aria-hidden="true"></i>
-                <p>No comments yet.</p>
-                <span>Be the first to leave a comment!</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

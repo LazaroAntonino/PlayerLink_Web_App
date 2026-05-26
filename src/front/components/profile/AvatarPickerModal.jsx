@@ -1,19 +1,15 @@
-// AvatarPickerModal.jsx
-// Modal with two tabs:
-//   • "Choose Avatar" — pick from the preset gallery (9 local images)
-//   • "Upload Photo"  — drag & drop or click to upload a real photo to Cloudinary
-//
-// Props:
-//   show            {bool}     — controls visibility
-//   photoArray      {Array}    — [{ key, file }] preset avatars
-//   selectedPhotoKey {string}  — currently active key (or Cloudinary URL)
-//   onSelect        {function} — called with preset key on preset selection
-//   onUpload        {function} — async (file: File) => void  (throws on error)
-//   onClose         {function} — close the modal
+// AvatarPickerModal — selector de avatar con flujo "pending → apply" coherente.
+// Dos modos:
+//   • Preset: galería de 9 avatares predefinidos
+//   • Upload: drag & drop / file picker → sube a Cloudinary
+// El cambio NO se aplica instantáneamente: el usuario ve un preview grande arriba
+// y confirma con "Apply" en el footer (mismo botón para ambos modos).
 
 import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import "./AvatarPickerModal.css";
+import { resolvePhoto } from "../../assets/photoAssets.js";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock.js";
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_SIZE_MB = 5;
@@ -28,6 +24,11 @@ export const AvatarPickerModal = ({
     onClose,
 }) => {
     const [modalTab, setModalTab] = useState("preset");
+
+    // Preset pending — selección del usuario antes de pulsar Apply
+    const [pendingPreset, setPendingPreset] = useState(null);
+
+    // Upload state
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [uploadStatus, setUploadStatus] = useState("idle"); // idle | uploading | error
@@ -35,17 +36,21 @@ export const AvatarPickerModal = ({
     const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Clean up object URL to avoid memory leaks
+    // Bloquear scroll del body mientras el modal está abierto
+    useBodyScrollLock(show);
+
+    // Limpiar object URL al desmontar
     useEffect(() => {
         return () => {
             if (previewUrl) URL.revokeObjectURL(previewUrl);
         };
     }, [previewUrl]);
 
-    // Reset all upload state every time the modal is closed
+    // Reset state cada vez que el modal se abre/cierra
     useEffect(() => {
         if (!show) {
             setModalTab("preset");
+            setPendingPreset(null);
             setSelectedFile(null);
             if (previewUrl) URL.revokeObjectURL(previewUrl);
             setPreviewUrl(null);
@@ -54,6 +59,14 @@ export const AvatarPickerModal = ({
             setDragOver(false);
         }
     }, [show]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Cerrar con Escape (solo si no está subiendo)
+    useEffect(() => {
+        if (!show) return;
+        const handleKey = (e) => { if (e.key === "Escape" && uploadStatus !== "uploading") onClose(); };
+        document.addEventListener("keydown", handleKey);
+        return () => document.removeEventListener("keydown", handleKey);
+    }, [show, onClose, uploadStatus]);
 
     if (!show) return null;
 
@@ -85,15 +98,19 @@ export const AvatarPickerModal = ({
         validateAndSetFile(e.dataTransfer.files[0]);
     };
 
-    // ── Upload handler ────────────────────────────────────────────────────────
-    const handleUploadClick = async () => {
+    // ── Apply handler ────────────────────────────────────────────────────────
+    const handleApply = async () => {
+        if (modalTab === "preset") {
+            if (!pendingPreset || pendingPreset === selectedPhotoKey) return;
+            onSelect(pendingPreset);
+            return;
+        }
+        // Upload tab
         if (!selectedFile || uploadStatus === "uploading") return;
         setUploadStatus("uploading");
         setUploadError("");
         try {
             await onUpload(selectedFile);
-            // onUpload is expected to close the modal on success.
-            // If we still reach here, reset to idle gracefully.
             setUploadStatus("idle");
         } catch (err) {
             setUploadStatus("error");
@@ -101,10 +118,28 @@ export const AvatarPickerModal = ({
         }
     };
 
-    // ── Overlay click to close ────────────────────────────────────────────────
     const handleOverlayClick = (e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && uploadStatus !== "uploading") onClose();
     };
+
+    // ── Preview source ───────────────────────────────────────────────────────
+    // Prioridad: file upload preview > preset pending > current selected
+    const previewSrc =
+        modalTab === "upload" && previewUrl
+            ? previewUrl
+            : modalTab === "preset" && pendingPreset
+                ? photoArray.find(p => p.key === pendingPreset)?.file
+                : resolvePhoto(selectedPhotoKey);
+
+    const hasPendingChange =
+        (modalTab === "preset" && pendingPreset && pendingPreset !== selectedPhotoKey) ||
+        (modalTab === "upload" && selectedFile && uploadStatus !== "uploading");
+
+    const isUploading = uploadStatus === "uploading";
+
+    const applyLabel = modalTab === "upload"
+        ? (isUploading ? "Uploading…" : "Upload & apply")
+        : "Apply";
 
     // ─────────────────────────────────────────────────────────────────────────
     return (
@@ -119,15 +154,42 @@ export const AvatarPickerModal = ({
 
                 {/* ── Header ── */}
                 <div className="avatar-modal-header">
-                    <h3 className="avatar-modal-title">Change Avatar</h3>
+                    <div className="avatar-modal-titles">
+                        <h3 className="avatar-modal-title">Your avatar</h3>
+                        <p className="avatar-modal-subtitle">Pick a preset or upload your own</p>
+                    </div>
                     <button
                         type="button"
                         className="avatar-modal-close"
                         onClick={onClose}
                         aria-label="Close avatar picker"
+                        disabled={isUploading}
                     >
                         <i className="fa-solid fa-xmark" />
                     </button>
+                </div>
+
+                {/* ── Live preview ── */}
+                <div className="avatar-preview-section">
+                    <div className={`avatar-preview-ring${hasPendingChange ? " is-pending" : ""}`}>
+                        <img
+                            src={previewSrc}
+                            alt="Avatar preview"
+                            className="avatar-preview-img-main"
+                        />
+                        {hasPendingChange && (
+                            <span className="avatar-preview-badge" aria-label="Pending change">
+                                <i className="fa-solid fa-arrow-up-from-bracket" aria-hidden="true" />
+                                New
+                            </span>
+                        )}
+                    </div>
+                    <p className="avatar-preview-caption">
+                        {hasPendingChange
+                            ? <><i className="fa-solid fa-eye me-1" aria-hidden="true" />Preview · not saved yet</>
+                            : <><i className="fa-solid fa-check me-1" aria-hidden="true" />Current avatar</>
+                        }
+                    </p>
                 </div>
 
                 {/* ── Tab switcher ── */}
@@ -138,9 +200,10 @@ export const AvatarPickerModal = ({
                         aria-selected={modalTab === "preset"}
                         className={`avatar-tab-btn${modalTab === "preset" ? " active" : ""}`}
                         onClick={() => setModalTab("preset")}
+                        disabled={isUploading}
                     >
-                        <i className="fa-solid fa-images" aria-hidden="true" />
-                        Choose Avatar
+                        <i className="fa-solid fa-grip" aria-hidden="true" />
+                        <span>Presets</span>
                     </button>
                     <button
                         type="button"
@@ -148,140 +211,136 @@ export const AvatarPickerModal = ({
                         aria-selected={modalTab === "upload"}
                         className={`avatar-tab-btn${modalTab === "upload" ? " active" : ""}`}
                         onClick={() => setModalTab("upload")}
+                        disabled={isUploading}
                     >
                         <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
-                        Upload Photo
+                        <span>Upload</span>
                     </button>
                 </div>
 
-                {/* ══ Preset tab ════════════════════════════════════════════ */}
-                {modalTab === "preset" && (
-                    <div
-                        className="avatar-grid"
-                        role="listbox"
-                        aria-label="Available avatars"
-                    >
-                        {photoArray.map(({ key, file }, idx) => (
-                            <button
-                                key={key}
-                                type="button"
-                                role="option"
-                                aria-selected={key === selectedPhotoKey}
-                                aria-label={`Avatar option ${idx + 1}`}
-                                className={`avatar-grid-item${key === selectedPhotoKey ? " selected" : ""}`}
-                                onClick={() => onSelect(key)}
-                                tabIndex={0}
-                                onKeyDown={(e) => e.key === "Enter" && onSelect(key)}
+                {/* ── Body ── */}
+                <div className="avatar-modal-body">
+
+                    {modalTab === "preset" && (
+                        <div className="avatar-grid" role="listbox" aria-label="Available avatars">
+                            {photoArray.map(({ key, file }, idx) => {
+                                const isCurrent = key === selectedPhotoKey;
+                                const isPending = key === pendingPreset;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={isPending || (isCurrent && !pendingPreset)}
+                                        aria-label={`Avatar option ${idx + 1}`}
+                                        className={
+                                            "avatar-grid-item"
+                                            + (isCurrent ? " is-current" : "")
+                                            + (isPending ? " is-pending" : "")
+                                        }
+                                        onClick={() => setPendingPreset(key)}
+                                        onKeyDown={(e) => e.key === "Enter" && setPendingPreset(key)}
+                                    >
+                                        <img src={file} alt={`Avatar ${idx + 1}`} />
+                                        {isCurrent && !pendingPreset && (
+                                            <span className="avatar-grid-badge avatar-grid-badge--current" aria-hidden="true">
+                                                <i className="fa-solid fa-check" />
+                                            </span>
+                                        )}
+                                        {isPending && (
+                                            <span className="avatar-grid-badge avatar-grid-badge--pending" aria-hidden="true">
+                                                <i className="fa-solid fa-bolt" />
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {modalTab === "upload" && (
+                        <div className="avatar-upload-tab">
+                            <div
+                                className={[
+                                    "avatar-dropzone",
+                                    dragOver ? "drag-over" : "",
+                                    previewUrl ? "has-preview" : "",
+                                ].filter(Boolean).join(" ")}
+                                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                                onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+                                onDragLeave={(e) => {
+                                    if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false);
+                                }}
+                                onDrop={handleDrop}
+                                onClick={() => !isUploading && fileInputRef.current?.click()}
+                                role="button"
+                                tabIndex={isUploading ? -1 : 0}
+                                aria-label="Click or drag to select a photo"
+                                onKeyDown={(e) => e.key === "Enter" && !isUploading && fileInputRef.current?.click()}
                             >
-                                <img src={file} alt={`Avatar ${idx + 1}`} />
-                                {key === selectedPhotoKey && (
-                                    <span className="avatar-check" aria-hidden="true">
-                                        <i className="fa-solid fa-check" />
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {/* ══ Upload tab ════════════════════════════════════════════ */}
-                {modalTab === "upload" && (
-                    <div className="avatar-upload-tab">
-
-                        {/* Drop zone */}
-                        <div
-                            className={[
-                                "avatar-dropzone",
-                                dragOver ? "drag-over" : "",
-                                previewUrl ? "has-preview" : "",
-                            ].filter(Boolean).join(" ")}
-                            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                            onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
-                            onDragLeave={(e) => {
-                                // Only clear drag-over when leaving the dropzone entirely,
-                                // not when moving between its child elements.
-                                if (!e.currentTarget.contains(e.relatedTarget)) {
-                                    setDragOver(false);
-                                }
-                            }}
-                            onDrop={handleDrop}
-                            onClick={() => fileInputRef.current?.click()}
-                            role="button"
-                            tabIndex={0}
-                            aria-label="Click or drag to select a photo"
-                            onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-                        >
-                            {/* Hidden native input */}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                className="avatar-file-input"
-                                onChange={handleInputChange}
-                                aria-hidden="true"
-                                tabIndex={-1}
-                            />
-
-                            {previewUrl ? (
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview of selected photo"
-                                    className="avatar-preview-img"
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
+                                    className="avatar-file-input"
+                                    onChange={handleInputChange}
+                                    aria-hidden="true"
+                                    tabIndex={-1}
+                                    disabled={isUploading}
                                 />
-                            ) : (
-                                <div className="avatar-dropzone-placeholder" aria-hidden="true">
-                                    <i className="fa-solid fa-cloud-arrow-up" />
-                                    <p>Drag &amp; drop or click to select</p>
-                                    <span>JPEG, PNG, WebP or GIF · max {MAX_SIZE_MB} MB</span>
-                                </div>
+
+                                {previewUrl ? (
+                                    <div className="avatar-dropzone-content avatar-dropzone-content--has-preview">
+                                        <div className="avatar-dropzone-filename" title={selectedFile?.name}>
+                                            <i className="fa-solid fa-image me-2" aria-hidden="true" />
+                                            <span>{selectedFile?.name || "Selected photo"}</span>
+                                        </div>
+                                        <span className="avatar-dropzone-action">
+                                            <i className="fa-solid fa-rotate me-1" aria-hidden="true" />
+                                            Choose a different photo
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="avatar-dropzone-content">
+                                        <i className="fa-solid fa-cloud-arrow-up avatar-dropzone-icon" aria-hidden="true" />
+                                        <p className="avatar-dropzone-title">Drag & drop or click to select</p>
+                                        <p className="avatar-dropzone-hint">JPEG, PNG, WebP or GIF · max {MAX_SIZE_MB} MB</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {uploadError && (
+                                <p className="avatar-upload-error" role="alert">
+                                    <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
+                                    {uploadError}
+                                </p>
                             )}
                         </div>
+                    )}
+                </div>
 
-                        {/* Change file shortcut */}
-                        {previewUrl && (
-                            <button
-                                type="button"
-                                className="avatar-change-file-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    fileInputRef.current?.click();
-                                }}
-                            >
-                                <i className="fa-solid fa-rotate me-1" aria-hidden="true" />
-                                Choose a different photo
-                            </button>
-                        )}
-
-                        {/* Validation / upload error */}
-                        {uploadError && (
-                            <p className="avatar-upload-error" role="alert">
-                                <i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
-                                {uploadError}
-                            </p>
-                        )}
-
-                        {/* Upload CTA */}
-                        <button
-                            type="button"
-                            className="avatar-upload-btn"
-                            onClick={handleUploadClick}
-                            disabled={!selectedFile || uploadStatus === "uploading"}
-                        >
-                            {uploadStatus === "uploading" ? (
-                                <>
-                                    <i className="fa-solid fa-spinner fa-spin" aria-hidden="true" />
-                                    Uploading…
-                                </>
-                            ) : (
-                                <>
-                                    <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true" />
-                                    Upload Photo
-                                </>
-                            )}
-                        </button>
-
-                    </div>
-                )}
+                {/* ── Footer común ── */}
+                <div className="avatar-modal-footer">
+                    <button
+                        type="button"
+                        className="avatar-btn-cancel"
+                        onClick={onClose}
+                        disabled={isUploading}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        className="avatar-btn-apply"
+                        onClick={handleApply}
+                        disabled={!hasPendingChange || isUploading}
+                    >
+                        {isUploading
+                            ? <><i className="fa-solid fa-spinner fa-spin" aria-hidden="true" />{applyLabel}</>
+                            : <><i className={`fa-solid ${modalTab === "upload" ? "fa-cloud-arrow-up" : "fa-check"}`} aria-hidden="true" />{applyLabel}</>
+                        }
+                    </button>
+                </div>
 
             </div>
         </div>
@@ -302,4 +361,3 @@ AvatarPickerModal.propTypes = {
     onUpload: PropTypes.func.isRequired,
     onClose: PropTypes.func.isRequired,
 };
-

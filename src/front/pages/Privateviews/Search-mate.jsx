@@ -1,35 +1,18 @@
 import "../../pages/Privateviews/Search-mate.css";
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { SearchMatchCard } from "../../components/SearchMatchCard/SearchMatchCard";
 import { SearchMatchCardSkeleton } from "../../components/SearchMatchCard/SearchMatchCardSkeleton";
 import { SearchMateEmptyState } from "../../components/SearchMatchCard/SearchMateEmptyState";
-import { FilterPanel } from "../../components/explore/FilterPanel";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import searchMatchServices from "../../services/searchMatchServices";
 import { ItsMatch } from "../../components/ItsMatch/ItsMatch";
 
-// ── Helpers de persistencia ──────────────────────────────────────────────────
-const LS_KEY = "playerlink_explore_filters";
-
-const readStoredFilters = () => {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const countActiveFilters = (f) =>
-  Object.values(f).filter(v => v !== "" && v !== null && v !== undefined).length;
-
 export const SearchMate = () => {
   const { store, dispatch } = useGlobalReducer();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Ref para acceder a likesSent/matchesInfo actualizado sin añadirlos como deps reactivos
+  // Refs para acceder a likesSent/matchesInfo actualizados sin deps reactivos
   const likesSentRef = useRef(store.likesSent);
   const matchesInfoRef = useRef(store.userMatchesInfo);
   useEffect(() => { likesSentRef.current = store.likesSent; }, [store.likesSent]);
@@ -38,53 +21,32 @@ export const SearchMate = () => {
   const [currentUser, setCurrentUser] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // ── Filtros ──────────────────────────────────────────────────────────────
-  const [filters, setFilters] = useState(() => {
-    // Prioridad: URL params → localStorage → {}
-    const fromUrl = Object.fromEntries(searchParams.entries());
-    if (Object.keys(fromUrl).length > 0) return fromUrl;
-    return readStoredFilters();
-  });
-  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
-  const activeFilterCount = countActiveFilters(filters);
-
-  // ── Modal ItsMatch ────────────────────────────────────────────────────────
+  // Modal ItsMatch
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchProfile, setMatchProfile] = useState(null);
-  const [matchId, setMatchId] = useState(null);  // para navegar al chat
+  const [matchId, setMatchId] = useState(null);
 
-  // ── Animación de swipe ───────────────────────────────────────────────────
+  // Animación de swipe (evita doble disparo durante exit anim)
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // ── Auth guard ───────────────────────────────────────────────────────────
+  // Auth guard
   useEffect(() => {
     if (!store.user || store.user === "undefined") navigate("/");
   }, []);
 
-  // ── Persistir filtros en localStorage y URL ──────────────────────────────
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(filters));
-    const clean = Object.fromEntries(
-      Object.entries(filters).filter(([, v]) => v !== "" && v !== null && v !== undefined)
-    );
-    setSearchParams(clean, { replace: true });
-  }, [filters]);
-
-  // ── Cargar perfiles ───────────────────────────────────────────────────────
-  const fetchProfiles = useCallback(async (activeFilters) => {
+  // Cargar perfiles candidatos
+  const fetchProfiles = useCallback(async () => {
     if (!store.user?.id) return;
     setLoading(true);
     try {
-      const data = await searchMatchServices.getFilteredProfiles(store.user.id, activeFilters);
-
+      const data = await searchMatchServices.getProfiles(store.user.id);
       const matchedIds = matchesInfoRef.current?.map(m => m.user_id) || [];
       const likedIds = likesSentRef.current?.map(l => l.user_id) || [];
 
-      let allProfiles = Array.isArray(data) ? data : (data.profiles ?? []);
-
-      const filteredProfiles = allProfiles.filter(profile => {
-        return !matchedIds.includes(profile.user_id) && !likedIds.includes(profile.user_id);
-      });
+      const allProfiles = Array.isArray(data) ? data : (data.profiles ?? []);
+      const filteredProfiles = allProfiles.filter(profile =>
+        !matchedIds.includes(profile.user_id) && !likedIds.includes(profile.user_id)
+      );
 
       dispatch({ type: "getSearchMatchProfiles", payload: filteredProfiles });
     } catch (error) {
@@ -95,10 +57,10 @@ export const SearchMate = () => {
   }, [store.user?.id, dispatch]);
 
   useEffect(() => {
-    fetchProfiles(filters);
-  }, [store.user?.id, store.userMatchesInfo, filters]);
+    fetchProfiles();
+  }, [store.user?.id, store.userMatchesInfo]);
 
-  // ── Avanzar al siguiente perfil ──────────────────────────────────────────
+  // Avanzar al siguiente perfil
   const advanceToNextProfile = () => {
     const remainingProfiles = store.searchMatchProfiles.filter(
       (_, index) => index !== currentUser
@@ -107,10 +69,8 @@ export const SearchMate = () => {
     setCurrentUser(0);
   };
 
-
-  //Maneja likes
-  // NOTE: SearchMatchCard calls onLike() AFTER its own 420ms exit animation,
-  // so we call the API directly — no extra delay needed here.
+  // SearchMatchCard ya espera 380ms (exit anim) antes de llamar onLike/onDislike,
+  // así que llamamos a la API directamente.
   const handleLike = async () => {
     if (isAnimating) return;
     setIsAnimating(true);
@@ -125,11 +85,8 @@ export const SearchMate = () => {
       const result = await searchMatchServices.addLikeSent(store.user.id, likedProfile.user_id);
 
       if (result?.is_match && result?.match_profile) {
-        // Match detectado — guardar like, cerrar el panel de filtros si estaba abierto
-        // y mostrar el modal ItsMatch
         dispatch({ type: "saveLike", payload: likedProfile });
         dispatch({ type: "addMatch", payload: result.match_profile });
-        setFilterPanelOpen(false);   // evita que el backdrop del panel tape el modal
         setMatchProfile(result.match_profile);
         setMatchId(result.match_id ?? null);
         setShowMatchModal(true);
@@ -144,11 +101,6 @@ export const SearchMate = () => {
       setIsAnimating(false);
     }
   };
-
-
-
-
-
 
   const handleDislike = async () => {
     if (isAnimating) return;
@@ -165,7 +117,6 @@ export const SearchMate = () => {
       dispatch({ type: "saveDislike", payload: dislikedProfile });
     } catch (error) {
       console.error("Error sending dislike:", error);
-      // Aunque falle la red, avanzamos de todas formas para no bloquear la UI
     } finally {
       const remainingProfiles = store.searchMatchProfiles.filter(
         (_, index) => index !== currentUser
@@ -176,8 +127,6 @@ export const SearchMate = () => {
     }
   };
 
-
-  //Maneja el cierre del modal
   const closeMatchModal = () => {
     setShowMatchModal(false);
     setMatchProfile(null);
@@ -188,50 +137,20 @@ export const SearchMate = () => {
       const remainingProfiles = store.searchMatchProfiles.filter(profile =>
         profile.user_id !== matchProfile.user_id
       );
-
       dispatch({ type: "getSearchMatchProfiles", payload: remainingProfiles });
       setCurrentUser(0);
     }
   };
 
-
-  //Mensaje si tarda al cargar nuevos users
-  // IMPORTANTE: no mostrar skeleton si el modal de match está abierto
-  // (el re-fetch se dispara por el cambio de userMatchesInfo al hacer match)
+  // Skeleton mientras carga (excepto cuando hay modal de match abierto)
   if (loading && !showMatchModal) {
     return <SearchMatchCardSkeleton />;
   }
 
-  //Mensaje que muestra si no hay más users (con filtros activos)
+  // No quedan perfiles
   if (!loading && !showMatchModal && currentUser >= (store.searchMatchProfiles?.length || 0)) {
     return (
-      <>
-        {activeFilterCount > 0 ? (
-          <div className="filter-no-results">
-            <span className="filter-no-results-icon">🔍</span>
-            <p className="filter-no-results-title">No profiles match these filters</p>
-            <p className="filter-no-results-sub">Try adjusting or removing active filters</p>
-            <button
-              className="filter-clear-results-btn"
-              onClick={() => setFilters({})}
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <SearchMateEmptyState
-            playerName={store.user?.profile?.nick_name}
-            onAdjustFilters={() => setFilterPanelOpen(true)}
-          />
-        )}
-
-        <FilterPanel
-          filters={filters}
-          onApply={(newFilters) => { setFilters(newFilters); setCurrentUser(0); }}
-          onClose={() => setFilterPanelOpen(false)}
-          isOpen={filterPanelOpen}
-        />
-      </>
+      <SearchMateEmptyState playerName={store.user?.profile?.nick_name} />
     );
   }
 
@@ -256,40 +175,8 @@ export const SearchMate = () => {
           </div>
         </div>
       ) : (
-        <>
-          <div className="d-flex justify-content-center">
-            <h1 className="search-mate-font">Search a mate</h1>
-          </div>
-
-          {/* ── Barra de filtros activos ───────────────────────────────── */}
-          {activeFilterCount > 0 && (
-            <div className="active-filters-bar">
-              {Object.entries(filters)
-                .filter(([, v]) => v !== "" && v !== null && v !== undefined)
-                .map(([key, val]) => (
-                  <span key={key} className="active-filter-chip">
-                    {val}
-                    <button
-                      aria-label={`Remove filter ${key}`}
-                      onClick={() => {
-                        const next = { ...filters };
-                        delete next[key];
-                        setFilters(next);
-                      }}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              <button
-                className="active-filter-chip"
-                style={{ opacity: 0.7 }}
-                onClick={() => setFilters({})}
-              >
-                Clear all
-              </button>
-            </div>
-          )}
+        <div className="search-mate-wrapper">
+          <h1 className="search-mate-title">Search a mate</h1>
 
           {store.searchMatchProfiles &&
             store.searchMatchProfiles.length > 0 &&
@@ -301,30 +188,8 @@ export const SearchMate = () => {
                 onDislike={handleDislike}
               />
             )}
-        </>
+        </div>
       )}
-
-      {/* ── FAB filtros ─────────────────────────────────────────────────── */}
-      {!showMatchModal && (
-        <button
-          className="filter-fab"
-          onClick={() => setFilterPanelOpen(true)}
-          aria-label="Open filters"
-        >
-          <i className="fa-solid fa-sliders" />
-          {activeFilterCount > 0 && (
-            <span className="filter-fab-badge">{activeFilterCount}</span>
-          )}
-        </button>
-      )}
-
-      {/* ── Panel de filtros ─────────────────────────────────────────────── */}
-      <FilterPanel
-        filters={filters}
-        onApply={(newFilters) => { setFilters(newFilters); setCurrentUser(0); }}
-        onClose={() => setFilterPanelOpen(false)}
-        isOpen={filterPanelOpen}
-      />
     </>
   );
 };

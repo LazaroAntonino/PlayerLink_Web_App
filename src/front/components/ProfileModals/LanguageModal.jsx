@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import "./ProfileModals.css";
+import { useBodyScrollLock } from "../../hooks/useBodyScrollLock.js";
 
 const languages = [
   "English", "Spanish", "French", "German", "Portuguese",
@@ -9,6 +10,8 @@ const languages = [
 ];
 
 export const LanguageModal = ({ selected, setSelected, onSave, onCancel }) => {
+  useBodyScrollLock(true);
+
   const toggleLanguage = (language) => {
     setSelected((prev) => {
       if (prev.includes(language)) return prev.filter((item) => item !== language);

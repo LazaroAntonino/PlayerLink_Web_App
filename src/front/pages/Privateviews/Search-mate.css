@@ -1,12 +1,55 @@
-.search-mate-font {
-  color: #00f0ff;
+/* ════════════════════════════════════════════════════════════════════════
+   Search-mate view — orquesta el viewport para que la card no haga scroll
+   ════════════════════════════════════════════════════════════════════════ */
+
+.search-mate-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* Ocupa exactamente el alto del .private-content (ya con padding aplicado).
+     Evita el scroll que genera el doble cálculo dvh + padding del parent. */
+  height: 100%;
+  min-height: 0;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
 }
+
+.search-mate-title {
+  color: var(--color-primary, #00f0ff);
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 1.5rem;
+  text-shadow: var(--glow-primary, 0 0 8px #00f0ff);
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.04em;
+}
+
+/* Legacy — mantenido por si se referencia desde fuera */
+.search-mate-font { color: var(--color-primary, #00f0ff); }
 
 .search-mate-btn-close-modal {
-  background-color: #00f0ff !important;
+  background-color: var(--color-primary, #00f0ff) !important;
 }
 
-/* ── Match overlay ── */
+/* ── Mobile: ocultar título para maximizar viewport útil ─── */
+@media (max-width: 767px) {
+  .search-mate-title {
+    /* sr-only — accesible para lectores de pantalla, invisible visualmente */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .search-mate-wrapper { gap: 0.35rem; padding: 0; }
+}
+
+/* ── Match overlay ─────────────────────────────────────── */
 .match-overlay {
   position: fixed;
   inset: 0;
@@ -40,14 +83,8 @@
 }
 
 @keyframes modal-pop-in {
-  from {
-    opacity: 0;
-    transform: scale(0.75) translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  from { opacity: 0; transform: scale(0.75) translateY(40px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .match-modal-close-btn {
@@ -55,7 +92,7 @@
   top: -0.75rem;
   right: -0.75rem;
   z-index: 2;
-  background-color: #00f0ff !important;
+  background-color: var(--color-primary, #00f0ff) !important;
   border-radius: 50%;
   width: 2rem;
   height: 2rem;

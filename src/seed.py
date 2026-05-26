@@ -88,6 +88,19 @@ REVIEW_COMMENTS = [
     "Muy amable y paciente, genial jugar con el.",
 ]
 
+# Tags válidas para el campo `preferences` — DEBEN coincidir con las opciones
+# del GamingPreferencesModal (frontend) y los IDs del onboarding (Step3/Step4)
+# para que al editar el perfil los chips aparezcan marcados correctamente.
+PREFERENCE_TAGS = [
+    # Platforms (= Step3_Platforms.PLATFORMS)
+    "PC", "PS5", "Xbox", "Switch", "Mobile", "VR",
+    # Play style (= Step4_PlayStyle.STYLES ids)
+    "Competitivo", "Casual", "Roleplay", "Speedrun", "Cooperativo", "Explorador",
+    # Vibes (extras del modal del Profile)
+    "Tryhard", "Chill", "Adventurer", "Pro", "Creative",
+    "MOBA", "Strategic", "Conversational", "Horror", "Survival",
+]
+
 
 def main():
     with app.app_context():
@@ -118,7 +131,12 @@ def main():
         for idx, user in enumerate(seeded):
             i = idx + 1
             photo = f"photo{i}" if i <= 9 else f"https://i.pravatar.cc/300?img={i+10}"
-            prefs = ", ".join(GAMES_CATALOG[(i + j) % len(GAMES_CATALOG)][0] for j in range(3))
+            # Mezcla 1 platform + 1 play style + 1 vibe (variando por user) →
+            # mismo formato que produce el onboarding. NUNCA nombres de juegos.
+            platform   = PREFERENCE_TAGS[(i * 3) % 6]                # PC, PS5, Xbox...
+            play_style = PREFERENCE_TAGS[6 + ((i * 2) % 6)]          # Competitivo, Casual...
+            vibe       = PREFERENCE_TAGS[12 + (i % 10)]              # Tryhard, Chill, MOBA...
+            prefs = f"{platform}, {play_style} and {vibe}."
             p = Profile(
                 user_id=user.id,
                 gender="Male" if i % 2 == 1 else "Female",

@@ -1,13 +1,11 @@
-// SearchMateEmptyState.jsx
 // Pantalla vacía cuando no quedan perfiles que explorar.
 // Usa exclusivamente variables CSS del design system (index.css :root).
 
 import PropTypes from "prop-types";
 
-export const SearchMateEmptyState = ({ playerName, onAdjustFilters }) => {
+export const SearchMateEmptyState = ({ playerName }) => {
     return (
         <div className="empty-state-wrapper" role="status" aria-live="polite">
-            {/* Icono gamer (CSS puro, sin imagen externa) */}
             <div className="empty-state-icon" aria-hidden="true">
                 <i className="fa-solid fa-gamepad" />
             </div>
@@ -23,32 +21,16 @@ export const SearchMateEmptyState = ({ playerName, onAdjustFilters }) => {
                     "You've seen everyone nearby."
                 )}
                 <br />
-                Come back later or adjust your filters.
+                Come back later — new players join every day.
             </p>
-
-            <button
-                className="empty-state-btn"
-                onClick={onAdjustFilters}
-                aria-label="Adjust search filters"
-            >
-                <i className="fa-solid fa-sliders me-2" aria-hidden="true" />
-                Adjust filters
-            </button>
         </div>
     );
 };
 
 SearchMateEmptyState.propTypes = {
-    /** Gamer nickname to personalise the message */
     playerName: PropTypes.string,
-    /**
-     * Hook ready for when filters are implemented.
-     * For now it can be a no-op or open a future filters panel.
-     */
-    onAdjustFilters: PropTypes.func,
 };
 
 SearchMateEmptyState.defaultProps = {
     playerName: "",
-    onAdjustFilters: () => { },
 };

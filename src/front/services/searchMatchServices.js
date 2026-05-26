@@ -46,20 +46,10 @@ searchMatchServices.addDislikeSent = async (rejector_id, rejected_id) => {
   }
 };
 
-// Trae perfiles filtrados (excluye a los que ya se dio like o dislike)
-searchMatchServices.getFilteredProfiles = async (userId, filters = {}) => {
-  const params = new URLSearchParams();
-  Object.entries(filters).forEach(([key, val]) => {
-    if (val !== undefined && val !== null && val !== "") {
-      params.append(key, val);
-    }
-  });
-  const qs = params.toString() ? `?${params.toString()}` : "";
-  const resp = await apiFetch(
-    `/api/profiles/profiles_to_explore/${userId}${qs}`
-  );
-  if (!resp.ok)
-    throw new Error(`Failed to get profiles to explore: ${resp.status}`);
+// Trae los perfiles candidatos para explorar (el backend ya excluye los matches/likes/dislikes existentes)
+searchMatchServices.getProfiles = async (userId) => {
+  const resp = await apiFetch(`/api/profiles/profiles_to_explore/${userId}`);
+  if (!resp.ok) throw new Error(`Failed to get profiles to explore: ${resp.status}`);
   return resp.json();
 };
 

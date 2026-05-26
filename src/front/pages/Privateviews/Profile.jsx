@@ -98,6 +98,7 @@ const Profile = () => {
   const [errorRepeatedGame, setErrorRepeatedGame] = useState("");
   const [errorHoursPlayed, setErrorHoursPlayed] = useState("");
   const [errorCeroHours, setErrorCeroHours] = useState("");
+  const [isAddGameOpen, setIsAddGameOpen] = useState(false);
 
   // ── Datos derivados ──
   const allGames = store.user?.profile?.games ?? [];
@@ -120,18 +121,6 @@ const Profile = () => {
     };
   }, []);
 
-  // Reinicializar popovers de Bootstrap cuando cambian las medallas
-  useEffect(() => {
-    if (!window.bootstrap?.Popover) return;
-    document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
-      const popover = bootstrap.Popover.getInstance(el);
-      if (popover) popover.dispose();
-    });
-    document.querySelectorAll('[data-bs-toggle="popover"]').forEach((el) => {
-      new bootstrap.Popover(el);
-    });
-  }, [topThreeGames]);
-
   // Carga diferida: reviews al entrar en la pestaña
   useEffect(() => {
     if (activeTab === "comments") {
@@ -139,10 +128,13 @@ const Profile = () => {
     }
   }, [activeTab]);
 
-  // Sincronizar los arrays de preferencias/idiomas cuando el perfil se carga o recarga
+  // Sincronizar los arrays de preferencias/idiomas cuando el perfil se carga o recarga.
+  // Cap a 5 items para que coincida con el límite del modal — si el onboarding generó
+  // más (p.ej. 6 plataformas + 1 play style = 7), nos quedamos con los primeros 5
+  // que es lo que el usuario verá marcado al abrir el modal.
   useEffect(() => {
-    setSelectedGamingPreferences(parsePreferences(profile.preferences));
-    setSelectedLanguages(parsePreferences(profile.language));
+    setSelectedGamingPreferences(parsePreferences(profile.preferences).slice(0, 5));
+    setSelectedLanguages(parsePreferences(profile.language).slice(0, 5));
   }, [profile.preferences, profile.language]);
 
   // ── Lógica de negocio ────────────────────────────────────────────────────
@@ -308,12 +300,7 @@ const Profile = () => {
       const image = getGameImage(game.title);
       await gameServices.postNewGame(store.user.profile?.id, { ...game, image });
       await loadProfile();
-
-      const modalEl = document.getElementById("commentModal");
-      if (modalEl) {
-        const modal = window.bootstrap?.Modal?.getInstance(modalEl);
-        modal?.hide();
-      }
+      setIsAddGameOpen(false);
       setGame({ title: "", hours_played: "", image: "" });
     } catch (err) {
       console.error("Error adding game:", err);
@@ -511,6 +498,14 @@ const Profile = () => {
               errorHoursPlayed={errorHoursPlayed}
               errorRepeatedGame={errorRepeatedGame}
               errorCeroHours={errorCeroHours}
+              isAddGameOpen={isAddGameOpen}
+              onOpenAddGame={() => {
+                setGame({ title: "", hours_played: "", image: "" });
+                setErrorHoursPlayed("");
+                setErrorRepeatedGame("");
+                setIsAddGameOpen(true);
+              }}
+              onCloseAddGame={() => setIsAddGameOpen(false)}
             />
           )}
 

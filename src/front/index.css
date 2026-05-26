@@ -132,6 +132,19 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* ── Bloqueo de elementos fixed externos cuando hay un modal de la app abierto.
+   El atributo data-modal-open lo aplica el hook useBodyScrollLock. ── */
+body[data-modal-open="true"] .sidebar-toggle,
+body[data-modal-open="true"] .menu-toggle,
+body[data-modal-open="true"] .sidebar.open,
+body[data-modal-open="true"] .sidebar-backdrop,
+body[data-modal-open="true"] .filter-fab {
+  pointer-events: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
 /* ── Scrollbar styling ── */
 ::-webkit-scrollbar {
   width: var(--scrollbar-width);

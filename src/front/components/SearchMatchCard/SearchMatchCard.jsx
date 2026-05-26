@@ -3,13 +3,23 @@ import { useEffect, useState, useRef } from 'react';
 import searchMatchServices from '../../services/searchMatchServices';
 import { resolvePhoto } from '../../assets/photoAssets.js';
 
-export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
+const SWIPE_THRESHOLD = 80;
+const EXIT_ANIMATION_MS = 380;
 
+// Formatea horas para que no rompan el layout con valores grandes:
+//   42 → "42h", 1234 → "1.2k h", 50000 → "50k h"
+const formatHours = (h) => {
+  const n = Number(h) || 0;
+  if (n < 1000) return `${n}h`;
+  if (n < 10000) return `${(n / 1000).toFixed(1)}k h`;
+  return `${Math.round(n / 1000)}k h`;
+};
+
+export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
   const [animationClass, setAnimationClass] = useState('');
-  const [swipeHint, setSwipeHint] = useState(null); // 'like' | 'dislike' | null
+  const [swipeHint, setSwipeHint] = useState(null);
   const [avgStars, setAvgStars] = useState(0);
 
-  // Drag / swipe state
   const dragRef = useRef({ active: false, startX: 0, currentX: 0 });
   const cardRef = useRef(null);
 
@@ -17,20 +27,19 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
 
   useEffect(() => {
     if (!profile?.user_id) return;
-    const getAvgStars = async () => {
+    let cancelled = false;
+    (async () => {
       try {
         const average = await searchMatchServices.getStarsByUser(profile.user_id);
-        setAvgStars(Number(average));
+        if (!cancelled) setAvgStars(Number(average));
       } catch (err) {
         console.error(err);
       }
-    };
-    getAvgStars();
-  }, [profile]);
+    })();
+    return () => { cancelled = true; };
+  }, [profile?.user_id]);
 
-  // ── Swipe helpers ──────────────────────────────────────────────────────────
-  const SWIPE_THRESHOLD = 80;
-
+  // ── Drag handlers ─────────────────────────────────────────────────────────
   const onDragStart = (clientX) => {
     dragRef.current = { active: true, startX: clientX, currentX: clientX };
   };
@@ -40,8 +49,7 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
     const delta = clientX - dragRef.current.startX;
     dragRef.current.currentX = clientX;
     if (cardRef.current) {
-      const rotate = delta * 0.06;
-      cardRef.current.style.transform = `translateX(${delta}px) rotate(${rotate}deg)`;
+      cardRef.current.style.transform = `translateX(${delta}px) rotate(${delta * 0.06}deg)`;
       cardRef.current.style.transition = 'none';
     }
     if (delta > 40) setSwipeHint('like');
@@ -58,213 +66,217 @@ export const SearchMatchCard = ({ profile, onLike, onDislike }) => {
       cardRef.current.style.transition = '';
     }
     setSwipeHint(null);
-    if (delta > SWIPE_THRESHOLD) {
-      handleLike();
-    } else if (delta < -SWIPE_THRESHOLD) {
-      handleDislike();
-    }
+    if (delta > SWIPE_THRESHOLD) triggerLike();
+    else if (delta < -SWIPE_THRESHOLD) triggerDislike();
   };
 
-  // Mouse events
   const handleMouseDown = (e) => onDragStart(e.clientX);
   const handleMouseMove = (e) => { if (dragRef.current.active) onDragMove(e.clientX); };
   const handleMouseUp = () => onDragEnd();
   const handleMouseLeave = () => { if (dragRef.current.active) onDragEnd(); };
-
-  // Touch events
   const handleTouchStart = (e) => onDragStart(e.touches[0].clientX);
   const handleTouchEnd = () => onDragEnd();
 
-  // Non-passive native touchmove listener to allow preventDefault() and prevent
-  // page scroll while dragging the card on mobile (React 17+ registers touch events
-  // as passive by default, making e.preventDefault() a no-op in synthetic handlers).
+  // Non-passive native touchmove — permite preventDefault para evitar scroll de página
   useEffect(() => {
     const card = cardRef.current;
     if (!card) return;
     const onTouchMoveNative = (e) => {
-      if (dragRef.current.active) {
-        e.preventDefault(); // prevents page scroll during card drag
-        onDragMove(e.touches[0].clientX);
-      }
+      if (!dragRef.current.active) return;
+      e.preventDefault();
+      onDragMove(e.touches[0].clientX);
     };
     card.addEventListener('touchmove', onTouchMoveNative, { passive: false });
     return () => card.removeEventListener('touchmove', onTouchMoveNative);
   }, []);
-  // ──────────────────────────────────────────────────────────────────────────
 
-  const handleLike = () => {
+  // ── Like / Dislike triggers ───────────────────────────────────────────────
+  const triggerLike = () => {
     setAnimationClass('exiting-right');
-    // trigger button pulse — scoped to this card to avoid affecting other DOM elements
-    const likeBtn = cardRef.current?.querySelector('.search-match-like-btn-border');
+    const likeBtn = cardRef.current?.querySelector('.smc-btn-like');
     if (likeBtn) {
       likeBtn.classList.add('pulsing');
       likeBtn.addEventListener('animationend', () => likeBtn.classList.remove('pulsing'), { once: true });
     }
-    setTimeout(() => { setAnimationClass(''); onLike(); }, 420);
+    setTimeout(() => { setAnimationClass(''); onLike(); }, EXIT_ANIMATION_MS);
   };
 
-  const handleDislike = () => {
+  const triggerDislike = () => {
     setAnimationClass('exiting-left');
-    setTimeout(() => { setAnimationClass(''); onDislike(); }, 420);
+    setTimeout(() => { setAnimationClass(''); onDislike(); }, EXIT_ANIMATION_MS);
   };
 
-  const formattedPreferences = profile?.preferences
-    ? profile.preferences
-      .replace(/\band\b/g, ',').replace(/\.+$/, '').split(',')
-      .map(p => p.trim()).filter(Boolean).join(', ')
-    : '-';
+  // ── Formatting ────────────────────────────────────────────────────────────
+  const parseList = (raw) =>
+    raw
+      ? raw.replace(/\band\b/g, ',').replace(/\.+$/, '').split(',')
+        .map(s => s.trim()).filter(Boolean)
+      : [];
 
-  const formattedLanguages = profile?.language
-    ? profile.language
-      .replace(/\band\b/g, ',').replace(/\.+$/, '').split(',')
-      .map(p => p.trim()).filter(Boolean).join(', ')
-    : '-';
+  const preferences = parseList(profile?.preferences);
+  const languages = parseList(profile?.language);
+
+  const topGames = profile?.games?.length
+    ? [...profile.games].sort((a, b) => b.gameHoursPlayed - a.gameHoursPlayed).slice(0, 3)
+    : [];
+
+  // Horas máximas para escalar las barras (evita división por 0)
+  const maxHours = topGames.length > 0
+    ? Math.max(...topGames.map(g => g.gameHoursPlayed || 0), 1)
+    : 1;
 
   return (
-    <>
-      <div className='d-flex justify-content-center'>
-        <div className="col">
+    <div className="smc-stage">
+      <div
+        ref={cardRef}
+        className={`smc-card ${animationClass}`}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Corner brackets decorativos */}
+        <span className="smc-corner smc-corner--tl" aria-hidden="true" />
+        <span className="smc-corner smc-corner--tr" aria-hidden="true" />
+        <span className="smc-corner smc-corner--bl" aria-hidden="true" />
+        <span className="smc-corner smc-corner--br" aria-hidden="true" />
 
-          <div
-            ref={cardRef}
-            className={`card search-match-card ${animationClass}`}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            style={{ userSelect: 'none', cursor: 'grab' }}
-          >
-            {/* Swipe stamps — always in DOM, opacity toggled via .visible */}
-            <div className={`card-stamp stamp-like${swipeHint === 'like' ? ' visible' : ''}`}>
-              <i className="fa-solid fa-heart me-2" />LIKE
-            </div>
-            <div className={`card-stamp stamp-pass${swipeHint === 'dislike' ? ' visible' : ''}`}>
-              NOPE <i className="fa-solid fa-xmark ms-2" />
-            </div>
+        {/* Swipe stamps */}
+        <div className={`smc-stamp smc-stamp--like${swipeHint === 'like' ? ' visible' : ''}`}>
+          <i className="fa-solid fa-heart me-2" />LIKE
+        </div>
+        <div className={`smc-stamp smc-stamp--pass${swipeHint === 'dislike' ? ' visible' : ''}`}>
+          NOPE<i className="fa-solid fa-xmark ms-2" />
+        </div>
 
-            <div className="card-body">
-              <div className='d-flex justify-content-center'>
-                <div className='d-flex justify-content-center rounded-circle'>
-                  <img src={photo} alt={profile?.nick_name || "Avatar"} className='search-match-profile-pic border border-3' />
-                </div>
-              </div>
-
-              {/* Nombre de user = nickname */}
-              <h1 className="card-title d-flex justify-content-center mt-3 search-match-name">
-                {profile?.nick_name || 'No nick_name'}
-              </h1>
-
-              {/* stars-rating de los users */}
-              <div className='d-flex justify-content-center mt-4 mb-5'>
+        {/* ── HERO: foto + overlay con identidad ─────────────────────────── */}
+        <div className="smc-hero">
+          <img
+            src={photo}
+            alt={profile?.nick_name || 'Avatar'}
+            className="smc-hero-img"
+            draggable={false}
+          />
+          <div className="smc-hero-shade" aria-hidden="true" />
+          <div className="smc-hero-content">
+            <div className="smc-hero-row">
+              <h2 className="smc-name" title={profile?.nick_name}>
+                {profile?.nick_name || 'Unknown'}
+              </h2>
+              <div className="smc-stars" aria-label={`${Math.round(avgStars)} of 5 stars`}>
                 {[...Array(5)].map((_, i) => (
                   <i
                     key={i}
-                    className={`fa-star fa-xl ms-1 search-match-stars ${i < Math.round(avgStars) ? "fa-solid" : "fa-regular"}`}
-                  ></i>
+                    className={`fa-star smc-star ${i < Math.round(avgStars) ? 'fa-solid' : 'fa-regular'}`}
+                  />
                 ))}
               </div>
-
-              <hr className="search-match-line" />
-
-              {/* Games */}
-              {profile?.games && profile.games.length > 0 ? (
-                [...profile.games]
-                  .sort((a, b) => b.gameHoursPlayed - a.gameHoursPlayed)
-                  .slice(0, 3)
-                  .map((g, index) => (
-                    <div className="row align-items-center mb-2" key={index}>
-                      <div className="col">
-                        <h5 className='ms-4 search-match-text-sm'>{g.gameTitle}</h5>
-                      </div>
-                      <div className="col text-end">
-                        <h5 className=' me-4 search-match-text-sm'>{g.gameHoursPlayed} h</h5>
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <div className="row align-items-center mb-2">
-                  <div className="col text-center">
-                    <h5 className='search-match-text-sm'>No games</h5>
-                  </div>
-                </div>
-              )}
-              <hr className="search-match-line" />
-
-              {/* Preferences — chips coloreados */}
-              <div className="smc-chips-section">
-                {formattedPreferences && formattedPreferences !== '-' ? (
-                  <div className="smc-chips-row">
-                    <i className="fa-solid fa-gamepad smc-chips-icon" aria-hidden="true" />
-                    {formattedPreferences.split(', ').map((p, i) => (
-                      <span key={i} className="smc-chip smc-chip--pref">{p}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="smc-chips-row">
-                    <span className="search-match-text-sm" style={{ color: 'var(--color-text-muted)' }}>No preferences</span>
-                  </div>
-                )}
-              </div>
-
-              <hr className="search-match-line" />
-
-              {/* Language — chips coloreados */}
-              <div className="smc-chips-section">
-                {formattedLanguages && formattedLanguages !== '-' ? (
-                  <div className="smc-chips-row">
-                    <i className="fa-solid fa-language smc-chips-icon" aria-hidden="true" />
-                    {formattedLanguages.split(', ').map((lang, i) => (
-                      <span key={i} className="smc-chip smc-chip--lang">{lang}</span>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="smc-chips-row">
-                    <i className="fa-solid fa-language smc-chips-icon" aria-hidden="true" />
-                    <span className="search-match-text-sm" style={{ color: 'var(--color-text-muted)' }}>No languages</span>
-                  </div>
-                )}
-              </div>
-
-              <hr className="search-match-line" />
-
-              {/* Location */}
-              <div className="col">
-                <div className='d-flex justify-content-center '>
-                  <div className='d-flex ms-4'>
-                    <i className="fa-solid fa-location-dot me-2"></i>
-                    <h5 className='search-match-text-sm'>{profile?.location || 'No location'}</h5>
-                  </div>
-                </div>
-              </div>
-
-              <hr className="search-match-last-line" />
-
-              {/* botones */}
-              <div className='row mt-3 d-flex justify-content-center align-items-center gap-3'>
-                <div className="col-auto">
-                  {/* dislike button */}
-                  <button type="button"
-                    onClick={handleDislike}
-                    className="p-1 bg-transparent border border-3 search-match-button search-match-dislike-btn-border">
-                    <i className="fa-solid fa-xmark fa-3x d-flex justify-content-center align-items-center search-match-dislike"></i>
-                  </button>
-                </div>
-
-                <div className="col-auto">
-                  {/* like button */}
-                  <button type="button"
-                    onClick={handleLike}
-                    className="p-1 bg-transparent border border-3 search-match-button search-match-like-btn-border">
-                    <i className="hover-button-pulsate-bck fa-solid fa-heart fa-2x d-flex justify-content-center align-items-center search-match-like"></i>
-                  </button>
-                </div>
-              </div>
+            </div>
+            {/* Ubicación — siempre se renderiza para que el hero mantenga la
+                misma altura entre perfiles. Si no hay location, placeholder. */}
+            <div className="smc-location">
+              <i className="fa-solid fa-location-dot smc-loc-icon" aria-hidden="true" />
+              <span className="smc-loc-text">
+                {profile?.location || "Location not set"}
+              </span>
             </div>
           </div>
         </div>
+
+        {/* ── BODY: SIEMPRE 3 secciones (games / platforms / languages) con
+             empty state cuando falten datos. Layout idéntico para todos los
+             perfiles — la información ya no se reorganiza según contenido. ── */}
+        <div className="smc-body">
+
+          {/* 1. Top games */}
+          <section className="smc-section smc-section--games">
+            <header className="smc-section-head">
+              <i className="fa-solid fa-gamepad smc-section-icon" aria-hidden="true" />
+              <span className="smc-section-label">Top games</span>
+            </header>
+            {topGames.length > 0 ? (
+              <ul className="smc-games">
+                {topGames.map((g, i) => {
+                  const pct = Math.max(8, ((g.gameHoursPlayed || 0) / maxHours) * 100);
+                  return (
+                    <li className="smc-game" key={i}>
+                      <span className="smc-game-title">{g.gameTitle}</span>
+                      <span className="smc-game-bar">
+                        <span
+                          className="smc-game-bar-fill"
+                          style={{ width: `${pct}%` }}
+                          aria-hidden="true"
+                        />
+                      </span>
+                      <span className="smc-game-hours">{formatHours(g.gameHoursPlayed)}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="smc-empty-line">No games registered yet</p>
+            )}
+          </section>
+
+          {/* 2. Style (mix de plataformas + play style + vibes — el campo
+               `preferences` del backend es un CSV mixto, así que el label
+               "Style" es más fiel a la realidad que "Platforms"). */}
+          <section className="smc-section">
+            <header className="smc-section-head">
+              <i className="fa-solid fa-tags smc-section-icon smc-section-icon--pref" aria-hidden="true" />
+              <span className="smc-section-label">Style</span>
+            </header>
+            {preferences.length > 0 ? (
+              <div className="smc-meta-list">
+                {preferences.map((p, i) => (
+                  <span key={i} className="smc-meta-chip smc-meta-chip--pref">{p}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="smc-empty-line">Not set</p>
+            )}
+          </section>
+
+          {/* 3. Languages */}
+          <section className="smc-section">
+            <header className="smc-section-head">
+              <i className="fa-solid fa-language smc-section-icon smc-section-icon--lang" aria-hidden="true" />
+              <span className="smc-section-label">Languages</span>
+            </header>
+            {languages.length > 0 ? (
+              <div className="smc-meta-list">
+                {languages.map((l, i) => (
+                  <span key={i} className="smc-meta-chip smc-meta-chip--lang">{l}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="smc-empty-line">Not set</p>
+            )}
+          </section>
+        </div>
+
+        {/* ── ACCIONES ────────────────────────────────────────────────────── */}
+        <footer className="smc-actions">
+          <button
+            type="button"
+            className="smc-btn smc-btn-dislike"
+            onClick={triggerDislike}
+            aria-label="Dislike profile"
+          >
+            <i className="fa-solid fa-xmark" />
+          </button>
+          <button
+            type="button"
+            className="smc-btn smc-btn-like"
+            onClick={triggerLike}
+            aria-label="Like profile"
+          >
+            <i className="fa-solid fa-heart" />
+          </button>
+        </footer>
       </div>
-    </>
+    </div>
   );
 };

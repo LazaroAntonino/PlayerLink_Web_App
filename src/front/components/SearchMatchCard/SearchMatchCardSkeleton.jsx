@@ -1,76 +1,62 @@
-// SearchMatchCardSkeleton.jsx
-// Skeleton loader que imita exactamente la estructura visual de SearchMatchCard.
-// Usa shimmer CSS puro (sin librerías) para evitar el layout shift durante la carga.
+// Skeleton loader — espeja la estructura fija de la SearchMatchCard:
+// hero photo + 3 secciones (games, platforms, languages) + actions.
+import './SearchMatchCard.css';
 
 export const SearchMatchCardSkeleton = () => {
-    return (
-        <div className="d-flex justify-content-center">
-            <div className="col">
-                <div className="card search-match-card skeleton-card" aria-busy="true" aria-label="Loading profile...">
+  return (
+    <div className="smc-stage">
+      <div className="smc-card skeleton" aria-busy="true" aria-label="Loading profile...">
+        <span className="smc-corner smc-corner--tl" aria-hidden="true" />
+        <span className="smc-corner smc-corner--tr" aria-hidden="true" />
+        <span className="smc-corner smc-corner--bl" aria-hidden="true" />
+        <span className="smc-corner smc-corner--br" aria-hidden="true" />
 
-                    {/* Avatar placeholder */}
-                    <div className="d-flex justify-content-center mt-3">
-                        <div className="skeleton-avatar skeleton-shimmer" />
-                    </div>
-
-                    {/* Nickname placeholder */}
-                    <div className="d-flex justify-content-center mt-3">
-                        <div className="skeleton-line skeleton-line--title skeleton-shimmer" />
-                    </div>
-
-                    {/* Stars row placeholder */}
-                    <div className="d-flex justify-content-center gap-2 mt-4 mb-5">
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className="skeleton-star skeleton-shimmer" />
-                        ))}
-                    </div>
-
-                    {/* Divider */}
-                    <div className="skeleton-divider" />
-
-                    {/* Games rows */}
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="row align-items-center mb-3 px-3">
-                            <div className="col">
-                                <div className="skeleton-line skeleton-shimmer" />
-                            </div>
-                            <div className="col text-end">
-                                <div className="skeleton-line skeleton-line--short skeleton-shimmer" />
-                            </div>
-                        </div>
-                    ))}
-
-                    <div className="skeleton-divider" />
-
-                    {/* Preferences row */}
-                    <div className="d-flex ms-4 mt-2 mb-2">
-                        <div className="skeleton-line skeleton-line--medium skeleton-shimmer" />
-                    </div>
-
-                    <div className="skeleton-divider" />
-
-                    {/* Language row */}
-                    <div className="d-flex justify-content-center mt-2 mb-2">
-                        <div className="skeleton-line skeleton-line--short skeleton-shimmer" />
-                    </div>
-
-                    <div className="skeleton-divider" />
-
-                    {/* Location row */}
-                    <div className="d-flex justify-content-center mt-2 mb-2">
-                        <div className="skeleton-line skeleton-line--medium skeleton-shimmer" />
-                    </div>
-
-                    <div className="skeleton-divider" style={{ width: '75%' }} />
-
-                    {/* Action buttons placeholder */}
-                    <div className="row mt-3 d-flex justify-content-center gap-3 pb-2">
-                        <div className="skeleton-btn skeleton-shimmer" />
-                        <div className="skeleton-btn skeleton-shimmer" />
-                    </div>
-
-                </div>
+        {/* Hero shimmer */}
+        <div className="smc-hero">
+          <div className="smc-sk-hero smc-shimmer" />
+          <div className="smc-hero-shade" aria-hidden="true" />
+          <div className="smc-hero-content">
+            <div className="smc-hero-row">
+              <div className="smc-sk-line smc-sk-line--title smc-shimmer" />
+              <div className="smc-sk-line smc-sk-line--xs smc-shimmer" />
             </div>
+            <div className="smc-sk-line smc-sk-line--sub smc-shimmer" />
+          </div>
         </div>
-    );
+
+        {/* Body shimmer — 3 secciones idénticas a la card real */}
+        <div className="smc-body">
+          <section className="smc-section smc-section--games">
+            <div className="smc-sk-line smc-sk-line--xs smc-shimmer" />
+            <div className="smc-sk-game smc-shimmer" />
+            <div className="smc-sk-game smc-shimmer" />
+            <div className="smc-sk-game smc-shimmer" />
+          </section>
+
+          <section className="smc-section">
+            <div className="smc-sk-line smc-sk-line--xs smc-shimmer" />
+            <div className="smc-meta-list">
+              <div className="smc-sk-chip smc-shimmer" />
+              <div className="smc-sk-chip smc-shimmer" style={{ width: '48px' }} />
+              <div className="smc-sk-chip smc-shimmer" style={{ width: '70px' }} />
+            </div>
+          </section>
+
+          <section className="smc-section">
+            <div className="smc-sk-line smc-sk-line--xs smc-shimmer" />
+            <div className="smc-meta-list">
+              <div className="smc-sk-chip smc-shimmer" style={{ width: '56px' }} />
+              <div className="smc-sk-chip smc-shimmer" />
+            </div>
+          </section>
+        </div>
+
+        {/* Actions shimmer */}
+        <footer className="smc-actions">
+          <div className="smc-sk-btn smc-shimmer" />
+          <div className="smc-sk-btn smc-shimmer" />
+        </footer>
+      </div>
+    </div>
+  );
 };

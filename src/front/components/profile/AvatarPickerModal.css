@@ -1,20 +1,22 @@
-/* ─── AvatarPickerModal ──────────────────────────────────────────────────────
-   Self-contained styles for the avatar-picker modal (preset + upload tabs).
-   Design system: dark cyberpunk — rgba(10,15,26) base, #00e5ff accent.
-   ─────────────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   AvatarPickerModal — Selector de avatar con preview en vivo
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Overlay ── */
 .avatar-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1050;
   animation: apm-fade-in 0.2s ease;
+  padding: 20px;
+  /* Evita que el scroll del modal interno se propague al fondo (chain) */
+  overscroll-behavior: contain;
 }
 
 @keyframes apm-fade-in {
@@ -24,88 +26,242 @@
 
 @keyframes apm-enter {
   from { opacity: 0; transform: scale(0.92) translateY(14px); }
-  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* ── Modal card ── */
+/* Altura FIJA para que no haya saltos al cambiar entre tabs.
+   El body interno absorbe la diferencia de contenido (flex: 1 + overflow-y). */
 .avatar-modal {
-  background: rgba(10, 15, 26, 0.97);
-  border: 1px solid rgba(0, 229, 255, 0.25);
+  position: relative;
+  background:
+    radial-gradient(ellipse at top, rgba(0, 229, 255, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(10, 15, 26, 0.97) 0%, rgba(8, 13, 26, 0.98) 100%);
+  border: 1px solid rgba(0, 229, 255, 0.28);
   border-radius: 20px;
-  padding: 24px 24px 28px;
   width: 540px;
-  max-width: 94vw;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 0 48px rgba(0, 229, 255, 0.12);
+  max-width: 100%;
+  height: 620px;
+  max-height: 92dvh;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.6),
+    0 0 48px rgba(0, 229, 255, 0.15);
   animation: apm-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ── Header row ── */
-.avatar-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
+/* Border gradient sutil — mismo lenguaje que SearchMatchCard */
+.avatar-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.45), transparent 50%, rgba(160, 32, 240, 0.35) 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
 }
 
+/* ── Header ── */
+.avatar-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 22px 12px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-modal-titles { flex: 1; min-width: 0; }
+
 .avatar-modal-title {
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
   font-size: 1.05rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-primary, #00e5ff);
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+  margin: 0 0 4px;
+  letter-spacing: 0.03em;
+}
+
+.avatar-modal-subtitle {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
+  line-height: 1.4;
 }
 
 .avatar-modal-close {
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 1.1rem;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
   line-height: 1;
 }
-.avatar-modal-close:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.06);
+
+.avatar-modal-close:hover:not(:disabled),
+.avatar-modal-close:focus-visible:not(:disabled) {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.avatar-modal-close:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Preview section ── */
+.avatar-preview-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 22px 14px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-preview-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--color-primary, #00e5ff), #a020f0);
+  box-shadow: 0 0 28px rgba(0, 229, 255, 0.35);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.avatar-preview-ring.is-pending {
+  animation: avatar-preview-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes avatar-preview-pulse {
+  0%, 100% { box-shadow: 0 0 28px rgba(0, 229, 255, 0.35); }
+  50%       { box-shadow: 0 0 44px rgba(0, 229, 255, 0.7), 0 0 22px rgba(160, 32, 240, 0.5); }
+}
+
+.avatar-preview-img-main {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #07070f;
+  display: block;
+}
+
+.avatar-preview-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-primary, #00e5ff), #a020f0);
+  color: #04050d;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(0, 229, 255, 0.4);
+  z-index: 1;
+}
+
+.avatar-preview-caption {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avatar-preview-ring.is-pending + .avatar-preview-caption {
+  color: var(--color-primary, #00e5ff);
+  font-weight: 600;
 }
 
 /* ── Tab switcher ── */
 .avatar-modal-tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 4px;
+  margin: 0 22px 12px;
   background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
   padding: 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .avatar-tab-btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.55);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
+  -webkit-tap-highlight-color: transparent;
 }
-.avatar-tab-btn:hover {
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.05);
+
+.avatar-tab-btn:hover:not(:disabled):not(.active) {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.04);
 }
+
 .avatar-tab-btn.active {
-  background: rgba(0, 229, 255, 0.12);
-  color: #00e5ff;
-  box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.3);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(160, 32, 240, 0.14));
+  color: var(--color-primary, #00e5ff);
+  box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.4), 0 0 16px rgba(0, 229, 255, 0.18);
+}
+
+.avatar-tab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Body — flex:1 hace que SIEMPRE ocupe el espacio restante del modal
+   (altura fija). Esto elimina los saltos al cambiar de tab. ── */
+.avatar-modal-body {
+  padding: 6px 22px 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.2) transparent;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-modal-body::-webkit-scrollbar { width: 4px; }
+.avatar-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.22);
+  border-radius: 2px;
 }
 
 /* ── Preset grid ── */
@@ -117,15 +273,17 @@
 
 .avatar-grid-item {
   position: relative;
-  background: transparent;
-  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   cursor: pointer;
   padding: 0;
   overflow: hidden;
-  transition: all 0.2s ease;
-  opacity: 0.75;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  opacity: 0.85;
+  -webkit-tap-highlight-color: transparent;
 }
+
 .avatar-grid-item img {
   width: 100%;
   aspect-ratio: 3 / 4;
@@ -133,45 +291,72 @@
   display: block;
   border-radius: 10px;
 }
-.avatar-grid-item:hover {
+
+.avatar-grid-item:hover,
+.avatar-grid-item:focus-visible {
   opacity: 1;
-  border-color: rgba(0, 229, 255, 0.5);
+  border-color: rgba(0, 229, 255, 0.45);
   transform: scale(1.03);
-}
-.avatar-grid-item.selected {
-  border-color: #00e5ff;
-  box-shadow: 0 0 18px rgba(0, 229, 255, 0.4);
-  opacity: 1;
+  box-shadow: 0 6px 18px rgba(0, 229, 255, 0.18);
+  outline: none;
 }
 
-/* Checkmark badge on selected preset */
-.avatar-check {
+.avatar-grid-item.is-current {
+  opacity: 1;
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.28);
+}
+
+.avatar-grid-item.is-pending {
+  opacity: 1;
+  border-color: var(--color-primary, #00e5ff);
+  box-shadow: 0 0 22px rgba(0, 229, 255, 0.5), 0 0 0 2px rgba(0, 229, 255, 0.25);
+  transform: scale(1.04);
+}
+
+.avatar-grid-badge {
   position: absolute;
   bottom: 6px;
   right: 6px;
-  width: 22px;
-  height: 22px;
-  background: #00e5ff;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  color: #000;
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
-/* ── Upload tab ── */
+.avatar-grid-badge--current {
+  background: rgba(0, 229, 255, 0.95);
+  color: #04050d;
+}
+
+.avatar-grid-badge--pending {
+  background: linear-gradient(135deg, var(--color-primary, #00e5ff), #a020f0);
+  color: #04050d;
+  animation: avatar-grid-badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes avatar-grid-badge-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ── Upload tab — llena el body completo para igualar altura con el preset ── */
 .avatar-upload-tab {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
 }
 
-/* Drop zone */
 .avatar-dropzone {
-  border: 2px dashed rgba(0, 229, 255, 0.3);
+  flex: 1;
+  border: 2px dashed rgba(0, 229, 255, 0.32);
   border-radius: 14px;
   background: rgba(0, 229, 255, 0.03);
   cursor: pointer;
@@ -183,24 +368,26 @@
   justify-content: center;
   position: relative;
 }
+
 .avatar-dropzone:hover,
 .avatar-dropzone:focus-within {
   border-color: rgba(0, 229, 255, 0.55);
   background: rgba(0, 229, 255, 0.06);
 }
+
 .avatar-dropzone.drag-over {
-  border-color: #00e5ff;
-  background: rgba(0, 229, 255, 0.1);
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
-}
-.avatar-dropzone.has-preview {
-  min-height: 260px;
-  border-style: solid;
-  border-color: rgba(0, 229, 255, 0.4);
+  border-color: var(--color-primary, #00e5ff);
+  background: rgba(0, 229, 255, 0.12);
+  box-shadow: 0 0 28px rgba(0, 229, 255, 0.22);
+  transform: scale(1.01);
 }
 
-/* Hidden native file input — zero size so it never intercepts mouse or drag events.
-   Activated exclusively via fileInputRef.current.click() */
+.avatar-dropzone.has-preview {
+  border-style: solid;
+  border-color: rgba(0, 229, 255, 0.4);
+  min-height: 130px;
+}
+
 .avatar-file-input {
   position: absolute;
   width: 0;
@@ -210,113 +397,203 @@
   pointer-events: none;
 }
 
-/* Placeholder (no file selected) */
-.avatar-dropzone-placeholder {
+.avatar-dropzone-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: rgba(255, 255, 255, 0.35);
-  padding: 24px;
+  padding: 24px 18px;
+  text-align: center;
   pointer-events: none;
   user-select: none;
 }
-.avatar-dropzone-placeholder i {
-  font-size: 2.2rem;
-  color: rgba(0, 229, 255, 0.4);
-}
-.avatar-dropzone-placeholder p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.55);
-  font-weight: 500;
-}
-.avatar-dropzone-placeholder span {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.3);
+
+.avatar-dropzone-icon {
+  font-size: 2.4rem;
+  color: rgba(0, 229, 255, 0.55);
+  filter: drop-shadow(0 0 14px rgba(0, 229, 255, 0.25));
 }
 
-/* Image preview inside drop zone.
-   pointer-events:none ensures drag events always land on the parent
-   dropzone div — not on the image — preventing drag-over flicker. */
-.avatar-preview-img {
+.avatar-dropzone-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.avatar-dropzone-hint {
+  margin: 0;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Cuando hay preview, mostramos info compacta del archivo */
+.avatar-dropzone-content--has-preview {
+  flex-direction: row;
+  gap: 14px;
+  justify-content: space-between;
   width: 100%;
-  height: 260px;
-  object-fit: cover;
-  display: block;
-  border-radius: 12px;
-  pointer-events: none;
+  padding: 16px 20px;
+  flex-wrap: wrap;
 }
 
-/* "Choose a different photo" link */
-.avatar-change-file-btn {
-  background: transparent;
-  border: none;
-  color: rgba(0, 229, 255, 0.7);
-  font-size: 0.82rem;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-  transition: color 0.2s;
-}
-.avatar-change-file-btn:hover {
-  color: #00e5ff;
-  text-decoration: underline;
+.avatar-dropzone-filename {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
 }
 
-/* Validation / upload error */
+.avatar-dropzone-filename i {
+  color: var(--color-primary, #00e5ff);
+  flex-shrink: 0;
+}
+
+.avatar-dropzone-filename span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.avatar-dropzone-action {
+  font-size: 0.78rem;
+  color: var(--color-primary, #00e5ff);
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
 .avatar-upload-error {
-  color: #ff6b6b;
-  font-size: 0.82rem;
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 12px;
+  background: rgba(255, 77, 109, 0.08);
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  border-radius: 8px;
+  color: #ff8585;
+  font-size: 0.82rem;
 }
 
-/* Upload button */
-.avatar-upload-btn {
-  width: 100%;
-  padding: 11px 0;
-  background: rgba(0, 229, 255, 0.12);
-  border: 1.5px solid rgba(0, 229, 255, 0.4);
-  border-radius: 10px;
-  color: #00e5ff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+.avatar-upload-error i { flex-shrink: 0; }
+
+/* ── Footer ── */
+.avatar-modal-footer {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 14px;
+  border-top: 1px solid rgba(0, 229, 255, 0.1);
+  background: rgba(8, 11, 22, 0.5);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-btn-cancel,
+.avatar-btn-apply {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-family: var(--font-primary, 'Audiowide', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 42px;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
 }
-.avatar-upload-btn:hover:not(:disabled) {
-  background: rgba(0, 229, 255, 0.2);
-  box-shadow: 0 0 18px rgba(0, 229, 255, 0.2);
+
+.avatar-btn-cancel {
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.65);
 }
-.avatar-upload-btn:disabled {
-  opacity: 0.4;
+
+.avatar-btn-cancel:hover:not(:disabled),
+.avatar-btn-cancel:focus-visible:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+  outline: none;
+}
+
+.avatar-btn-apply {
+  border: none;
+  background: linear-gradient(135deg, var(--color-primary, #00e5ff), #a020f0);
+  color: #04050d;
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.32);
+}
+
+.avatar-btn-apply:hover:not(:disabled),
+.avatar-btn-apply:focus-visible:not(:disabled) {
+  box-shadow: 0 6px 26px rgba(0, 229, 255, 0.55), 0 0 14px rgba(160, 32, 240, 0.4);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.avatar-btn-apply:active:not(:disabled) { transform: translateY(0); }
+
+.avatar-btn-cancel:disabled,
+.avatar-btn-apply:disabled {
+  opacity: 0.42;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* ── Responsive ── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 @media (max-width: 600px) {
+  .avatar-modal-overlay { padding: 12px; }
   .avatar-modal {
-    padding: 18px 16px 22px;
     border-radius: 16px;
+    height: 580px;
   }
+  .avatar-modal-header { padding: 14px 16px 10px; }
+  .avatar-modal-title { font-size: 0.96rem; }
+  .avatar-modal-subtitle { font-size: 0.76rem; }
+  .avatar-preview-section { padding: 0 16px 10px; }
+  .avatar-preview-ring { width: 100px; height: 100px; }
+  .avatar-preview-badge { font-size: 0.62rem; padding: 2px 7px; bottom: -4px; right: -6px; }
+  .avatar-modal-tabs { margin: 0 16px 10px; }
+  .avatar-tab-btn { font-size: 0.8rem; padding: 8px 10px; }
+  .avatar-modal-body { padding: 4px 16px 14px; }
+  .avatar-grid { gap: 8px; }
+  .avatar-grid-badge { width: 22px; height: 22px; font-size: 0.66rem; }
+  .avatar-modal-footer { padding: 10px 14px 12px; }
+  .avatar-btn-cancel,
+  .avatar-btn-apply { font-size: 0.74rem; padding: 9px 14px; min-height: 40px; }
+}
 
-  .avatar-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
+/* Móvil estrecho: apilar botones del footer (necesita más altura interna) */
+@media (max-width: 420px) {
+  .avatar-modal { height: 600px; }
+  .avatar-modal-footer { flex-direction: column-reverse; align-items: stretch; }
+  .avatar-btn-cancel,
+  .avatar-btn-apply { width: 100%; }
+}
 
-  .avatar-dropzone.has-preview {
-    min-height: 200px;
-  }
+@media (max-width: 380px) {
+  .avatar-modal { height: 560px; }
+  .avatar-preview-ring { width: 88px; height: 88px; }
+}
 
-  .avatar-preview-img {
-    height: 200px;
-  }
+/* Pantallas muy cortas — bajar altura del modal */
+@media (max-height: 700px) {
+  .avatar-modal { height: 92dvh; }
 }
