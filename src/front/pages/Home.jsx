@@ -11,7 +11,7 @@ export const Home = () => {
 	return (
 		<>
 			<NavbarHome />
-			<div className="container-fluid">
+			<div className="container-fluid p-0">
 				{/* Carrusel Bootstrap 5 */}
 				<div id="carouselExample" className="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
 					{/* Indicadores (dots) */}

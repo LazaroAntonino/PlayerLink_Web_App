@@ -6,6 +6,7 @@
 
 .navbar-home-container {
   position: static;
+  margin-right: 1rem;
 }
 
 .navbar-home-font {
