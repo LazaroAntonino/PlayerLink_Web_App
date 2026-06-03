@@ -65,6 +65,7 @@ const Chat = () => {
     const pollRef = useRef(null);
     const isTypingRef = useRef(false);
     const messagesAreaRef = useRef(null);
+    const isInitialLoadRef = useRef(true);
 
     // Cursor refs — updated on every load, used by polling & load-more
     const latestIdRef = useRef(null);   // highest msg id we have
@@ -106,6 +107,8 @@ const Chat = () => {
     // ── Carga inicial ─────────────────────────────────────────────────────
     useEffect(() => {
         if (!store.user?.id) { navigate("/"); return; }
+
+        isInitialLoadRef.current = true;
 
         (async () => {
             try {
@@ -150,6 +153,15 @@ const Chat = () => {
         if (!messages.length) return;
         const area = messagesAreaRef.current;
         if (!area) return;
+
+        if (isInitialLoadRef.current) {
+            // ← NUEVO: primera carga → scroll instantáneo al fondo siempre
+            bottomRef.current?.scrollIntoView({ behavior: "instant" });
+            isInitialLoadRef.current = false;
+            return;
+        }
+
+        // Polling / mensaje enviado: solo scroll si ya estabas cerca del fondo
         const nearBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 120;
         if (nearBottom) {
             bottomRef.current?.scrollIntoView({ behavior: "smooth" });

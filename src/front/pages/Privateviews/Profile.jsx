@@ -84,6 +84,7 @@ const Profile = () => {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showIncompleteToast, setShowIncompleteToast] = useState(false);
   const toastTimerRef = useRef(null);
+  const isInitialLoadRef = useRef(true); // ← añadir esto
 
   // ── Estado de modales de preferencias/idiomas ──
   const [showGamingPreferencesModal, setShowGamingPreferencesModal] = useState(false);
@@ -184,18 +185,28 @@ const Profile = () => {
         !p.bio || p.bio.length < 2 ||
         !p.photo || p.photo.length < 2;
 
+      // Antes (líneas del if/else de isIncomplete):
       if (isIncomplete) {
-        // Limpiar timers anteriores para evitar toasts duplicadas.
-        // Ambos timers se encadenan bajo el mismo ref para que clearTimeout los cancele en conjunto.
         clearTimeout(toastTimerRef.current);
         toastTimerRef.current = setTimeout(() => {
           setShowIncompleteToast(true);
           toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10000);
         }, 400);
       } else {
-        // Perfil completo: asegurarse de que la toast se oculta si estaba visible
         clearTimeout(toastTimerRef.current);
         setShowIncompleteToast(false);
+      }
+
+      // Después:
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false; // ya no es carga inicial
+        if (isIncomplete) {
+          clearTimeout(toastTimerRef.current);
+          toastTimerRef.current = setTimeout(() => {
+            setShowIncompleteToast(true);
+            toastTimerRef.current = setTimeout(() => setShowIncompleteToast(false), 10000);
+          }, 400);
+        }
       }
     } catch (error) {
       console.error("Error in loadProfile:", error);
@@ -405,18 +416,6 @@ const Profile = () => {
               }}
             >
               <i className="fa-solid fa-pen-to-square me-2"></i>Complete now
-            </button>
-            <button
-              className="pit-btn-ai"
-              onClick={() => {
-                clearTimeout(toastTimerRef.current);
-                setShowIncompleteToast(false);
-                navigate("/private/find-games", {
-                  state: { autoMessage: "I want to finish setting up my profile, can you help me? 🎮" }
-                });
-              }}
-            >
-              <i className="fa-solid fa-robot me-2"></i>Completar con IA
             </button>
             <button
               className="pit-btn-later"

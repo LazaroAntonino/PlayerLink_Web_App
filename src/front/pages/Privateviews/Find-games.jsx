@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+/*import { useState, useRef, useEffect } from "react";
 import "../../findGames.css";
 import useGlobalReducer from "../../hooks/useGlobalReducer";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -82,7 +82,7 @@ export const FindGames = () => {
         try {
           const updated = await userServices.getUserInfo();
           dispatch({ type: "getUserInfo", payload: updated.user });
-        } catch (_) { /* silencioso */ }
+        } catch (_) { /* silencioso  }
         clearTimeout(toastTimerRef.current);
         setProfileUpdatedToast(true);
         toastTimerRef.current = setTimeout(() => setProfileUpdatedToast(false), 4000);
@@ -135,7 +135,7 @@ export const FindGames = () => {
     <div className="fg-page">
       <div className="fg-container">
 
-        {/* ── Toast: perfil actualizado ── */}
+        {/* ── Toast: perfil actualizado ── }
         {profileUpdatedToast && (
           <div className="fg-profile-updated-toast" role="alert">
             <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -146,7 +146,7 @@ export const FindGames = () => {
           </div>
         )}
 
-        {/* ── Header ── */}
+        {/* ── Header ── }
         <div className="fg-header">
           <div className="fg-header-left">
             <div className="fg-ai-avatar">
@@ -173,7 +173,7 @@ export const FindGames = () => {
           </div>
         </div>
 
-        {/* ── Mensajes ── */}
+        {/* ── Mensajes ── }
         <div className="fg-messages" ref={chatScrollRef}>
           {messages.map((msg, idx) => (
             <div key={idx} className={`fg-message-row ${msg.sender}`}>
@@ -186,7 +186,7 @@ export const FindGames = () => {
             </div>
           ))}
 
-          {/* Sugerencias rápidas — solo en el estado inicial */}
+          {/* Sugerencias rápidas — solo en el estado inicial }
           {showSuggestions && messages.length === 1 && (
             <div className="fg-suggestions">
               <p className="fg-suggestions-label">Try asking:</p>
@@ -205,7 +205,7 @@ export const FindGames = () => {
             </div>
           )}
 
-          {/* Typing indicator */}
+          {/* Typing indicator }
           {isLoading && (
             <div className="fg-message-row bot">
               <div className="fg-bot-avatar" aria-hidden="true">
@@ -220,7 +220,7 @@ export const FindGames = () => {
           )}
         </div>
 
-        {/* ── Error banner ── */}
+        {/* ── Error banner ── }
         {error && (
           <div className="fg-error">
             <i className="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
@@ -231,7 +231,7 @@ export const FindGames = () => {
           </div>
         )}
 
-        {/* ── Input area ── */}
+        {/* ── Input area ── }
         <div className="fg-input-area">
           <div className="fg-context-pill">
             <i className="fa-solid fa-database" aria-hidden="true"></i>
@@ -268,4 +268,4 @@ export const FindGames = () => {
       </div>
     </div>
   );
-};
+}; */

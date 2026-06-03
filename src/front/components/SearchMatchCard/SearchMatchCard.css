@@ -1,33 +1,29 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    SearchMatchCard — Pro design, mobile-first, ZERO scroll
-   Layout: hero (foto + identidad overlay) · body adaptativo · acciones
-   Adaptable a perfiles pobres y ricos en información sin huecos ni overflow.
+   Layout: hero (foto + identidad + bio overlay) · body · acciones
+   Bio vive DENTRO del hero para no competir nunca con el flex:1 del body.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .smc-stage {
-  --smc-hero-height: 240px;
+  --smc-hero-min: 220px;
+  --smc-bio-extra: 54px;   /* fallback — overridden by breakpoint media queries */
   --smc-bar-color: var(--color-primary, #00f0ff);
   display: flex;
   justify-content: center;
   align-items: stretch;
   width: 100%;
-  /* Ocupa el resto del espacio que deja el .search-mate-wrapper, sin overflow */
   flex: 1;
   min-height: 0;
   padding: 0 0.5rem;
 }
 
-/* ── Card container ─────────────────────────────────────────────────────── */
-/* Fondo: oscuro casi opaco con backdrop-filter para destacar sobre la
-   imagen colorida (morados / azules / negros) sin perder legibilidad. */
+/* ── Card container ──────────────────────────────────────────────────────── */
 .smc-card {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   max-width: 26rem;
-  /* Ocupa el alto disponible del .smc-stage (que ya es flex:1 dentro del wrapper).
-     max-height limita en tablets/desktop para que no se estire absurdamente. */
   height: 100%;
   max-height: 720px;
   background:
@@ -59,7 +55,7 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Glow neón sutil al border */
+/* Glow neón al border */
 .smc-card::before {
   content: '';
   position: absolute;
@@ -67,16 +63,21 @@
   border-radius: inherit;
   padding: 1px;
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.5), transparent 40%, rgba(143, 0, 255, 0.35) 100%);
+  /* WHY: standard mask added alongside -webkit-mask — all major browsers support standard mask
+     since 2023; without it the neon border glow is invisible on non-WebKit rendering paths */
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
           mask-composite: exclude;
   pointer-events: none;
   z-index: 1;
 }
 
-/* ── Corner brackets (esquinas neón decorativas) ───────────────────────── */
+/* ── Corner brackets ────────────────────────────────────────────────────── */
 .smc-corner {
   position: absolute;
   width: 18px;
@@ -87,20 +88,36 @@
   opacity: 0.85;
 }
 
-.smc-corner--tl { top: 8px; left: 8px;  border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
-.smc-corner--tr { top: 8px; right: 8px; border-left: 0;  border-bottom: 0; border-top-right-radius: 6px; }
+.smc-corner--tl { top: 8px; left: 8px;   border-right: 0; border-bottom: 0; border-top-left-radius: 6px; }
+.smc-corner--tr { top: 8px; right: 8px;  border-left: 0;  border-bottom: 0; border-top-right-radius: 6px; }
 .smc-corner--bl { bottom: 8px; left: 8px;  border-right: 0; border-top: 0; border-bottom-left-radius: 6px; }
 .smc-corner--br { bottom: 8px; right: 8px; border-left: 0;  border-top: 0; border-bottom-right-radius: 6px; }
 
-/* ── HERO: foto + overlay con identidad ─────────────────────────────────── */
+/* ── HERO ────────────────────────────────────────────────────────────────
+   Sin bio:  altura fija = --smc-hero-min  (flex-shrink:0)
+   Con bio:  altura fija = --smc-hero-min + --smc-bio-extra (flex-shrink:0)
+   En ambos casos flex-shrink:0 garantiza que el hero NUNCA se comprime.
+   overflow:hidden corta cualquier exceso sin producir scroll.
+   La imagen se posiciona absolute para rellenar siempre el área completa.
+────────────────────────────────────────────────────────────────────────── */
 .smc-hero {
   position: relative;
-  flex: 0 0 var(--smc-hero-height);
+  flex: 0 0 var(--smc-hero-min);
+  /* Con bio el hero crece exactamente --smc-bio-extra px adicionales */
   overflow: hidden;
-  background: #07070f;
+  /* WHY: --color-bg token instead of magic #07070f — stays consistent if the theme changes */
+  background: var(--color-bg, #07070f);
 }
 
+/* WHY: stale 52px hardcoded fallback removed — canonical value lives on .smc-stage */
+.smc-hero--with-bio {
+  flex-basis: calc(var(--smc-hero-min) + var(--smc-bio-extra));
+}
+
+/* La imagen ocupa absolutamente todo el hero, independiente del contenido */
 .smc-hero-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -109,16 +126,31 @@
   display: block;
 }
 
+/* Shade más profundo cuando hay bio para que el texto sea siempre legible */
 .smc-hero-shade {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(180deg,
       transparent 0%,
-      transparent 35%,
-      rgba(10, 15, 28, 0.55) 65%,
-      rgba(10, 15, 28, 0.95) 100%);
+      transparent 28%,
+      rgba(8, 12, 24, 0.40) 55%,
+      rgba(6, 10, 20, 0.88) 78%,
+      rgba(5, 8, 16, 0.99) 100%);
   pointer-events: none;
+}
+
+/* With-bio: heavier scrim at the bottom — bio sits on a near-opaque panel */
+.smc-hero--with-bio .smc-hero-shade {
+  background:
+    linear-gradient(180deg,
+      transparent 0%,
+      transparent 18%,
+      rgba(8, 12, 24, 0.30) 40%,
+      rgba(7, 10, 20, 0.72) 58%,
+      rgba(5, 8, 16, 0.94) 72%,
+      rgba(4, 6, 14, 0.99) 84%,
+      rgba(4, 6, 14, 1.00) 100%);
 }
 
 .smc-hero-content {
@@ -129,6 +161,7 @@
   padding: 0.75rem 1rem 0.85rem;
   display: flex;
   flex-direction: column;
+  /* WHY: 0.25rem aligns to 4px grid — 0.22rem was an off-grid magic number */
   gap: 0.25rem;
   z-index: 2;
 }
@@ -201,9 +234,40 @@
   text-overflow: ellipsis;
 }
 
-/* ── BODY: 3 secciones siempre presentes, distribución idéntica para todos
-   los perfiles. space-evenly reparte el espacio sobrante en 4 huecos iguales
-   (arriba, entre 1-2, entre 2-3, abajo) → mismo aire entre las 3 partes. ── */
+/* ── BIO — dentro del hero-content ──────────────────────────────────────
+   Separador top sutil. Altura máxima en em para que escale con font-size.
+   overflow:hidden + mask-image = fade elegante en la última línea.
+   NO usa -webkit-line-clamp — incompatible con mask-image (ambos clipean
+   de forma diferente y producen la última línea semitransparente).
+   NUNCA usa flex:1 ni auto → no empuja nada fuera del hero.
+────────────────────────────────────────────────────────────────────────── */
+.smc-bio {
+  margin: 0.28rem 0 0;
+  padding-top: 0.3rem;
+  border-top: 1px solid rgba(0, 240, 255, 0.20);
+
+  font-size: 0.78rem;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+  color: rgba(226, 226, 240, 0.92);
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.95),
+    0 0 14px rgba(0, 0, 0, 0.75);
+
+  /* Exactly 2 lines — max-height = 2 × line-height × 1em */
+  max-height: calc(2 * 1.55em);
+  overflow: hidden;
+
+  /* Fade begins at 88% — line 2 fully legible; only descenders of overflow text fade.
+     WHY: 72% started fading inside line 2's own body, making it visually degraded. */
+  mask-image: linear-gradient(to bottom, #000 0%, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 88%, transparent 100%);
+}
+
+/* ── BODY ────────────────────────────────────────────────────────────────
+   flex:1 + min-height:0 — absorbe exactamente el espacio restante entre
+   hero y actions. Nunca crece más allá de lo disponible → cero scroll.
+────────────────────────────────────────────────────────────────────────── */
 .smc-body {
   flex: 1;
   display: flex;
@@ -213,12 +277,6 @@
   padding: 0.6rem 1rem 0.4rem;
   min-height: 0;
   overflow: hidden;
-}
-
-/* Cada sección toma su tamaño natural; min-height:0 permite que las chips
-   con mask-image hagan fade-out si rebosan en perfiles con mucho contenido. */
-.smc-section {
-  min-height: 0;
 }
 
 .smc-section {
@@ -240,14 +298,16 @@
   filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.5));
 }
 
-.smc-section-icon--pref { color: var(--color-primary, #00f0ff); }
+/* WHY: --pref modifier was a no-op — base .smc-section-icon already sets --color-primary;
+   rule removed entirely. Apply smc-section-icon alone for primary-colored section icons. */
 .smc-section-icon--lang {
   color: #ff66ff;
   filter: drop-shadow(0 0 4px rgba(255, 102, 255, 0.45));
 }
 
 .smc-section-label {
-  font-size: 0.6rem;
+  /* WHY: 0.6rem = 9.6px — below any viable WCAG readable threshold; bumped to 0.65rem (10.4px) minimum */
+  font-size: 0.65rem;
   color: rgba(226, 226, 240, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -262,7 +322,7 @@
   font-style: italic;
 }
 
-/* ── Games list con barras de progreso ──────────────────────────────────── */
+/* ── Games list ──────────────────────────────────────────────────────── */
 .smc-games {
   list-style: none;
   margin: 0;
@@ -305,6 +365,8 @@
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
   animation: smc-bar-grow 0.6s cubic-bezier(0.4, 1.3, 0.5, 1) forwards;
   transform-origin: left;
+  /* WHY: promotes to composite layer — prevents repaints during bar-grow animation on low-end GPUs */
+  will-change: transform;
 }
 
 @keyframes smc-bar-grow {
@@ -324,14 +386,13 @@
   flex-shrink: 0;
 }
 
-/* ── Lista de chips (plataformas / idiomas) ─────────────────────────────── */
+/* ── Chips ───────────────────────────────────────────────────────────── */
 .smc-meta-list {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   min-width: 0;
   overflow: hidden;
-  /* Si rebosa, fade-out gradient para que no se corte feo */
   max-height: 3.2em;
   mask-image: linear-gradient(to bottom, #000 75%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 75%, transparent 100%);
@@ -364,7 +425,7 @@
   border: 1px solid rgba(255, 0, 255, 0.28);
 }
 
-/* ── FOOTER: acciones like / dislike ────────────────────────────────────── */
+/* ── ACTIONS ─────────────────────────────────────────────────────────── */
 .smc-actions {
   display: flex;
   align-items: center;
@@ -406,18 +467,17 @@
 .smc-btn-dislike {
   border-color: var(--color-danger, #ff4d6d);
   color: var(--color-danger, #ff4d6d);
-  box-shadow: 0 0 0 0 rgba(255, 77, 109, 0);
 }
 
 .smc-btn-dislike:hover,
 .smc-btn-dislike:focus-visible {
-  background: rgba(255, 77, 109, 0.12);
-  box-shadow: 0 0 24px rgba(255, 77, 109, 0.5), inset 0 0 12px rgba(255, 77, 109, 0.15);
+  background: rgba(255, 77, 109, 0.14);
+  box-shadow: 0 0 28px rgba(255, 77, 109, 0.55), 0 0 8px rgba(255, 77, 109, 0.3), inset 0 0 14px rgba(255, 77, 109, 0.12);
   transform: scale(1.08);
   outline: none;
 }
 
-.smc-btn-dislike:active { transform: scale(0.92); }
+.smc-btn-dislike:active { transform: scale(0.92); transition: transform 0s; }
 
 .smc-btn-like {
   border-color: #8f00ff;
@@ -426,13 +486,13 @@
 
 .smc-btn-like:hover,
 .smc-btn-like:focus-visible {
-  background: rgba(143, 0, 255, 0.12);
-  box-shadow: 0 0 24px rgba(143, 0, 255, 0.6), inset 0 0 12px rgba(143, 0, 255, 0.15);
+  background: rgba(143, 0, 255, 0.14);
+  box-shadow: 0 0 28px rgba(143, 0, 255, 0.65), 0 0 8px rgba(143, 0, 255, 0.35), inset 0 0 14px rgba(143, 0, 255, 0.12);
   transform: scale(1.08);
   outline: none;
 }
 
-.smc-btn-like:active { transform: scale(0.92); }
+.smc-btn-like:active { transform: scale(0.92); transition: transform 0s; }
 
 @keyframes smc-btn-pulse {
   0%   { transform: scale(1); }
@@ -445,7 +505,7 @@
   animation: smc-btn-pulse 0.4s ease forwards;
 }
 
-/* ── SWIPE STAMPS ───────────────────────────────────────────────────────── */
+/* ── SWIPE STAMPS ────────────────────────────────────────────────────── */
 .smc-stamp {
   position: absolute;
   top: 32px;
@@ -482,7 +542,11 @@
 
 .smc-stamp.visible { opacity: 1; }
 
-/* ── SWIPE EXIT ANIMATIONS ──────────────────────────────────────────────── */
+/* WHY: replaces Bootstrap me-2/ms-2 utilities that are not guaranteed to be in scope */
+.smc-stamp-icon       { margin-right: 0.4rem; }
+.smc-stamp-icon--right { margin-right: 0; margin-left: 0.4rem; }
+
+/* ── EXIT ANIMATIONS ─────────────────────────────────────────────────── */
 @keyframes smc-fly-right {
   from { transform: translateX(0)    rotate(0deg);  opacity: 1; }
   to   { transform: translateX(130%) rotate(20deg); opacity: 0; }
@@ -503,58 +567,94 @@
   pointer-events: none;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE — Tuning fino por viewport
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE — mobile-first, sin scroll en ningún breakpoint
+   Cada breakpoint ajusta --smc-hero-min y --smc-bio-extra de forma que
+   hero-base + bio-extra + body + actions ≤ altura disponible del viewport.
+   ═══════════════════════════════════════════════════════════════════════ */
 
-/* Móvil estrecho (iPhone SE, Galaxy Fold) — ≤374px */
+/* Base (móvil estrecho ≤374px) ─────────────────────────────────────── */
 @media (max-width: 374px) {
-  .smc-stage { --smc-hero-height: 200px; }
-  .smc-name { font-size: 1.25rem; }
-  .smc-hero-content { padding: 0.6rem 0.85rem 0.7rem; }
-  .smc-body { padding: 0.7rem 0.85rem 0.5rem; }
-  .smc-btn { width: 56px; height: 56px; font-size: 1.4rem; }
-  .smc-actions { padding: 0.6rem 0.85rem 0.85rem; gap: 1.2rem; }
-  .smc-game { font-size: 0.78rem; grid-template-columns: minmax(0, 1fr) 1fr auto; gap: 0.45rem; }
+  .smc-stage {
+    --smc-hero-min:   190px;
+    /* 2 lines × 1.55lh × 0.72rem × 16 ≈ 35.7px + margin/pad/border ≈ 10px = 46 → 50 */
+    --smc-bio-extra:   50px;
+  }
+  .smc-name           { font-size: 1.25rem; }
+  .smc-hero-content   { padding: 0.6rem 0.85rem 0.7rem; }
+  .smc-body           { padding: 0.5rem 0.85rem 0.35rem; }
+  .smc-btn            { width: 56px; height: 56px; font-size: 1.4rem; }
+  .smc-actions        { padding: 0.55rem 0.85rem 0.75rem; gap: 1.2rem; }
+  .smc-game           { font-size: 0.78rem; grid-template-columns: minmax(0, 1fr) 1fr auto; gap: 0.45rem; }
+  .smc-bio            { font-size: 0.72rem; }
 }
 
-/* Móvil estándar — 375-430px */
+/* Móvil estándar 375-430px ─────────────────────────────────────────── */
 @media (min-width: 375px) and (max-width: 430px) {
-  .smc-stage { --smc-hero-height: 230px; }
+  .smc-stage {
+    --smc-hero-min:   220px;
+    /* 2 lines × 1.55lh × 0.78rem × 16 ≈ 38.7px + 10px overhead = 49 → 54 */
+    --smc-bio-extra:   54px;
+  }
 }
 
-/* Móvil ancho / phablet — 431-575px */
+/* Phablet 431-575px ─────────────────────────────────────────────────── */
 @media (min-width: 431px) and (max-width: 575px) {
-  .smc-stage { --smc-hero-height: 250px; }
+  .smc-stage {
+    --smc-hero-min:   240px;
+    --smc-bio-extra:   54px;
+  }
 }
 
-/* Tablet (≥576px) */
+/* Tablet ≥576px ─────────────────────────────────────────────────────── */
 @media (min-width: 576px) {
-  .smc-stage { --smc-hero-height: 280px; padding: 0 1rem; }
-  .smc-card { max-width: 28rem; }
-  .smc-name { font-size: 1.7rem; }
-  .smc-game { font-size: 0.9rem; }
+  .smc-stage {
+    --smc-hero-min:   260px;
+    /* 2 lines × 1.55lh × 0.80rem × 16 ≈ 39.7px + 10px = 50 → 56 */
+    --smc-bio-extra:   56px;
+    padding: 0 1rem;
+  }
+  .smc-card           { max-width: 28rem; }
+  .smc-name           { font-size: 1.7rem; }
+  .smc-game           { font-size: 0.9rem; }
+  .smc-bio            { font-size: 0.80rem; }
 }
 
-/* Desktop (≥992px) */
+/* Desktop ≥992px ────────────────────────────────────────────────────── */
 @media (min-width: 992px) {
-  .smc-stage { --smc-hero-height: 320px; }
-  .smc-card { max-width: 30rem; max-height: 760px; }
+  .smc-stage {
+    --smc-hero-min:   300px;
+    /* 2 lines × 1.55lh × 0.82rem × 16 ≈ 40.7px + 10px = 51 → 58 */
+    --smc-bio-extra:   58px;
+  }
+  .smc-card           { max-width: 30rem; max-height: 760px; }
+  .smc-bio            { font-size: 0.82rem; }
 }
 
-/* Altura reducida (paisaje móvil, Fold) */
+/* Altura reducida — landscape móvil / Fold ──────────────────────────── */
 @media (max-height: 640px) {
-  .smc-stage { --smc-hero-height: 170px; }
-  .smc-hero-content { padding: 0.5rem 0.85rem 0.6rem; }
-  .smc-name { font-size: 1.15rem; }
-  .smc-body { padding: 0.6rem 0.85rem 0.5rem; }
-  .smc-actions { padding: 0.55rem 1rem 0.75rem; }
-  .smc-btn { width: 54px; height: 54px; font-size: 1.3rem; }
+  .smc-stage {
+    --smc-hero-min:   160px;
+    /* 1 visible line to save space: 1.55lh × 0.71rem × 16 ≈ 17.6px + 10px = 28 → 32 */
+    --smc-bio-extra:   32px;
+  }
+  .smc-hero-content   { padding: 0.5rem 0.85rem 0.55rem; }
+  .smc-name           { font-size: 1.15rem; }
+  .smc-body           { padding: 0.45rem 0.85rem 0.35rem; }
+  .smc-actions        { padding: 0.45rem 1rem 0.6rem; }
+  .smc-btn            { width: 54px; height: 54px; font-size: 1.3rem; }
+  /* Landscape: show only 1 line of bio — fade on the tail only */
+  .smc-bio {
+    font-size: 0.71rem;
+    max-height: 1.55em;
+    mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    SKELETON LOADER
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════════════ */
 @keyframes smc-shimmer {
   0%   { background-position: -600px 0; }
   100% { background-position:  600px 0; }
@@ -576,33 +676,47 @@
   background-size: 600px 100%;
   animation: smc-shimmer 1.6s infinite linear;
   border-radius: 8px;
+  /* WHY: background-position is NOT compositor-eligible — removed invalid hint.
+         The animation still runs on the compositor via the background shorthand + GPU layer. */
 }
 
-.smc-sk-hero {
-  width: 100%;
-  height: 100%;
-}
-
-.smc-sk-line { height: 14px; border-radius: 6px; }
+.smc-sk-hero  { width: 100%; height: 100%; }
+.smc-sk-line  { height: 14px; border-radius: 6px; }
 .smc-sk-line--title { height: 22px; width: 60%; }
 .smc-sk-line--sub   { height: 12px; width: 45%; }
 .smc-sk-line--xs    { height: 10px; width: 30%; }
-.smc-sk-game        { height: 16px; border-radius: 6px; width: 100%; }
-.smc-sk-chip        { height: 18px; width: 64px; border-radius: 999px; }
-.smc-sk-btn         { width: 64px; height: 64px; border-radius: 50%; }
+.smc-sk-line--bio   { height: 11px; border-radius: 6px; }
+.smc-sk-game  { height: 16px; border-radius: 6px; width: 100%; }
+.smc-sk-chip  { height: 18px; width: 64px; border-radius: 999px; }
+.smc-sk-btn   { width: 64px; height: 64px; border-radius: 50%; }
+
+/* ── Bio shimmer — mirrors exact bio area: margin + padding + 2 lines ── */
+.smc-sk-bio {
+  margin-top: 0.28rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Total height = padding + border + 2 lines + gap — matches --smc-bio-extra budget */
+  min-height: calc(2 * 1.55em + 6px);
+}
 
 @media (max-width: 374px) {
   .smc-sk-btn { width: 56px; height: 56px; }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    EMPTY STATE
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════════════ */
 .empty-state-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* WHY: without height constraint, flex centering collapses to content height when parent is flex */
+  width: 100%;
+  min-height: 100%;
   padding: var(--space-3xl, 4rem) var(--space-xl, 2rem);
   text-align: center;
   animation: smc-enter 0.5s ease forwards;
@@ -661,4 +775,36 @@
   color: var(--color-bg, #07070f);
   box-shadow: var(--glow-primary, 0 0 20px #00f0ff);
   outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — WCAG 2.2 SC 2.3.3
+   Disables all decorative animations for users who opt out of motion.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  /* Card enter animation */
+  .smc-card { animation: none; }
+
+  /* Swipe-decision overlays — freeze instantly instead of fading */
+  .smc-stamp-like,
+  .smc-stamp-dislike { transition: none; }
+
+  /* Button hover/focus scale transitions */
+  .smc-btn-dislike,
+  .smc-btn-like { transition: background 0s, box-shadow 0s, color 0s; }
+  .smc-btn-dislike:active,
+  .smc-btn-like:active { transition: none; }
+
+  /* Pulse burst on like/dislike press */
+  .smc-btn-like.smc-btn-like--pulse,
+  .smc-btn-dislike.smc-btn-dislike--pulse { animation: none; }
+
+  /* Skeleton shimmer */
+  .smc-shimmer { animation: none; }
+
+  /* XP bar grow */
+  .smc-bar-fill { animation: none; }
+
+  /* Empty state float */
+  .empty-state-icon { animation: none; }
 }
