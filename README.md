@@ -72,7 +72,16 @@ git clone https://github.com/LazaroAntonino/PlayerLink_Web_App.git
 cd PlayerLink_Web_App
 ```
 
-Create your `.env` file in the root with these variables:
+Copy the template and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+> **Important:** `FLASK_APP` and `FLASK_DEBUG` are already set via `.flaskenv` (versioned).  
+> The only value you **must** fill in `.env` is `DATABASE_URL` — ask the project owner for the PostgreSQL credentials.
+
+Your `.env` needs at minimum:
 
 ```env
 # Flask
