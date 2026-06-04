@@ -15,7 +15,7 @@ def setup_admin(app):
             warnings.warn("FLASK_APP_KEY is insecure default", RuntimeWarning)
     app.secret_key = flask_app_key
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-    admin = Admin(app, name='4Geeks Admin', template_mode='bootstrap3')
+    admin = Admin(app, name='4Geeks Admin')
 
     
     # Add your models here, for example this is how we add a the User model to the admin
