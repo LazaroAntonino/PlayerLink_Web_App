@@ -19,11 +19,9 @@ Se recomienda instalar el backend primero, asegúrate de tener Python 3.10, Pipe
 2. Crea un archivo .env basado en el .env.example: `$ cp .env.example .env`
 3. Instala tu motor de base de datos y crea tu base de datos, dependiendo de tu base de datos, debes crear una variable DATABASE_URL con uno de los valores posibles, asegúrate de reemplazar los valores con la información de tu base de datos:
 
-| Motor     | DATABASE_URL                                        |
-| --------- | --------------------------------------------------- |
-| SQLite    | sqlite:////test.db                                  |
-| MySQL     | mysql://username:password@localhost:port/example    |
-| Postgres  | postgres://username:password@localhost:5432/example |
+| Motor     | DATABASE_URL                                                |
+| --------- | ----------------------------------------------------------- |
+| Postgres  | postgresql://username:password@host:port/playerlink         |
 
 4. Migra las migraciones: `$ pipenv run migrate` (omite si no has hecho cambios en los modelos en `./src/api/models.py`)
 5. Ejecuta las migraciones: `$ pipenv run upgrade`

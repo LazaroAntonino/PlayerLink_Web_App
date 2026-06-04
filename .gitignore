@@ -76,6 +76,12 @@ dist/*
 
 # backend stuff
 .venv
+
+# local environment files — never commit secrets
+.env
+.env.local
+.env.*.local
+
 database.database
 database.db
 diagram.png

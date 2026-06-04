@@ -11,6 +11,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 os.environ.setdefault("FLASK_DEBUG", "1")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
 os.environ.setdefault("FLASK_APP_KEY", "test-flask-app-key")
+# Force SQLite in-memory for tests — must be set before the app module is imported
+# so that app.py reads this value instead of the PostgreSQL URL from .env
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 import pytest
 from flask_jwt_extended import create_access_token

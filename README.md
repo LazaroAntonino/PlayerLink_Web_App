@@ -29,7 +29,7 @@ Built from scratch as a personal project, mobile-first, with a sci-fi aesthetic.
 |---|---|
 | Frontend | React 18 + Vite + Bootstrap 5 |
 | Backend | Python 3.13 + Flask + Flask-JWT-Extended |
-| Database | PostgreSQL (production) / SQLite (local dev) |
+| Database | PostgreSQL |
 | ORM | SQLAlchemy 2 + Flask-Migrate (Alembic) |
 | Auth | JWT (Bearer token) + bcrypt password hashing |
 | Email | Flask-Mail + Gmail SMTP (App Password) |
@@ -61,6 +61,7 @@ Built from scratch as a personal project, mobile-first, with a sci-fi aesthetic.
 - Python 3.13+
 - Node.js 20+
 - `pipenv` → `pip install pipenv`
+- Access to the project's PostgreSQL server (host, port, user, password — ask the project owner)
 
 ---
 
@@ -79,10 +80,8 @@ FLASK_APP=src/app.py
 FLASK_DEBUG=1
 FLASK_APP_KEY="your-secret-key"
 
-# Database (SQLite for local dev)
-DATABASE_URL=sqlite:////tmp/playerlink_dev.db
-
-# JWT
+  # Database (PostgreSQL — request credentials from the project owner)
+  DATABASE_URL=postgresql://user:password@host:port/playerlink# JWT
 JWT_SECRET_KEY="your-jwt-secret"
 
 # Email (Gmail App Password — no spaces)
@@ -156,10 +155,12 @@ npm run dev
 
 ### 5. Full reset (start from scratch)
 
+> ⚠️ **WARNING**: this resets the PostgreSQL database. If dev and production share the same DB, coordinate with the team before running.
+
 ```bash
-rm -f /tmp/playerlink_dev.db                                  # Delete the DB
-pipenv run flask db upgrade                                    # Recreate all tables
-cd src && pipenv run python seed.py && cd ..                   # Reseed data
+pipenv run flask db downgrade base        # Drop all tables
+pipenv run flask db upgrade               # Recreate all tables
+cd src && pipenv run python seed.py && cd ..   # Reseed test data
 ```
 
 ---

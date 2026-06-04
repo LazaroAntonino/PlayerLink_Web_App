@@ -23,7 +23,7 @@ def setup_commands(app):
             user = User()
             user.email = "test_user" + str(x) + "@test.com"
             user.password = hash_password("Test1234!")
-            user.is_active = True
+            user.email_verified = True
             db.session.add(user)
             db.session.commit()
             print("User: ", user.email, " created.")
